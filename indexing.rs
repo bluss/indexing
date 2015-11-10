@@ -208,10 +208,12 @@ impl<'id> Range<'id> {
 
 impl<'id> Iterator for Range<'id> {
     type Item = Index<'id>;
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if self.start != self.end {
+            let index = self.start;
             self.start += 1;
-            Some(Index { id: PhantomData, idx: self.start - 1 })
+            Some(Index { id: PhantomData, idx: index })
         } else {
             None
         }
@@ -219,6 +221,7 @@ impl<'id> Iterator for Range<'id> {
 }
 
 impl<'id> DoubleEndedIterator for Range<'id> {
+    #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.start != self.end {
             self.end -= 1;
