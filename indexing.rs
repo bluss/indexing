@@ -53,10 +53,17 @@ pub struct Indexer<'id, Array> {
     arr: Array,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq)]
 pub struct Index<'id> {
     id: Id<'id>,
     idx: usize,
+}
+
+/// Index can only be compared with other indices of the same branding
+impl<'id> PartialEq for Index<'id> {
+    fn eq(&self, other: &Index<'id>) -> bool {
+        self.idx == other.idx
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -623,3 +630,107 @@ fn intervals() {
         println!("{:?}", &mut arr[r]);
     });
 }
+
+#[cfg(test)]
+// Copied from rust / libcollections/slice.rs
+fn rust_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
+    use std::mem;
+    use std::ptr;
+    let len = v.len() as isize;
+    let buf_v = v.as_mut_ptr();
+
+    // 1 <= i < len;
+    for i in 1..len {
+        // j satisfies: 0 <= j <= i;
+        let mut j = i;
+        unsafe {
+            // `i` is in bounds.
+            let read_ptr = buf_v.offset(i) as *const T;
+
+            // find where to insert, we need to do strict <,
+            // rather than <=, to maintain stability.
+
+            // 0 <= j - 1 < len, so .offset(j - 1) is in bounds.
+            while j > 0 && less_than(&*read_ptr, &*buf_v.offset(j - 1)) {
+                j -= 1;
+            }
+
+            // shift everything to the right, to make space to
+            // insert this value.
+
+            // j + 1 could be `len` (for the last `i`), but in
+            // that case, `i == j` so we don't copy. The
+            // `.offset(j)` is always in bounds.
+
+            if i != j {
+                let tmp = ptr::read(read_ptr);
+                ptr::copy(&*buf_v.offset(j),
+                          buf_v.offset(j + 1),
+                          (i - j) as usize);
+                ptr::copy_nonoverlapping(&tmp, buf_v.offset(j), 1);
+                mem::forget(tmp);
+            }
+        }
+    }
+}
+
+
+#[cfg(test)]
+fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
+    use std::mem;
+    use std::ptr;
+    indices(v, move |mut v, r| {
+        let mut irange = match r.nonempty() {
+            Ok(r) => r,
+            Err(_) => return,
+        };
+        while let Ok(itail) = irange.advance() {
+            irange = itail;
+            let i = irange.first();
+
+            // jrange is [0, i)
+            let jrange = match v.before(i).nonempty() {
+                Ok(x) => x,
+                Err(_) => return,
+            };
+            let mut j = i;
+
+            let mut len = 0;
+            for j_ in jrange.rev() {
+                if !less_than(&v[i], &v[j_]) {
+                    break;
+                }
+                j = j_;
+                len += 1;
+            }
+
+            unsafe {
+                if i != j {
+                    let tmp = ptr::read(&v[i]);
+                    let jptr = &mut v[j] as *mut _;
+                    ptr::copy(jptr,
+                              jptr.offset(1),
+                              len);
+                    ptr::copy_nonoverlapping(&tmp, jptr, 1);
+                    mem::forget(tmp);
+                }
+            }
+        }
+    });
+}
+
+#[test]
+fn test_insertion_sort() {
+    let mut data = [2, 1];
+    indexing_insertion_sort(&mut data, |a, b| a < b);
+    assert_eq!(data, [1, 2]);
+
+    let mut data = [2, 1, 3];
+    indexing_insertion_sort(&mut data, |a, b| a < b);
+    assert_eq!(data, [1, 2, 3]);
+
+    let mut data = [2, 0, 2, 3, 4, 1, 0];
+    indexing_insertion_sort(&mut data, |a, b| a < b);
+    assert_eq!(data, [0, 0, 1, 2, 2, 3, 4]);
+}
+
