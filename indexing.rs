@@ -37,6 +37,7 @@
 ///
 /// Extended to include interval (range) API
 use std::cmp;
+use std::ops;
 
 use std::marker::PhantomData;
 use std::ops::Deref;
@@ -65,7 +66,7 @@ pub struct Index<'id> {
 }
 
 #[derive(Copy, Clone)]
-pub struct Interval<'id> {
+pub struct Range<'id> {
     _id: Id<'id>,
     start: usize,
     end: usize,
@@ -78,7 +79,7 @@ impl<'id, 'a, T> Indexer<'id, &'a [T]> {
         }
     }
 
-    pub fn slice(&self, r: Interval<'id>) -> &'a [T] {
+    pub fn slice(&self, r: Range<'id>) -> &'a [T] {
         unsafe {
             std::slice::from_raw_parts(
                 self.arr.as_ptr().offset(r.start as isize),
@@ -88,13 +89,27 @@ impl<'id, 'a, T> Indexer<'id, &'a [T]> {
 }
 
 impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
+    pub fn get_(&self, idx: Index<'id>) -> &T {
+        unsafe {
+            self.arr.get_unchecked(idx.idx)
+        }
+    }
+
+    pub fn slice_(&self, r: Range<'id>) -> &[T] {
+        unsafe {
+            std::slice::from_raw_parts(
+                self.arr.as_ptr().offset(r.start as isize),
+                r.end - r.start)
+        }
+    }
+
     pub fn get_mut(&mut self, idx: Index<'id>) -> &mut T {
         unsafe {
             self.arr.get_unchecked_mut(idx.idx)
         }
     }
 
-    pub fn slice_mut(&mut self, r: Interval<'id>) -> &'a mut [T] {
+    pub fn slice_mut(&mut self, r: Range<'id>) -> &'a mut [T] {
         unsafe {
             std::slice::from_raw_parts_mut(
                 self.arr.as_mut_ptr().offset(r.start as isize),
@@ -103,31 +118,91 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
     }
 }
 
-impl<'id> Indices<'id> {
-    pub fn range(&self) -> Interval<'id> {
-        Interval { _id: PhantomData, start: self.min, end: self.max }
+impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a [T]> {
+    type Output = T;
+    fn index(&self, idx: Index<'id>) -> &T {
+        unsafe {
+            self.arr.get_unchecked(idx.idx)
+        }
     }
 }
 
-impl<'id> Interval<'id> {
+impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a [T]> {
+    type Output = [T];
+    fn index(&self, r: Range<'id>) -> &[T] {
+        unsafe {
+            std::slice::from_raw_parts(
+                self.arr.as_ptr().offset(r.start as isize),
+                r.len())
+        }
+    }
+}
+
+impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a mut [T]> {
+    type Output = T;
+    fn index(&self, idx: Index<'id>) -> &T {
+        unsafe {
+            self.arr.get_unchecked(idx.idx)
+        }
+    }
+}
+
+impl<'id, 'a, T> ops::IndexMut<Index<'id>> for Indexer<'id, &'a mut [T]> {
+    fn index_mut(&mut self, idx: Index<'id>) -> &mut T {
+        unsafe {
+            self.arr.get_unchecked_mut(idx.idx)
+        }
+    }
+}
+
+impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a mut [T]> {
+    type Output = [T];
+    fn index(&self, r: Range<'id>) -> &[T] {
+        unsafe {
+            std::slice::from_raw_parts(
+                self.arr.as_ptr().offset(r.start as isize),
+                r.len())
+        }
+    }
+}
+
+impl<'id, 'a, T> ops::IndexMut<Range<'id>> for Indexer<'id, &'a mut [T]> {
+    fn index_mut(&mut self, r: Range<'id>) -> &mut [T] {
+        unsafe {
+            std::slice::from_raw_parts_mut(
+                self.arr.as_mut_ptr().offset(r.start as isize),
+                r.len())
+        }
+    }
+}
+
+impl<'id> Indices<'id> {
+    pub fn range(&self) -> Range<'id> {
+        Range { _id: PhantomData, start: self.min, end: self.max }
+    }
+}
+
+impl<'id> Range<'id> {
     // Is this a good idea?
     /// Return the range [0, 0)
-    pub fn empty() -> Interval<'id> {
-        Interval { _id: PhantomData, start: 0, end: 0 }
+    pub fn empty() -> Range<'id> {
+        Range { _id: PhantomData, start: 0, end: 0 }
     }
 
+    pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
+
     pub fn len(&self) -> usize { self.end - self.start }
-    pub fn halves(&self) -> (Interval<'id>, Interval<'id>) {
+    pub fn halves(&self) -> (Range<'id>, Range<'id>) {
         let mid = (self.end - self.start) / 2 + self.start;
-        (Interval { _id: self._id, start: self.start, end: mid },
-         Interval { _id: self._id, start: mid, end: self.start })
+        (Range { _id: self._id, start: self.start, end: mid },
+         Range { _id: self._id, start: mid, end: self.start })
     }
 
     /// If `i` is past the end, clamp it at the end
-    pub fn split_at_clamp(&self, i: usize) -> (Interval<'id>, Interval<'id>) {
+    pub fn split_at_clamp(&self, i: usize) -> (Range<'id>, Range<'id>) {
         let mid = cmp::min(i, self.start);
-        (Interval { _id: self._id, start: self.start, end: mid },
-         Interval { _id: self._id, start: mid, end: self.start })
+        (Range { _id: self._id, start: self.start, end: mid },
+         Range { _id: self._id, start: mid, end: self.start })
     }
 
     pub fn increase_start(&mut self, offset: usize) {
@@ -163,9 +238,9 @@ impl<'id> DoubleEndedIterator for Indices<'id> {
     }
 }
 
-pub fn indices<Array, F, Out>(arr: Array, f: F) -> Out
+pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     where F: for<'id> FnOnce(Indexer<'id, Array>, Indices<'id>) -> Out,
-          Array: Deref<Target = [u32]>,
+          Array: Deref<Target = [T]>,
 {
     // This is where the magic happens. We bind the indexer and indices
     // to the same invariant lifetime (a constraint established by F's
