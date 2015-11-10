@@ -1,0 +1,8 @@
+[package]
+name = "indexing"
+version = "0.1.0"
+authors = ["bluss", "Gankro"]
+
+[lib]
+
+path = "indexing.rs"
