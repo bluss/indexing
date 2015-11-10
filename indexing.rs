@@ -38,6 +38,7 @@
 /// Extended to include interval (range) API
 use std::cmp;
 use std::ops;
+use std::ptr;
 
 use std::marker::PhantomData;
 use std::ops::Deref;
@@ -82,6 +83,7 @@ impl<'id, 'a, T> Indexer<'id, &'a [T]> {
         }
     }
 }
+
 impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
     // Is this a good idea?
     /// Return the range [0, 0)
@@ -111,6 +113,26 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
         // in bounds because idx + 1 is <= .len()
         unsafe {
             Range::from(index.idx + 1, self.arr.len())
+        }
+    }
+
+    /// Return true if the index is still in bounds
+    #[inline]
+    pub fn forward(&self, index: &mut Index<'id>) -> bool {
+        let i = index.idx + 1;
+        if i < self.arr.len() {
+            index.idx = i;
+            true
+        } else { false }
+    }
+}
+
+impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
+    #[inline]
+    pub fn swap(&mut self, i: Index<'id>, j: Index<'id>) {
+        // ptr::swap is ok with equal pointers
+        unsafe {
+            ptr::swap(&mut self[i], &mut self[j])
         }
     }
 }
