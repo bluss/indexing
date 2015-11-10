@@ -6,3 +6,6 @@ authors = ["bluss", "Gankro"]
 [lib]
 
 path = "indexing.rs"
+
+[profile.bench]
+debug = true

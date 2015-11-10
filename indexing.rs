@@ -757,6 +757,13 @@ fn test_insertion_sort() {
     let mut data = [2, 0, 2, 3, 4, 1, 0];
     indexing_insertion_sort(&mut data, |a, b| a < b);
     assert_eq!(data, [0, 0, 1, 2, 2, 3, 4]);
+
+    let mut data = [0; 100];
+    bench_data(&mut data);
+    let mut data2 = data;
+    indexing_insertion_sort(&mut data, |a, b| a < b);
+    rust_insertion_sort(&mut data2, |a, b| a < b);
+    assert_eq!(&data[..], &data2[..]);
 }
 
 #[cfg(test)]
