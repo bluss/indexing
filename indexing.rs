@@ -187,15 +187,17 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
     #[inline]
     pub fn rotate1<R>(&mut self, r: R) where R: IntoCheckedRange<'id> {
         if let Ok(r) = r.into() {
-            unsafe {
-                let last_ptr = &self[r.last()] as *const _;
-                let first_ptr = &mut self[r.first()] as *mut _;
-                let tmp = ptr::read(last_ptr);
-                ptr::copy(first_ptr,
-                          first_ptr.offset(1),
-                          r.len() - 1);
-                ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
-                mem::forget(tmp);
+            if r.first() != r.last() {
+                unsafe {
+                    let last_ptr = &self[r.last()] as *const _;
+                    let first_ptr = &mut self[r.first()] as *mut _;
+                    let tmp = ptr::read(last_ptr);
+                    ptr::copy(first_ptr,
+                              first_ptr.offset(1),
+                              r.len() - 1);
+                    ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
+                    mem::forget(tmp);
+                }
             }
         }
     }
