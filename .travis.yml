@@ -3,8 +3,6 @@ sudo: false
 
 # run builds for all the trains (and more)
 rust:
-  - stable
-  - beta
   - nightly
 
 # load travis-cargo
