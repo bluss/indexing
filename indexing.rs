@@ -242,8 +242,9 @@ impl<'id> Range<'id> {
 
     #[inline]
     pub fn len(&self) -> usize { self.end - self.start }
+
     #[inline]
-    pub fn halves(&self) -> (Range<'id>, Range<'id>) {
+    pub fn split_in_half(&self) -> (Range<'id>, Range<'id>) {
         let mid = (self.end - self.start) / 2 + self.start;
         (Range { id: self.id, start: self.start, end: mid },
          Range { id: self.id, start: mid, end: self.start })
