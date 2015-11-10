@@ -265,7 +265,7 @@ impl<'id> Range<'id> {
 
     #[inline]
     pub fn clamp_after(&mut self, end: usize) {
-        self.end = cmp::min(self.start + end, self.end);
+        self.end = cmp::min(self.start.saturating_add(end), self.end);
     }
 
     #[inline]
