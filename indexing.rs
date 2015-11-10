@@ -39,6 +39,7 @@
 use std::cmp;
 use std::ops;
 use std::ptr;
+use std::mem;
 
 use std::marker::PhantomData;
 use std::ops::Deref;
@@ -163,6 +164,23 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
             true
         } else { false }
     }
+
+    #[inline]
+    pub fn extend_tail_from<F>(&self, index: Index<'id>, mut f: F) -> Range<'id>
+        where F: FnMut(Index<'id>) -> bool
+    {
+        unsafe {
+            let mut end = index;
+            for i in Range::from(0, index.idx).rev() {
+                if !f(i) {
+                    break;
+                }
+                end = i;
+            }
+            Range::from(end.idx, index.idx + 1)
+        }
+    }
+
 }
 
 impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
@@ -171,6 +189,23 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
         // ptr::swap is ok with equal pointers
         unsafe {
             ptr::swap(&mut self[i], &mut self[j])
+        }
+    }
+
+    /// Rotate elements in the range by one step to the right (towards higher indices)
+    #[inline]
+    pub fn rotate1(&mut self, r: Range<'id>) {
+        if let Ok(r) = r.nonempty() {
+            unsafe {
+                let last_ptr = &self[r.last()] as *const _;
+                let first_ptr = &mut self[r.first()] as *mut _;
+                let tmp = ptr::read(last_ptr);
+                ptr::copy(first_ptr,
+                          first_ptr.offset(1),
+                          r.len() - 1);
+                ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
+                mem::forget(tmp);
+            }
         }
     }
 }
@@ -498,8 +533,8 @@ impl FracStep {
         debug_assert!(start <= end);
         // decimal_step * divisor + frac_step == len
         let len = end - start;
-        let mut decimal_step = len / divisor;
-        let mut frac_step = len % divisor;
+        let decimal_step = len / divisor;
+        let frac_step = len % divisor;
         FracStep {
             f: Frac(start, 0, divisor),
             frac_step: frac_step,
@@ -696,25 +731,8 @@ fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&
             let mut j = i;
 
             let mut len = 0;
-            for j_ in jrange.rev() {
-                if !less_than(&v[i], &v[j_]) {
-                    break;
-                }
-                j = j_;
-                len += 1;
-            }
-
-            unsafe {
-                if i != j {
-                    let tmp = ptr::read(&v[i]);
-                    let jptr = &mut v[j] as *mut _;
-                    ptr::copy(jptr,
-                              jptr.offset(1),
-                              len);
-                    ptr::copy_nonoverlapping(&tmp, jptr, 1);
-                    mem::forget(tmp);
-                }
-            }
+            let jtail = v.extend_tail_from(i, |j_| less_than(&v[i], &v[j_]));
+            v.rotate1(jtail);
         }
     });
 }
