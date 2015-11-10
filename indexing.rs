@@ -67,17 +67,27 @@ pub struct Range<'id> {
 }
 
 impl<'id, 'a, T> Indexer<'id, &'a [T]> {
+    #[inline]
     pub fn get(&self, idx: Index<'id>) -> &'a T {
         unsafe {
             self.arr.get_unchecked(idx.idx)
         }
     }
 
+    #[inline]
     pub fn slice(&self, r: Range<'id>) -> &'a [T] {
         unsafe {
             std::slice::from_raw_parts(
                 self.arr.as_ptr().offset(r.start as isize),
                 r.end - r.start)
+        }
+    }
+}
+impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
+    #[inline]
+    pub fn split_at(&self, index: Index<'id>) -> (Range<'id>, Range<'id>) {
+        unsafe {
+            (Range::from(0, index.idx), Range::from(index.idx, self.arr.len()))
         }
     }
 }
@@ -147,6 +157,10 @@ impl<'id, 'a, T> ops::IndexMut<Range<'id>> for Indexer<'id, &'a mut [T]> {
 }
 
 impl<'id> Range<'id> {
+    unsafe fn from(start: usize, end: usize) -> Self {
+        Range { id: PhantomData, start: start, end: end }
+    }
+
     // Is this a good idea?
     /// Return the range [0, 0)
     pub fn empty() -> Range<'id> {
