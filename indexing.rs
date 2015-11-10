@@ -341,12 +341,40 @@ impl<'id> Range<'id> {
 impl<'id> Checked<Range<'id>, NonEmpty> {
     #[inline]
     pub fn first(&self) -> Index<'id> {
-        Index { id: self.item.id, idx: self.item.start }
+        Index { id: self.id, idx: self.start }
     }
 
     #[inline]
     pub fn last(&self) -> Index<'id> {
-        Index { id: self.item.id, idx: self.item.end - 1 }
+        Index { id: self.id, idx: self.end - 1 }
+    }
+
+    #[inline]
+    pub fn advance(&self) -> Result<Checked<Range<'id>, NonEmpty>,
+                                    Checked<Range<'id>, Empty>>
+    {
+        unsafe {
+            let next = Range::from(self.start + 1, self.end);
+            if !next.is_empty() {
+                Ok(Checked::new(next))
+            } else {
+                Err(Checked::new(next))
+            }
+        }
+    }
+
+    #[inline]
+    pub fn advance_back(&self) -> Result<Checked<Range<'id>, NonEmpty>,
+                                         Checked<Range<'id>, Empty>>
+    {
+        unsafe {
+            let next = Range::from(self.start, self.end - 1);
+            if !next.is_empty() {
+                Ok(Checked::new(next))
+            } else {
+                Err(Checked::new(next))
+            }
+        }
     }
 }
 
