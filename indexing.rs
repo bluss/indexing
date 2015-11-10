@@ -206,8 +206,8 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
     ///
     /// Result always includes `index` in the range
     #[inline]
-    pub fn scan_head<F>(&self, index: Index<'id>, mut f: F) -> Checked<Range<'id>, NonEmpty>
-        where F: FnMut(&T) -> bool
+    pub fn scan_head<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Checked<Range<'id>, NonEmpty>
+        where F: FnMut(&'b T) -> bool
     {
         let mut end = index;
         for elt in &self[self.after(index)] {
