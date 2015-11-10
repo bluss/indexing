@@ -184,24 +184,18 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
 
     /// Rotate elements in the range by one step to the right (towards higher indices)
     #[inline]
-    pub fn rotate1(&mut self, r: Range<'id>) {
-        if let Ok(r) = r.nonempty() {
-            self.rotate1_nonempty(r)
-        }
-    }
-
-    /// Rotate elements in the range by one step to the right (towards higher indices)
-    #[inline]
-    pub fn rotate1_nonempty(&mut self, r: Checked<Range<'id>, NonEmpty>) {
-        unsafe {
-            let last_ptr = &self[r.last()] as *const _;
-            let first_ptr = &mut self[r.first()] as *mut _;
-            let tmp = ptr::read(last_ptr);
-            ptr::copy(first_ptr,
-                      first_ptr.offset(1),
-                      r.len() - 1);
-            ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
-            mem::forget(tmp);
+    pub fn rotate1<R>(&mut self, r: R) where R: IntoCheckedRange<'id> {
+        if let Ok(r) = r.into() {
+            unsafe {
+                let last_ptr = &self[r.last()] as *const _;
+                let first_ptr = &mut self[r.first()] as *mut _;
+                let tmp = ptr::read(last_ptr);
+                ptr::copy(first_ptr,
+                          first_ptr.offset(1),
+                          r.len() - 1);
+                ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
+                mem::forget(tmp);
+            }
         }
     }
 
@@ -415,6 +409,38 @@ impl<'id> Range<'id> {
             fs: FracStep::new(self.start, self.end, n),
             range: *self,
         }
+    }
+}
+
+pub trait IntoCheckedRange<'id> : Sized {
+    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>>;
+}
+
+impl<'id> IntoCheckedRange<'id> for Range<'id> {
+    #[inline]
+    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>> {
+        self.nonempty()
+    }
+}
+
+impl<'id> IntoCheckedRange<'id> for Checked<Range<'id>, NonEmpty> {
+    #[inline]
+    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>> {
+        Ok(self)
+    }
+}
+
+impl<'id> IntoCheckedRange<'id> for Checked<Range<'id>, Empty> {
+    #[inline]
+    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>> {
+        Err(self)
+    }
+}
+
+impl<'id> IntoCheckedRange<'id> for Checked<Range<'id>, Unknown> {
+    #[inline]
+    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>> {
+        (*self).nonempty()
     }
 }
 
@@ -753,7 +779,7 @@ fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&
     indices(v, move |mut v, r| {
         for i in r {
             let jtail = v.scan_tail(i, |j_elt| less_than(&v[i], j_elt));
-            v.rotate1_nonempty(jtail);
+            v.rotate1(jtail);
         }
     });
 }
