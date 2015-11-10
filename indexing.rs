@@ -63,6 +63,19 @@ pub struct Index<'id> {
 pub struct NonEmpty<X>(X);
 
 #[derive(Copy, Clone, Debug)]
+pub enum NotEmpty {}
+#[derive(Copy, Clone, Debug)]
+pub enum Empty {}
+#[derive(Copy, Clone, Debug)]
+pub enum Unknown {}
+
+trait LengthMarker {}
+
+impl LengthMarker for NotEmpty {}
+impl LengthMarker for Empty {}
+impl LengthMarker for Unknown {}
+
+#[derive(Copy, Clone, Debug)]
 pub struct Range<'id> {
     id: Id<'id>,
     start: usize,
@@ -243,8 +256,18 @@ impl<'id> Range<'id> {
     #[inline]
     pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
 
+    /// Check if the range is empty. Nonempty ranges have extra methods.
+    #[inline]
+    pub fn nonempty(&self) -> Option<NonEmpty<Self>> {
+        if self.len() > 0 {
+            Some(NonEmpty(*self))
+        } else { None }
+    }
+
     #[inline]
     pub fn len(&self) -> usize { self.end - self.start }
+    #[inline]
+    pub fn is_empty(&self) -> bool { self.start == self.end }
 
     #[inline]
     pub fn split_in_half(&self) -> (Range<'id>, Range<'id>) {
@@ -268,8 +291,14 @@ impl<'id> Range<'id> {
     }
 
     #[inline]
-    pub fn clamp_after(&mut self, end: usize) {
-        self.end = cmp::min(self.start.saturating_add(end), self.end);
+    pub fn clamp_end_at(&mut self, end: usize) {
+        self.end = cmp::min(cmp::max(self.start, end), self.end);
+    }
+
+    #[inline]
+    pub fn clamp_len(&mut self, len: usize) {
+        let diff = cmp::min(self.len(), len);
+        self.end -= diff;
     }
 
     #[inline]
@@ -292,6 +321,18 @@ impl<'id> Range<'id> {
             fs: FracStep::new(self.start, self.end, n),
             range: *self,
         }
+    }
+}
+
+impl<'id> NonEmpty<Range<'id>> {
+    #[inline]
+    pub fn first(&self) -> Index<'id> {
+        Index { id: self.0.id, idx: self.0.start }
+    }
+
+    #[inline]
+    pub fn last(&self) -> Index<'id> {
+        Index { id: self.0.id, idx: self.0.end - 1 }
     }
 }
 
@@ -373,6 +414,7 @@ struct FracStep {
     f: Frac,
     frac_step: usize,
     decimal_step: usize,
+    start: usize,
     end: usize,
 }
 
@@ -388,6 +430,7 @@ impl FracStep {
             f: Frac(start, 0, divisor),
             frac_step: frac_step,
             decimal_step: decimal_step,
+            start: start,
             end: end,
         }
     }
@@ -410,8 +453,15 @@ pub struct Intervals<'id> {
     fs: FracStep,
 }
 
+impl<'id> Intervals<'id> {
+    /// Reset counter and double up
+    pub fn double(&mut self) {
+    }
+}
+
 impl<'id> Iterator for Intervals<'id> {
     type Item = Range<'id>;
+    #[inline]
     fn next(&mut self) -> Option<Range<'id>> {
         self.fs.next().map(|(i, j)| {
             debug_assert!(self.range.contains(i).is_some());
@@ -474,7 +524,7 @@ fn main() {
             }
         });
     });
-    
+
     // can hold onto the indices for later, as long they stay in the closure
     let _a = indices(arr1, |arr, mut it| {
         let a = it.next().unwrap();
