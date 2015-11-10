@@ -33,9 +33,16 @@
 // The example isn't maximally generic or fleshed out because I got bored trying
 // to express the bounds necessary to handle &[T] and &mut [T] appropriately.
 
-/// Based on “sound unchecked indexing”/“signing” by Gankro.
-///
-/// Extended to include interval (range) API
+//! Based on “sound unchecked indexing”/“signing” by Gankro.
+//!
+//! Extended to include interval (range) API
+
+#![feature(test)]
+
+extern crate test;
+
+use test::Bencher;
+
 use std::cmp;
 use std::ops;
 use std::ptr;
@@ -752,3 +759,59 @@ fn test_insertion_sort() {
     assert_eq!(data, [0, 0, 1, 2, 2, 3, 4]);
 }
 
+#[cfg(test)]
+fn bench_data(data: &mut [i32]) {
+    let len = data.len();
+    for (index, elt) in data.iter_mut().enumerate() {
+        *elt = ((index * 123) % len) as i32;
+    }
+}
+
+#[bench]
+fn bench_insertion_sort_1024(b: &mut Bencher) {
+    let mut data = [0; 1024];
+    bench_data(&mut data);
+
+    b.iter(|| {
+        let mut d = data;
+        indexing_insertion_sort(&mut d, |a, b| a < b);
+    });
+    b.bytes = mem::size_of_val(&data) as u64;
+}
+
+#[bench]
+fn bench_insertion_sort_100(b: &mut Bencher) {
+    let mut data = [0; 100];
+    bench_data(&mut data);
+
+    b.iter(|| {
+        let mut d = data;
+        indexing_insertion_sort(&mut d, |a, b| a < b);
+    });
+    b.bytes = mem::size_of_val(&data) as u64;
+}
+
+
+#[bench]
+fn bench_rust_insertion_sort_1024(b: &mut Bencher) {
+    let mut data = [0; 1024];
+    bench_data(&mut data);
+
+    b.iter(|| {
+        let mut d = data;
+        rust_insertion_sort(&mut d, |a, b| a < b);
+    });
+    b.bytes = mem::size_of_val(&data) as u64;
+}
+
+#[bench]
+fn bench_rust_insertion_sort_100(b: &mut Bencher) {
+    let mut data = [0; 100];
+    bench_data(&mut data);
+
+    b.iter(|| {
+        let mut d = data;
+        rust_insertion_sort(&mut d, |a, b| a < b);
+    });
+    b.bytes = mem::size_of_val(&data) as u64;
+}
