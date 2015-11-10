@@ -200,6 +200,28 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
         }
     }
 
+    /// Examine the elements after `index` in order from lower indices towards higher
+    /// While the closure returns `true`, continue scan and include the scanned
+    /// element in the range.
+    ///
+    /// Result always includes `index` in the range
+    #[inline]
+    pub fn scan_head<F>(&self, index: Index<'id>, mut f: F) -> Checked<Range<'id>, NonEmpty>
+        where F: FnMut(&T) -> bool
+    {
+        let mut end = index;
+        for elt in &self[self.after(index)] {
+            if !f(elt) {
+                break;
+            }
+            end.idx += 1;
+        }
+        end.idx += 1;
+        unsafe {
+            Checked::new(Range::from(index.idx, end.idx))
+        }
+    }
+
     /// Examine the elements before `index` in order from higher indices towards lower.
     /// While the closure returns `true`, continue scan and include the scanned
     /// element in the range.
@@ -210,14 +232,14 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
         where F: FnMut(&T) -> bool
     {
         unsafe {
-            let mut end = index;
+            let mut start = index;
             for elt in self[..index].iter().rev() {
                 if !f(elt) {
                     break;
                 }
-                end.idx -= 1;
+                start.idx -= 1;
             }
-            Checked::new(Range::from(end.idx, index.idx + 1))
+            Checked::new(Range::from(start.idx, index.idx + 1))
         }
     }
 }
@@ -878,4 +900,16 @@ fn bench_rust_insertion_sort_100(b: &mut Bencher) {
         rust_insertion_sort(&mut d, |a, b| a < b);
     });
     b.bytes = mem::size_of_val(&data) as u64;
+}
+
+#[test]
+fn test_scan() {
+    let mut data = [0, 0, 0, 1, 2];
+    indices(&mut data[..], |data, r| {
+        let r = r.nonempty().unwrap();
+        let range = data.scan_head(r.first(), |elt| *elt == 0);
+        assert_eq!(&data[*range], &[0, 0, 0]);
+        let range = data.scan_head(range.last(), |elt| *elt != 0);
+        assert_eq!(&data[*range], &[0, 1, 2]);
+    });
 }
