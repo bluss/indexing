@@ -403,6 +403,62 @@ impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<Index<'id>>> for Indexer<'id, &'a mu
     }
 }
 
+impl<'id, 'a, T> ops::Index<ops::RangeFull> for Indexer<'id, &'a mut [T]> {
+    type Output = [T];
+    #[inline(always)]
+    fn index(&self, r: ops::RangeFull) -> &[T] {
+        &self.arr[..]
+    }
+}
+
+
+// ###### Bounds checking impls #####
+impl<'id, 'a, T> ops::Index<ops::Range<usize>> for Indexer<'id, &'a mut [T]> {
+    type Output = [T];
+    #[inline(always)]
+    fn index(&self, r: ops::Range<usize>) -> &[T] {
+        &self.arr[r]
+    }
+}
+
+impl<'id, 'a, T> ops::Index<ops::RangeFrom<usize>> for Indexer<'id, &'a mut [T]> {
+    type Output = [T];
+    #[inline(always)]
+    fn index(&self, r: ops::RangeFrom<usize>) -> &[T] {
+        &self.arr[r]
+    }
+}
+
+impl<'id, 'a, T> ops::Index<ops::RangeTo<usize>> for Indexer<'id, &'a mut [T]> {
+    type Output = [T];
+    #[inline(always)]
+    fn index(&self, r: ops::RangeTo<usize>) -> &[T] {
+        &self.arr[r]
+    }
+}
+
+impl<'id, 'a, T> ops::IndexMut<ops::Range<usize>> for Indexer<'id, &'a mut [T]> {
+    #[inline(always)]
+    fn index_mut(&mut self, r: ops::Range<usize>) -> &mut [T] {
+        &mut self.arr[r]
+    }
+}
+
+impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<usize>> for Indexer<'id, &'a mut [T]> {
+    #[inline(always)]
+    fn index_mut(&mut self, r: ops::RangeFrom<usize>) -> &mut [T] {
+        &mut self.arr[r]
+    }
+}
+
+impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<usize>> for Indexer<'id, &'a mut [T]> {
+    #[inline(always)]
+    fn index_mut(&mut self, r: ops::RangeTo<usize>) -> &mut [T] {
+        &mut self.arr[r]
+    }
+}
+// ####
+
 /// return the number of steps between a and b
 fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
     (a as usize - b as usize) / mem::size_of::<T>()
