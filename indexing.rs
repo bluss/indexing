@@ -171,23 +171,6 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
             true
         } else { false }
     }
-
-    #[inline]
-    pub fn extend_tail_from<F>(&self, index: Index<'id>, mut f: F) -> Range<'id>
-        where F: FnMut(Index<'id>) -> bool
-    {
-        unsafe {
-            let mut end = index;
-            for i in Range::from(0, index.idx).rev() {
-                if !f(i) {
-                    break;
-                }
-                end = i;
-            }
-            Range::from(end.idx, index.idx + 1)
-        }
-    }
-
 }
 
 impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
@@ -213,6 +196,27 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
                 ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
                 mem::forget(tmp);
             }
+        }
+    }
+
+    /// Examine the elements before `index` in order from higher indices towards lower.
+    /// While the closure returns `true`, continue scan and include the scanned
+    /// element in the range.
+    ///
+    /// Result always includes `index` in the range
+    #[inline]
+    pub fn scan_tail<F>(&self, index: Index<'id>, mut f: F) -> Checked<Range<'id>, NonEmpty>
+        where F: FnMut(&T) -> bool
+    {
+        unsafe {
+            let mut end = index;
+            for elt in self[..index].iter().rev() {
+                if !f(elt) {
+                    break;
+                }
+                end.idx -= 1;
+            }
+            Checked::new(Range::from(end.idx, index.idx + 1))
         }
     }
 }
@@ -302,6 +306,27 @@ impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Indexer<'id, &'a 
             std::slice::from_raw_parts_mut(
                 self.arr.as_mut_ptr().offset(i as isize),
                 self.len() - i)
+        }
+    }
+}
+
+impl<'id, 'a, T> ops::Index<ops::RangeTo<Index<'id>>> for Indexer<'id, &'a mut [T]> {
+    type Output = [T];
+    #[inline(always)]
+    fn index(&self, r: ops::RangeTo<Index<'id>>) -> &[T] {
+        let i = r.end.idx;
+        unsafe {
+            std::slice::from_raw_parts(self.arr.as_ptr(), i)
+        }
+    }
+}
+
+impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<Index<'id>>> for Indexer<'id, &'a mut [T]> {
+    #[inline(always)]
+    fn index_mut(&mut self, r: ops::RangeTo<Index<'id>>) -> &mut [T] {
+        let i = r.end.idx;
+        unsafe {
+            std::slice::from_raw_parts_mut(self.arr.as_mut_ptr(), i)
         }
     }
 }
@@ -731,8 +756,8 @@ fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&
             let mut j = i;
 
             let mut len = 0;
-            let jtail = v.extend_tail_from(i, |j_| less_than(&v[i], &v[j_]));
-            v.rotate1(jtail);
+            let jtail = v.scan_tail(i, |j_elt| less_than(&v[i], j_elt));
+            v.rotate1(*jtail);
         }
     });
 }
