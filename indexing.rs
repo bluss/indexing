@@ -90,6 +90,15 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
             (Range::from(0, index.idx), Range::from(index.idx, self.arr.len()))
         }
     }
+
+    /// Return the range after (not including) the index itself
+    #[inline]
+    pub fn after(&self, index: Index<'id>) -> Range<'id> {
+        // in bounds because idx + 1 is <= .len()
+        unsafe {
+            Range::from(index.idx + 1, self.arr.len())
+        }
+    }
 }
 
 impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a [T]> {
