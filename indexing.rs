@@ -88,22 +88,6 @@ impl<'id, 'a, T> Indexer<'id, &'a [T]> {
     }
 }
 
-impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
-    pub fn get_mut(&mut self, idx: Index<'id>) -> &mut T {
-        unsafe {
-            self.arr.get_unchecked_mut(idx.idx)
-        }
-    }
-
-    pub fn slice_mut(&mut self, r: Range<'id>) -> &'a mut [T] {
-        unsafe {
-            std::slice::from_raw_parts_mut(
-                self.arr.as_mut_ptr().offset(r.start as isize),
-                r.end - r.start)
-        }
-    }
-}
-
 impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a [T]> {
     type Output = T;
     #[inline(always)]
@@ -307,11 +291,10 @@ fn main() {
 #[test]
 fn intervals() {
     let mut data = [0; 16];
-    indices(&mut data[..], |mut arr, mut it| {
-        let r = it.range();
-        for elt in arr.slice_mut(r) {
+    indices(&mut data[..], |mut arr, it| {
+        for elt in &mut arr[it.range()] {
             *elt += 1;
         }
-        println!("{:?}", arr.slice_mut(r));
+        println!("{:?}", &mut arr[it.range()]);
     });
 }
