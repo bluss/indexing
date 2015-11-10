@@ -85,6 +85,11 @@ impl<'id, 'a, T> Indexer<'id, &'a [T]> {
 }
 
 impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.arr.len()
+    }
+
     // Is this a good idea?
     /// Return the range [0, 0)
     #[inline]
