@@ -750,13 +750,8 @@ fn rust_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &
 
 #[cfg(test)]
 fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
-    use std::mem;
-    use std::ptr;
     indices(v, move |mut v, r| {
         for i in r {
-            let mut j = i;
-
-            let mut len = 0;
             let jtail = v.scan_tail(i, |j_elt| less_than(&v[i], j_elt));
             v.rotate1_nonempty(jtail);
         }
