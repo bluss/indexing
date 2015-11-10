@@ -89,20 +89,6 @@ impl<'id, 'a, T> Indexer<'id, &'a [T]> {
 }
 
 impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
-    pub fn get_(&self, idx: Index<'id>) -> &T {
-        unsafe {
-            self.arr.get_unchecked(idx.idx)
-        }
-    }
-
-    pub fn slice_(&self, r: Range<'id>) -> &[T] {
-        unsafe {
-            std::slice::from_raw_parts(
-                self.arr.as_ptr().offset(r.start as isize),
-                r.end - r.start)
-        }
-    }
-
     pub fn get_mut(&mut self, idx: Index<'id>) -> &mut T {
         unsafe {
             self.arr.get_unchecked_mut(idx.idx)
