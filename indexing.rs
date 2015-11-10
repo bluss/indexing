@@ -1,45 +1,15 @@
-// This program demonstrates sound unchecked indexing
-// by having slices generate valid indices, and "signing"
-// them with an invariant lifetime. These indices cannot be used on another
-// slice, nor can they be stored until the array is no longer valid
-// (consider adapting this to Vec, and then trying to use indices after a push).
-//
-// This represents a design "one step removed" from iterators, providing greater
-// control to the consumer of the API. Instead of getting references to elements
-// we get indices, from which we can get references or hypothetically perform
-// any other "index-related" operation (slicing?). Normally, these operations
-// would need to be checked at runtime to avoid indexing out of bounds, but
-// because the array knows it personally minted the indices, it can trust them.
-// This hypothetically enables greater composition. Using this technique
-// one could also do "only once" checked indexing (let idx = arr.validate(idx)).
-//
-// The major drawback of this design is that it requires a closure to
-// create an environment that the signatures are bound to, complicating
-// any logic that flows between the two (e.g. moving values in/out and try!).
-// In principle, the compiler could be "taught" this trick to eliminate the
-// need for the closure, as far as I know. Although how one would communicate
-// that they're trying to do this to the compiler is another question.
-// It also relies on wrapping the structure of interest to provide a constrained
-// API (again, consider applying this to Vec -- need to prevent `push` and `pop`
-// being called). This is the same principle behind Entry and Iterator.
-//
-// It also produces terrible compile errors (random lifetime failures),
-// because we're hacking novel semantics on top of the borrowchecker which
-// it doesn't understand.
-//
-// This technique was first pioneered by gereeter to enable safely constructing
-// search paths in BTreeMap. See Haskell's ST Monad for a related design.
-//
-// The example isn't maximally generic or fleshed out because I got bored trying
-// to express the bounds necessary to handle &[T] and &mut [T] appropriately.
 
 //! Based on “sound unchecked indexing”/“signing” by Gankro.
 //!
 //! Extended to include interval (range) API
 
 #![feature(test)]
+#![feature(core_intrinsics)]
 
 extern crate test;
+
+// Modules
+pub mod pointer;
 
 #[cfg(test)]
 use test::Bencher;
@@ -51,6 +21,10 @@ use std::mem;
 
 use std::marker::PhantomData;
 use std::ops::Deref;
+
+use pointer::PRange;
+use pointer::PIndex;
+
 
 // Cell<T> is invariant in T; so Cell<&'id _> makes `id` invariant.
 // This means that the inference engine is not allowed to shrink or
@@ -74,6 +48,7 @@ impl<'id> PartialEq for Index<'id> {
         self.idx == other.idx
     }
 }
+
 
 #[derive(Copy, Clone, Debug)]
 pub struct Checked<X, L> {
@@ -267,6 +242,57 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
     }
 }
 
+impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
+    #[inline]
+    pub fn pointer_range(&self) -> PRange<'id, T> {
+        unsafe {
+            let start = self.arr.as_ptr();
+            let end = start.offset(self.arr.len() as isize);
+            PRange::from(start, end)
+        }
+    }
+
+    /// Rotate elements in the range by one step to the right (towards higher indices)
+    #[inline]
+    pub fn rotate1_(&mut self, r: Checked<PRange<'id, T>, NonEmpty>) {
+        unsafe {
+            let last_ptr = r.last().ptr();
+            let first_ptr = r.first().ptr_mut();
+            if first_ptr as *const _ == last_ptr {
+                return;
+            }
+            let tmp = ptr::read(last_ptr);
+            ptr::copy(first_ptr,
+                      first_ptr.offset(1),
+                      r.len() - 1);
+            ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
+            mem::forget(tmp);
+        }
+    }
+
+    /// Examine the elements before `index` in order from higher indices towards lower.
+    /// While the closure returns `true`, continue scan and include the scanned
+    /// element in the range.
+    ///
+    /// Result always includes `index` in the range
+    #[inline]
+    pub fn scan_tail_<F>(&self, index: PIndex<'id, T>, mut f: F) -> Checked<PRange<'id, T>, NonEmpty>
+        where F: FnMut(&T) -> bool
+    {
+        unsafe {
+            let mut start = index.ptr();
+            for elt in self[..index].iter().rev() {
+                if !f(elt) {
+                    break;
+                }
+                start = elt as *const _;
+            }
+            Checked::new(PRange::from(start, index.ptr().offset(1)))
+        }
+    }
+}
+
+
 impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a [T]> {
     type Output = T;
     #[inline(always)]
@@ -373,6 +399,41 @@ impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<Index<'id>>> for Indexer<'id, &'a mu
         let i = r.end.idx;
         unsafe {
             std::slice::from_raw_parts_mut(self.arr.as_mut_ptr(), i)
+        }
+    }
+}
+
+/// return the number of steps between a and b
+fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
+    (a as usize - b as usize) / mem::size_of::<T>()
+}
+
+#[inline(always)]
+fn ptr_iselement<T>(arr: &[T], ptr: *const T) {
+    unsafe {
+        let end = arr.as_ptr().offset(arr.len() as isize);
+        debug_assert!(ptr >= arr.as_ptr() && ptr < end);
+    }
+}
+
+impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Indexer<'id, &'a mut [T]> {
+    type Output = T;
+    #[inline(always)]
+    fn index(&self, r: PIndex<'id, T>) -> &T {
+        //ptr_iselement(self.arr, r.ptr());
+        unsafe {
+            &*r.ptr()
+        }
+    }
+}
+
+impl<'id, 'a, T> ops::Index<ops::RangeTo<PIndex<'id, T>>> for Indexer<'id, &'a mut [T]> {
+    type Output = [T];
+    #[inline(always)]
+    fn index(&self, r: ops::RangeTo<PIndex<'id, T>>) -> &[T] {
+        let len = ptrdistance(r.end.ptr(), self.arr.as_ptr());
+        unsafe {
+            std::slice::from_raw_parts(self.arr.as_ptr(), len)
         }
     }
 }
@@ -846,6 +907,16 @@ fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&
     });
 }
 
+#[cfg(test)]
+fn pointerindexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
+    indices(v, move |mut v, _r| {
+        for i in v.pointer_range() {
+            let jtail = v.scan_tail_(i, |j_elt| less_than(&v[i], j_elt));
+            v.rotate1_(jtail);
+        }
+    });
+}
+
 #[test]
 fn test_insertion_sort() {
     let mut data = [2, 1];
@@ -899,6 +970,31 @@ fn bench_insertion_sort_100(b: &mut Bencher) {
     });
     b.bytes = mem::size_of_val(&data) as u64;
 }
+
+#[bench]
+fn bench_pointer_insertion_sort_1024(b: &mut Bencher) {
+    let mut data = [0; 1024];
+    bench_data(&mut data);
+
+    b.iter(|| {
+        let mut d = data;
+        pointerindexing_insertion_sort(&mut d, |a, b| a < b);
+    });
+    b.bytes = mem::size_of_val(&data) as u64;
+}
+
+#[bench]
+fn bench_pointer_insertion_sort_100(b: &mut Bencher) {
+    let mut data = [0; 100];
+    bench_data(&mut data);
+
+    b.iter(|| {
+        let mut d = data;
+        pointerindexing_insertion_sort(&mut d, |a, b| a < b);
+    });
+    b.bytes = mem::size_of_val(&data) as u64;
+}
+
 
 
 #[bench]
