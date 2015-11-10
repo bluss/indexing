@@ -1,7 +1,7 @@
 // This program demonstrates sound unchecked indexing
 // by having slices generate valid indices, and "signing"
 // them with an invariant lifetime. These indices cannot be used on another
-// slice, nor can they be stored until the array is no longer valid 
+// slice, nor can they be stored until the array is no longer valid
 // (consider adapting this to Vec, and then trying to use indices after a push).
 //
 // This represents a design "one step removed" from iterators, providing greater
@@ -12,7 +12,7 @@
 // because the array knows it personally minted the indices, it can trust them.
 // This hypothetically enables greater composition. Using this technique
 // one could also do "only once" checked indexing (let idx = arr.validate(idx)).
-// 
+//
 // The major drawback of this design is that it requires a closure to
 // create an environment that the signatures are bound to, complicating
 // any logic that flows between the two (e.g. moving values in/out and try!).
@@ -45,7 +45,7 @@ use std::ops::Deref;
 
 // Cell<T> is invariant in T; so Cell<&'id _> makes `id` invariant.
 // This means that the inference engine is not allowed to shrink or
-// grow 'id to solve the borrow system. 
+// grow 'id to solve the borrow system.
 type Id<'id> = PhantomData<::std::cell::Cell<&'id mut ()>>;
 
 pub struct Indexer<'id, Array> {
@@ -60,10 +60,20 @@ pub struct Index<'id> {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct NonEmpty<X>(X);
+pub struct Checked<X, L> {
+    item: X,
+    proof: PhantomData<L>,
+}
+
+impl<X, L> Checked<X, L> {
+    #[inline]
+    unsafe fn new(item: X) -> Self {
+        Checked { item: item, proof: PhantomData }
+    }
+}
 
 #[derive(Copy, Clone, Debug)]
-pub enum NotEmpty {}
+pub enum NonEmpty {}
 #[derive(Copy, Clone, Debug)]
 pub enum Empty {}
 #[derive(Copy, Clone, Debug)]
@@ -71,7 +81,7 @@ pub enum Unknown {}
 
 trait LengthMarker {}
 
-impl LengthMarker for NotEmpty {}
+impl LengthMarker for NonEmpty {}
 impl LengthMarker for Empty {}
 impl LengthMarker for Unknown {}
 
@@ -258,10 +268,14 @@ impl<'id> Range<'id> {
 
     /// Check if the range is empty. Nonempty ranges have extra methods.
     #[inline]
-    pub fn nonempty(&self) -> Option<NonEmpty<Self>> {
-        if self.len() > 0 {
-            Some(NonEmpty(*self))
-        } else { None }
+    pub fn nonempty(&self) -> Result<Checked<Self, NonEmpty>, Checked<Self, Empty>> {
+        unsafe {
+            if self.len() > 0 {
+                Ok(Checked::new(*self))
+            } else {
+                Err(Checked::new(*self))
+            }
+        }
     }
 
     #[inline]
@@ -324,15 +338,24 @@ impl<'id> Range<'id> {
     }
 }
 
-impl<'id> NonEmpty<Range<'id>> {
+impl<'id> Checked<Range<'id>, NonEmpty> {
     #[inline]
     pub fn first(&self) -> Index<'id> {
-        Index { id: self.0.id, idx: self.0.start }
+        Index { id: self.item.id, idx: self.item.start }
     }
 
     #[inline]
     pub fn last(&self) -> Index<'id> {
-        Index { id: self.0.id, idx: self.0.end - 1 }
+        Index { id: self.item.id, idx: self.item.end - 1 }
+    }
+}
+
+/// Deref to the inner range
+// NOTE: immutable deref is ok, mutable would be unsound
+impl<'id, X, L> Deref for Checked<X, L> {
+    type Target = X;
+    fn deref(&self) -> &X {
+        &self.item
     }
 }
 
@@ -532,7 +555,7 @@ fn main() {
         println!("{} {}", arr.get(a), arr.get(b));
         // a    // should be invalid to return an index
     });
-    
+    //
     // can get references out, just not indices
     let (x, y) = indices(arr1, |arr, mut r| {
         println!("{:?}", arr.slice(r));
@@ -541,7 +564,7 @@ fn main() {
         (arr.get(a), arr.get(b))
     });
     println!("{} {}", x, y);
-    
+    //
     // Excercise to the reader: sound multi-index mutable indexing!?
     // (hint: it would be unsound with the current design)
 }
