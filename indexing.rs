@@ -41,6 +41,7 @@
 
 extern crate test;
 
+#[cfg(test)]
 use test::Bencher;
 
 use std::cmp;
@@ -600,12 +601,15 @@ struct FracStep {
 
 impl FracStep {
     #[inline]
-    fn new(start: usize, end: usize, divisor: usize) -> Self {
+    fn new(start: usize, mut end: usize, divisor: usize) -> Self {
         debug_assert!(start <= end);
         // decimal_step * divisor + frac_step == len
         let len = end - start;
         let decimal_step = len / divisor;
         let frac_step = len % divisor;
+        if decimal_step == 0 {
+            end = start;
+        }
         FracStep {
             f: Frac(start, 0, divisor),
             frac_step: frac_step,
@@ -627,6 +631,7 @@ impl FracStep {
     }
 }
 
+/// `Intervals` is an iterator of evenly sized nonempty, nonoverlapping ranges
 #[derive(Copy, Clone, Debug)]
 pub struct Intervals<'id> {
     range: Range<'id>,
@@ -640,14 +645,15 @@ impl<'id> Intervals<'id> {
 }
 
 impl<'id> Iterator for Intervals<'id> {
-    type Item = Range<'id>;
+    type Item = Checked<Range<'id>, NonEmpty>;
     #[inline]
-    fn next(&mut self) -> Option<Range<'id>> {
+    fn next(&mut self) -> Option<Checked<Range<'id>, NonEmpty>> {
         self.fs.next().map(|(i, j)| {
             debug_assert!(self.range.contains(i).is_some());
             debug_assert!(self.range.contains(j).is_some() || j == self.range.end);
+            debug_assert!(i != j);
             unsafe {
-                Range::from(i, j)
+                Checked::new(Range::from(i, j))
             }
         })
     }
@@ -667,10 +673,14 @@ fn test_frac_step() {
     assert_eq!(f.next(), Some((6, 9)));
     assert_eq!(f.next(), None);
 
-    // FIXME: This isn't the best.
-    let mut f = FracStep::new(0, 3, 8);
-    assert_eq!(f.next(), Some((0, 0)));
-    assert_eq!(f.next(), Some((0, 0)));
+    // Too long and it should be empty
+    let mut f = FracStep::new(0, 7, 8);
+    assert_eq!(f.next(), None);
+    assert_eq!(f.next(), None);
+
+    let mut f = FracStep::new(0, 3, 1);
+    assert_eq!(f.next(), Some((0, 3)));
+    assert_eq!(f.next(), None);
 }
 
 #[test]
@@ -678,7 +688,7 @@ fn test_intervals() {
     let mut data = [0; 8];
     indices(&mut data[..], |mut data, r| {
         for (index, part) in r.even_chunks(3).enumerate() {
-            for elt in &mut data[part] {
+            for elt in &mut data[*part] {
                 *elt = index;
             }
         }
