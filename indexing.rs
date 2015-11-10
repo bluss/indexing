@@ -49,25 +49,19 @@ use std::iter::DoubleEndedIterator;
 type Id<'id> = PhantomData<::std::cell::Cell<&'id mut ()>>;
 
 pub struct Indexer<'id, Array> {
-    _id: Id<'id>,
+    id: Id<'id>,
     arr: Array,
-}
-
-pub struct Indices<'id> {
-    _id: Id<'id>,
-    min: usize,
-    max: usize,
 }
 
 #[derive(Copy, Clone, Debug)]
 pub struct Index<'id> {
-    _id: Id<'id>,
+    id: Id<'id>,
     idx: usize,
 }
 
 #[derive(Copy, Clone, Debug)]
 pub struct Range<'id> {
-    _id: Id<'id>,
+    id: Id<'id>,
     start: usize,
     end: usize,
 }
@@ -152,18 +146,11 @@ impl<'id, 'a, T> ops::IndexMut<Range<'id>> for Indexer<'id, &'a mut [T]> {
     }
 }
 
-impl<'id> Indices<'id> {
-    #[inline]
-    pub fn range(&self) -> Range<'id> {
-        Range { _id: PhantomData, start: self.min, end: self.max }
-    }
-}
-
 impl<'id> Range<'id> {
     // Is this a good idea?
     /// Return the range [0, 0)
     pub fn empty() -> Range<'id> {
-        Range { _id: PhantomData, start: 0, end: 0 }
+        Range { id: PhantomData, start: 0, end: 0 }
     }
 
     #[inline]
@@ -174,16 +161,16 @@ impl<'id> Range<'id> {
     #[inline]
     pub fn halves(&self) -> (Range<'id>, Range<'id>) {
         let mid = (self.end - self.start) / 2 + self.start;
-        (Range { _id: self._id, start: self.start, end: mid },
-         Range { _id: self._id, start: mid, end: self.start })
+        (Range { id: self.id, start: self.start, end: mid },
+         Range { id: self.id, start: mid, end: self.start })
     }
 
     /// If `i` is past the end, clamp it at the end
     #[inline]
     pub fn split_at_clamp(&self, i: usize) -> (Range<'id>, Range<'id>) {
         let mid = cmp::min(i, self.end);
-        (Range { _id: self._id, start: self.start, end: mid },
-         Range { _id: self._id, start: mid, end: self.end })
+        (Range { id: self.id, start: self.start, end: mid },
+         Range { id: self.id, start: mid, end: self.end })
     }
 
     #[inline]
@@ -196,25 +183,32 @@ impl<'id> Range<'id> {
     pub fn decrease_end(&mut self, offset: usize) {
         self.end = cmp::max(self.start, self.end.saturating_sub(offset));
     }
+
+    #[inline]
+    pub fn contains(&self, index: usize) -> Option<Index<'id>> {
+        if index >= self.start && index <= self.end {
+            Some(Index { id: self.id, idx: index })
+        } else { None }
+    }
 }
 
-impl<'id> Iterator for Indices<'id> {
+impl<'id> Iterator for Range<'id> {
     type Item = Index<'id>;
     fn next(&mut self) -> Option<Self::Item> {
-        if self.min != self.max {
-            self.min += 1;
-            Some(Index { _id: PhantomData, idx: self.min - 1 })
+        if self.start != self.end {
+            self.start += 1;
+            Some(Index { id: PhantomData, idx: self.start - 1 })
         } else {
             None
         }
     }
 }
 
-impl<'id> DoubleEndedIterator for Indices<'id> {
+impl<'id> DoubleEndedIterator for Range<'id> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.min != self.max {
-            self.max -= 1;
-            Some(Index { _id: PhantomData, idx: self.max })
+        if self.start != self.end {
+            self.end -= 1;
+            Some(Index { id: PhantomData, idx: self.end })
         } else {
             None
         }
@@ -223,7 +217,7 @@ impl<'id> DoubleEndedIterator for Indices<'id> {
 
 #[inline]
 pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
-    where F: for<'id> FnOnce(Indexer<'id, Array>, Indices<'id>) -> Out,
+    where F: for<'id> FnOnce(Indexer<'id, Array>, Range<'id>) -> Out,
           Array: Deref<Target = [T]>,
 {
     // This is where the magic happens. We bind the indexer and indices
@@ -244,8 +238,8 @@ pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     // it sound again. Borrowck will never do such analysis, so we don't
     // care.
     let len = arr.len();
-    let indexer = Indexer { _id: PhantomData, arr: arr };
-    let indices = Indices { _id: PhantomData, min: 0, max: len };
+    let indexer = Indexer { id: PhantomData, arr: arr };
+    let indices = Range { id: PhantomData, start: 0, end: len };
     f(indexer, indices)
 }
 
@@ -275,11 +269,10 @@ fn main() {
     });
     
     // can get references out, just not indices
-    let (x, y) = indices(arr1, |arr, mut it| {
-        let r = it.range();
+    let (x, y) = indices(arr1, |arr, mut r| {
         println!("{:?}", arr.slice(r));
-        let a = it.next().unwrap();
-        let b = it.next_back().unwrap();
+        let a = r.next().unwrap();
+        let b = r.next_back().unwrap();
         (arr.get(a), arr.get(b))
     });
     println!("{} {}", x, y);
@@ -291,10 +284,10 @@ fn main() {
 #[test]
 fn intervals() {
     let mut data = [0; 16];
-    indices(&mut data[..], |mut arr, it| {
-        for elt in &mut arr[it.range()] {
+    indices(&mut data[..], |mut arr, r| {
+        for elt in &mut arr[r] {
             *elt += 1;
         }
-        println!("{:?}", &mut arr[it.range()]);
+        println!("{:?}", &mut arr[r]);
     });
 }
