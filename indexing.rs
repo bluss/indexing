@@ -222,6 +222,27 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
         }
     }
 
+    /// Examine the elements `range` in order from lower indices towards higher
+    /// While the closure returns `true`, continue scan and include the scanned
+    /// element in the range.
+    ///
+    /// Result always includes `index` in the range
+    #[inline]
+    pub fn scan_range<'b, F>(&'b self, range: Range<'id>, mut f: F) -> Range<'id>
+        where F: FnMut(&'b T) -> bool
+    {
+        let mut end = range.start;
+        for elt in &self[range] {
+            if !f(elt) {
+                break;
+            }
+            end += 1;
+        }
+        unsafe {
+            Range::from(range.start, end)
+        }
+    }
+
     /// Examine the elements before `index` in order from higher indices towards lower.
     /// While the closure returns `true`, continue scan and include the scanned
     /// element in the range.
