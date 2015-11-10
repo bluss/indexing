@@ -186,16 +186,22 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
     #[inline]
     pub fn rotate1(&mut self, r: Range<'id>) {
         if let Ok(r) = r.nonempty() {
-            unsafe {
-                let last_ptr = &self[r.last()] as *const _;
-                let first_ptr = &mut self[r.first()] as *mut _;
-                let tmp = ptr::read(last_ptr);
-                ptr::copy(first_ptr,
-                          first_ptr.offset(1),
-                          r.len() - 1);
-                ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
-                mem::forget(tmp);
-            }
+            self.rotate1_nonempty(r)
+        }
+    }
+
+    /// Rotate elements in the range by one step to the right (towards higher indices)
+    #[inline]
+    pub fn rotate1_nonempty(&mut self, r: Checked<Range<'id>, NonEmpty>) {
+        unsafe {
+            let last_ptr = &self[r.last()] as *const _;
+            let first_ptr = &mut self[r.first()] as *mut _;
+            let tmp = ptr::read(last_ptr);
+            ptr::copy(first_ptr,
+                      first_ptr.offset(1),
+                      r.len() - 1);
+            ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
+            mem::forget(tmp);
         }
     }
 
@@ -748,16 +754,11 @@ fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&
     use std::ptr;
     indices(v, move |mut v, r| {
         for i in r {
-            // jrange is [0, i)
-            let jrange = match v.before(i).nonempty() {
-                Ok(x) => x,
-                Err(_) => continue,
-            };
             let mut j = i;
 
             let mut len = 0;
             let jtail = v.scan_tail(i, |j_elt| less_than(&v[i], j_elt));
-            v.rotate1(*jtail);
+            v.rotate1_nonempty(jtail);
         }
     });
 }
