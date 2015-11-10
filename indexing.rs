@@ -41,7 +41,6 @@ use std::ops;
 
 use std::marker::PhantomData;
 use std::ops::Deref;
-use std::iter::DoubleEndedIterator;
 
 // Cell<T> is invariant in T; so Cell<&'id _> makes `id` invariant.
 // This means that the inference engine is not allowed to shrink or
@@ -84,10 +83,25 @@ impl<'id, 'a, T> Indexer<'id, &'a [T]> {
     }
 }
 impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
+    // Is this a good idea?
+    /// Return the range [0, 0)
+    #[inline]
+    pub fn empty_range(&self) -> Range<'id> {
+        Range { id: PhantomData, start: 0, end: 0 }
+    }
+
     #[inline]
     pub fn split_at(&self, index: Index<'id>) -> (Range<'id>, Range<'id>) {
         unsafe {
             (Range::from(0, index.idx), Range::from(index.idx, self.arr.len()))
+        }
+    }
+
+    /// Return the range before (not including) the index itself
+    #[inline]
+    pub fn before(&self, index: Index<'id>) -> Range<'id> {
+        unsafe {
+            Range::from(0, index.idx)
         }
     }
 
@@ -169,13 +183,6 @@ impl<'id> Range<'id> {
     #[inline(always)]
     unsafe fn from(start: usize, end: usize) -> Self {
         Range { id: PhantomData, start: start, end: end }
-    }
-
-    // Is this a good idea?
-    /// Return the range [0, 0)
-    #[inline]
-    pub fn empty() -> Range<'id> {
-        Range { id: PhantomData, start: 0, end: 0 }
     }
 
     #[inline]
