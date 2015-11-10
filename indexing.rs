@@ -722,18 +722,11 @@ fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&
     use std::mem;
     use std::ptr;
     indices(v, move |mut v, r| {
-        let mut irange = match r.nonempty() {
-            Ok(r) => r,
-            Err(_) => return,
-        };
-        while let Ok(itail) = irange.advance() {
-            irange = itail;
-            let i = irange.first();
-
+        for i in r {
             // jrange is [0, i)
             let jrange = match v.before(i).nonempty() {
                 Ok(x) => x,
-                Err(_) => return,
+                Err(_) => continue,
             };
             let mut j = i;
 
