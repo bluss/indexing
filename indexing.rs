@@ -166,12 +166,14 @@ impl<'id, 'a, T> ops::IndexMut<Range<'id>> for Indexer<'id, &'a mut [T]> {
 }
 
 impl<'id> Range<'id> {
+    #[inline(always)]
     unsafe fn from(start: usize, end: usize) -> Self {
         Range { id: PhantomData, start: start, end: end }
     }
 
     // Is this a good idea?
     /// Return the range [0, 0)
+    #[inline]
     pub fn empty() -> Range<'id> {
         Range { id: PhantomData, start: 0, end: 0 }
     }
@@ -200,6 +202,11 @@ impl<'id> Range<'id> {
     pub fn increase_start(&mut self, offset: usize) {
         // FIXME saturating?
         self.start = cmp::min(self.start.saturating_add(offset), self.end);
+    }
+
+    #[inline]
+    pub fn clamp_after(&mut self, end: usize) {
+        self.end = cmp::min(self.start + end, self.end);
     }
 
     #[inline]
