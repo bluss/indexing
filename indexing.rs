@@ -345,6 +345,22 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
     }
 
     #[inline]
+    pub fn tail(&self) -> Range<'id> {
+        // in bounds since it's nonempty
+        unsafe {
+            Range::from(self.start + 1, self.end)
+        }
+    }
+
+    #[inline]
+    pub fn init(&self) -> Range<'id> {
+        // in bounds since it's nonempty
+        unsafe {
+            Range::from(self.start, self.end - 1)
+        }
+    }
+
+    #[inline]
     pub fn last(&self) -> Index<'id> {
         Index { id: self.id, idx: self.end - 1 }
     }
