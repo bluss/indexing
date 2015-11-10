@@ -206,6 +206,31 @@ impl<'id, 'a, T> ops::IndexMut<Range<'id>> for Indexer<'id, &'a mut [T]> {
     }
 }
 
+impl<'id, 'a, T> ops::Index<ops::RangeFrom<Index<'id>>> for Indexer<'id, &'a mut [T]> {
+    type Output = [T];
+    #[inline(always)]
+    fn index(&self, r: ops::RangeFrom<Index<'id>>) -> &[T] {
+        let i = r.start.idx;
+        unsafe {
+            std::slice::from_raw_parts(
+                self.arr.as_ptr().offset(i as isize),
+                self.len() - i)
+        }
+    }
+}
+
+impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Indexer<'id, &'a mut [T]> {
+    #[inline(always)]
+    fn index_mut(&mut self, r: ops::RangeFrom<Index<'id>>) -> &mut [T] {
+        let i = r.start.idx;
+        unsafe {
+            std::slice::from_raw_parts_mut(
+                self.arr.as_mut_ptr().offset(i as isize),
+                self.len() - i)
+        }
+    }
+}
+
 impl<'id> Range<'id> {
     #[inline(always)]
     unsafe fn from(start: usize, end: usize) -> Self {
