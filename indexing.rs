@@ -60,6 +60,9 @@ pub struct Index<'id> {
 }
 
 #[derive(Copy, Clone, Debug)]
+pub struct NonEmpty<X>(X);
+
+#[derive(Copy, Clone, Debug)]
 pub struct Range<'id> {
     id: Id<'id>,
     start: usize,
@@ -280,6 +283,16 @@ impl<'id> Range<'id> {
             Some(Index { id: self.id, idx: index })
         } else { None }
     }
+
+    /// Return an iterator that divides the range in `n` parts, in as
+    /// eaven length chunks as possible.
+    #[inline]
+    pub fn even_chunks(&self, n: usize) -> Intervals<'id> {
+        Intervals {
+            fs: FracStep::new(self.start, self.end, n),
+            range: *self,
+        }
+    }
 }
 
 impl<'id> Iterator for Range<'id> {
@@ -335,6 +348,115 @@ pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     let indices = Range { id: PhantomData, start: 0, end: len };
     f(indexer, indices)
 }
+
+#[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
+/// decimal, numerator, denominator
+struct Frac(usize, usize, usize);
+
+impl Frac {
+    // Add decimal and fractional part, return decimal result
+    #[inline]
+    fn next_interval(&mut self, dec: usize, frac: usize) -> (usize, usize) {
+        let start = self.0;
+        self.0 += dec;
+        self.1 += frac;
+        if self.1 >= self.2 {
+            self.1 -= self.2;
+            self.0 += 1;
+        }
+        (start, self.0)
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]
+struct FracStep {
+    f: Frac,
+    frac_step: usize,
+    decimal_step: usize,
+    end: usize,
+}
+
+impl FracStep {
+    #[inline]
+    fn new(start: usize, end: usize, divisor: usize) -> Self {
+        debug_assert!(start <= end);
+        // decimal_step * divisor + frac_step == len
+        let len = end - start;
+        let mut decimal_step = len / divisor;
+        let mut frac_step = len % divisor;
+        FracStep {
+            f: Frac(start, 0, divisor),
+            frac_step: frac_step,
+            decimal_step: decimal_step,
+            end: end,
+        }
+    }
+
+    /// Return the next interval / index range
+    #[inline]
+    fn next(&mut self) -> Option<(usize, usize)> {
+        if self.f.0 >= self.end {
+            None
+        } else {
+            let (ds, fs) = (self.decimal_step, self.frac_step);
+            Some(self.f.next_interval(ds, fs))
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct Intervals<'id> {
+    range: Range<'id>,
+    fs: FracStep,
+}
+
+impl<'id> Iterator for Intervals<'id> {
+    type Item = Range<'id>;
+    fn next(&mut self) -> Option<Range<'id>> {
+        self.fs.next().map(|(i, j)| {
+            debug_assert!(self.range.contains(i).is_some());
+            debug_assert!(self.range.contains(j).is_some() || j == self.range.end);
+            unsafe {
+                Range::from(i, j)
+            }
+        })
+    }
+}
+
+#[test]
+fn test_frac_step() {
+    let mut f = FracStep::new(0, 8, 3);
+    assert_eq!(f.next(), Some((0, 2)));
+    assert_eq!(f.next(), Some((2, 5)));
+    assert_eq!(f.next(), Some((5, 8)));
+    assert_eq!(f.next(), None);
+
+    let mut f = FracStep::new(1, 9, 3);
+    assert_eq!(f.next(), Some((1, 3)));
+    assert_eq!(f.next(), Some((3, 6)));
+    assert_eq!(f.next(), Some((6, 9)));
+    assert_eq!(f.next(), None);
+
+    // FIXME: This isn't the best.
+    let mut f = FracStep::new(0, 3, 8);
+    assert_eq!(f.next(), Some((0, 0)));
+    assert_eq!(f.next(), Some((0, 0)));
+}
+
+#[test]
+fn test_intervals() {
+    let mut data = [0; 8];
+    indices(&mut data[..], |mut data, r| {
+        for (index, part) in r.even_chunks(3).enumerate() {
+            for elt in &mut data[part] {
+                *elt = index;
+            }
+        }
+    });
+    assert_eq!(&data[..], &[0, 0, 1, 1, 1, 2, 2, 2]);
+}
+
+
 
 #[test]
 fn main() {
