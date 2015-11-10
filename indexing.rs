@@ -59,13 +59,13 @@ pub struct Indices<'id> {
     max: usize,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Index<'id> {
     _id: Id<'id>,
     idx: usize,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Range<'id> {
     _id: Id<'id>,
     start: usize,
@@ -120,6 +120,7 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
 
 impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a [T]> {
     type Output = T;
+    #[inline(always)]
     fn index(&self, idx: Index<'id>) -> &T {
         unsafe {
             self.arr.get_unchecked(idx.idx)
@@ -129,6 +130,7 @@ impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a [T]> {
 
 impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a [T]> {
     type Output = [T];
+    #[inline(always)]
     fn index(&self, r: Range<'id>) -> &[T] {
         unsafe {
             std::slice::from_raw_parts(
@@ -140,6 +142,7 @@ impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a [T]> {
 
 impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a mut [T]> {
     type Output = T;
+    #[inline(always)]
     fn index(&self, idx: Index<'id>) -> &T {
         unsafe {
             self.arr.get_unchecked(idx.idx)
@@ -148,6 +151,7 @@ impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a mut [T]> {
 }
 
 impl<'id, 'a, T> ops::IndexMut<Index<'id>> for Indexer<'id, &'a mut [T]> {
+    #[inline(always)]
     fn index_mut(&mut self, idx: Index<'id>) -> &mut T {
         unsafe {
             self.arr.get_unchecked_mut(idx.idx)
@@ -157,6 +161,7 @@ impl<'id, 'a, T> ops::IndexMut<Index<'id>> for Indexer<'id, &'a mut [T]> {
 
 impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a mut [T]> {
     type Output = [T];
+    #[inline(always)]
     fn index(&self, r: Range<'id>) -> &[T] {
         unsafe {
             std::slice::from_raw_parts(
@@ -167,6 +172,7 @@ impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a mut [T]> {
 }
 
 impl<'id, 'a, T> ops::IndexMut<Range<'id>> for Indexer<'id, &'a mut [T]> {
+    #[inline(always)]
     fn index_mut(&mut self, r: Range<'id>) -> &mut [T] {
         unsafe {
             std::slice::from_raw_parts_mut(
@@ -177,6 +183,7 @@ impl<'id, 'a, T> ops::IndexMut<Range<'id>> for Indexer<'id, &'a mut [T]> {
 }
 
 impl<'id> Indices<'id> {
+    #[inline]
     pub fn range(&self) -> Range<'id> {
         Range { _id: PhantomData, start: self.min, end: self.max }
     }
@@ -189,9 +196,12 @@ impl<'id> Range<'id> {
         Range { _id: PhantomData, start: 0, end: 0 }
     }
 
+    #[inline]
     pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
 
+    #[inline]
     pub fn len(&self) -> usize { self.end - self.start }
+    #[inline]
     pub fn halves(&self) -> (Range<'id>, Range<'id>) {
         let mid = (self.end - self.start) / 2 + self.start;
         (Range { _id: self._id, start: self.start, end: mid },
@@ -199,17 +209,20 @@ impl<'id> Range<'id> {
     }
 
     /// If `i` is past the end, clamp it at the end
+    #[inline]
     pub fn split_at_clamp(&self, i: usize) -> (Range<'id>, Range<'id>) {
-        let mid = cmp::min(i, self.start);
+        let mid = cmp::min(i, self.end);
         (Range { _id: self._id, start: self.start, end: mid },
-         Range { _id: self._id, start: mid, end: self.start })
+         Range { _id: self._id, start: mid, end: self.end })
     }
 
+    #[inline]
     pub fn increase_start(&mut self, offset: usize) {
         // FIXME saturating?
         self.start = cmp::min(self.start.saturating_add(offset), self.end);
     }
 
+    #[inline]
     pub fn decrease_end(&mut self, offset: usize) {
         self.end = cmp::max(self.start, self.end.saturating_sub(offset));
     }
@@ -238,6 +251,7 @@ impl<'id> DoubleEndedIterator for Indices<'id> {
     }
 }
 
+#[inline]
 pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     where F: for<'id> FnOnce(Indexer<'id, Array>, Indices<'id>) -> Out,
           Array: Deref<Target = [T]>,
