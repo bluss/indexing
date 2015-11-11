@@ -535,6 +535,17 @@ impl<'id> Range<'id> {
          Range { id: self.id, start: mid, end: self.end })
     }
 
+    /// Split to length `i`; if past the end, return false and clamp to the end
+    #[inline]
+    pub fn split_at(&self, i: usize) -> (Range<'id>, Range<'id>, bool) {
+        let mid = if i > self.len() {
+             self.end
+        } else { self.start + i };
+        (Range { id: self.id, start: self.start, end: mid },
+         Range { id: self.id, start: mid, end: self.end },
+         i <= self.len())
+    }
+
     #[inline]
     pub fn increase_start(&mut self, offset: usize) {
         // FIXME saturating?
