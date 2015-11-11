@@ -67,14 +67,11 @@ impl<X, L> Checked<X, L> {
 pub enum NonEmpty {}
 #[derive(Copy, Clone, Debug)]
 pub enum Empty {}
-#[derive(Copy, Clone, Debug)]
-pub enum Unknown {}
 
 trait LengthMarker {}
 
 impl LengthMarker for NonEmpty {}
 impl LengthMarker for Empty {}
-impl LengthMarker for Unknown {}
 
 #[derive(Copy, Clone, Debug)]
 pub struct Range<'id> {
@@ -608,13 +605,6 @@ impl<'id> IntoCheckedRange<'id> for Checked<Range<'id>, Empty> {
     #[inline]
     fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>> {
         Err(self)
-    }
-}
-
-impl<'id> IntoCheckedRange<'id> for Checked<Range<'id>, Unknown> {
-    #[inline]
-    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>> {
-        (*self).nonempty()
     }
 }
 
