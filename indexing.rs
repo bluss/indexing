@@ -1215,7 +1215,6 @@ fn test_quicksort() {
                 };
                 */
 
-                println!("v={:?}, piv={:?}, {:?}", &v[..], pivot, &v[pivot]);
                 // partition
                 if let Ok(mut scan) = range.nonempty() {
                     'main: loop {
@@ -1236,7 +1235,6 @@ fn test_quicksort() {
                         }
                     }
 
-                    println!("recurse, v={:?}, piv={:?}", &v[..], pivot);
                     // ok split at pivot location and recurse
                     let (a, b) = v.split_at(scan.first());
                     qsort(&mut v[a]);
