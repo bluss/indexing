@@ -985,9 +985,11 @@ fn rust_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &
 #[cfg(test)]
 fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
     indices(v, move |mut v, r| {
-        for i in r {
-            let jtail = v.scan_tail(i, |j_elt| less_than(&v[i], j_elt));
-            v.rotate1(jtail);
+        if let Ok(mut i) = r.nonempty() {
+            while i.advance() {
+                let jtail = v.scan_tail(i.first(), |j_elt| less_than(&v[i.first()], j_elt));
+                v.rotate1(jtail);
+            }
         }
     });
 }
