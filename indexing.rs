@@ -19,6 +19,8 @@ use std::ops;
 use std::ptr;
 use std::mem;
 
+use std::fmt::{self, Debug};
+
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
@@ -45,10 +47,16 @@ pub struct Indexer<'id, Array> {
     arr: Array,
 }
 
-#[derive(Copy, Clone, Debug, Eq)]
+#[derive(Copy, Clone, Eq)]
 pub struct Index<'id> {
     id: Id<'id>,
     idx: usize,
+}
+
+impl<'id> Debug for Index<'id> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Index({})", self.idx)
+    }
 }
 
 /// Index can only be compared with other indices of the same branding
@@ -82,13 +90,6 @@ trait LengthMarker {}
 
 impl LengthMarker for NonEmpty {}
 impl LengthMarker for Empty {}
-
-#[derive(Copy, Clone, Debug)]
-pub struct Range<'id> {
-    id: Id<'id>,
-    start: usize,
-    end: usize,
-}
 
 impl<'id, 'a, T> Indexer<'id, &'a [T]> {
     #[inline]
@@ -512,6 +513,13 @@ impl<'id, T, Array> ops::Index<ops::RangeTo<PIndex<'id, T>>> for Indexer<'id, Ar
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct Range<'id> {
+    id: Id<'id>,
+    start: usize,
+    end: usize,
+}
+
 impl<'id> Range<'id> {
     #[inline(always)]
     unsafe fn from(start: usize, end: usize) -> Self {
@@ -609,6 +617,12 @@ impl<'id> Range<'id> {
             fs: FracStep::new(self.start, self.end, n),
             range: *self,
         }
+    }
+}
+
+impl<'id> Debug for Range<'id> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Range({}, {})", self.start, self.end)
     }
 }
 
