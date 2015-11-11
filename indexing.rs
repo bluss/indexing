@@ -636,7 +636,9 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
         Index { id: self.id, idx: self.start }
     }
 
-    /// Return the middle index, rounding up on even
+    /// Return the middle index, rounding up.
+    ///
+    /// Produces `mid` where `mid = start + len / 2`.
     #[inline]
     pub fn upper_middle(&self) -> Index<'id> {
         let mid = (self.end - self.start) / 2 + self.start;
