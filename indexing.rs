@@ -20,11 +20,21 @@ use std::ptr;
 use std::mem;
 
 use std::marker::PhantomData;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 use pointer::PRange;
 use pointer::PIndex;
 
+/// A marker trait for collections where we can safely use `AsRef` and `AsMut`
+pub unsafe trait Buffer : Deref {
+}
+
+//unsafe impl<T> Buffer<T> for [T] { }
+unsafe impl<'a, T> Buffer for &'a [T] { }
+unsafe impl<'a, T> Buffer for &'a mut [T] { }
+
+pub unsafe trait BufferMut : Buffer + DerefMut { }
+unsafe impl<X: ?Sized> BufferMut for X where X: Buffer + DerefMut { }
 
 // Cell<T> is invariant in T; so Cell<&'id _> makes `id` invariant.
 // This means that the inference engine is not allowed to shrink or
@@ -98,7 +108,7 @@ impl<'id, 'a, T> Indexer<'id, &'a [T]> {
     }
 }
 
-impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
+impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn len(&self) -> usize {
         self.arr.len()
@@ -245,7 +255,7 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
     }
 }
 
-impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
+impl<'id, T, Array> Indexer<'id, Array> where Array: BufferMut<Target=[T]> {
     #[inline]
     pub fn pointer_range(&self) -> PRange<'id, T> {
         unsafe {
@@ -296,7 +306,9 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
 }
 
 
-impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a [T]> {
+impl<'id, T, Array> ops::Index<Index<'id>> for Indexer<'id, Array>
+    where Array: Buffer<Target=[T]>
+{
     type Output = T;
     #[inline(always)]
     fn index(&self, idx: Index<'id>) -> &T {
@@ -314,16 +326,6 @@ impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a [T]> {
             std::slice::from_raw_parts(
                 self.arr.as_ptr().offset(r.start as isize),
                 r.len())
-        }
-    }
-}
-
-impl<'id, 'a, T> ops::Index<Index<'id>> for Indexer<'id, &'a mut [T]> {
-    type Output = T;
-    #[inline(always)]
-    fn index(&self, idx: Index<'id>) -> &T {
-        unsafe {
-            self.arr.get_unchecked(idx.idx)
         }
     }
 }
@@ -385,7 +387,9 @@ impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Indexer<'id, &'a 
     }
 }
 
-impl<'id, 'a, T> ops::Index<ops::RangeTo<Index<'id>>> for Indexer<'id, &'a mut [T]> {
+impl<'id, T, Array> ops::Index<ops::RangeTo<Index<'id>>> for Indexer<'id, Array>
+    where Array: Buffer<Target=[T]>,
+{
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeTo<Index<'id>>) -> &[T] {
@@ -396,7 +400,9 @@ impl<'id, 'a, T> ops::Index<ops::RangeTo<Index<'id>>> for Indexer<'id, &'a mut [
     }
 }
 
-impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<Index<'id>>> for Indexer<'id, &'a mut [T]> {
+impl<'id, T, Array> ops::IndexMut<ops::RangeTo<Index<'id>>> for Indexer<'id, Array>
+    where Array: BufferMut<Target=[T]>
+{
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeTo<Index<'id>>) -> &mut [T] {
         let i = r.end.idx;
@@ -486,7 +492,9 @@ impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Indexer<'id, &'a mut [T]> {
     }
 }
 
-impl<'id, 'a, T> ops::Index<ops::RangeTo<PIndex<'id, T>>> for Indexer<'id, &'a mut [T]> {
+impl<'id, T, Array> ops::Index<ops::RangeTo<PIndex<'id, T>>> for Indexer<'id, Array>
+    where Array: Buffer<Target=[T]>,
+{
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeTo<PIndex<'id, T>>) -> &[T] {
@@ -726,7 +734,7 @@ impl<'id> DoubleEndedIterator for Range<'id> {
 #[inline]
 pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     where F: for<'id> FnOnce(Indexer<'id, Array>, Range<'id>) -> Out,
-          Array: Deref<Target = [T]>,
+          Array: Buffer<Target=[T]>,
 {
     // This is where the magic happens. We bind the indexer and indices
     // to the same invariant lifetime (a constraint established by F's
