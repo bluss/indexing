@@ -103,33 +103,20 @@ fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &mut [
             loop {
                 if buffer[i.first()] <= data[j.first()] {
                     swap(&mut buffer[i.first()], &mut data[out.first()]);
-                    match out.advance() {
-                        Ok(o) => out = o,
-                        Err(_) => return,
-                    }
-                    match i.advance() {
-                        Ok(r) => i = r,
-                        Err(_) => return,
-                    }
+                    if !out.advance() { return; }
+                    if !i.advance() { return; }
                 } else {
                     data.swap(j.first(), out.first());
-                    match out.advance() {
-                        Ok(o) => out = o,
-                        Err(_) => return,
-                    }
-                    match j.advance() {
-                        Ok(r) => j = r,
-                        Err(_) => {
-                            // block swap remainder
-                            block_swap2(&mut buffer[*i], &mut data[*out]);
-                            break;
-                        }
+                    if !out.advance() { return; }
+                    if !j.advance() {
+                        // block swap remainder
+                        block_swap2(&mut buffer[*i], &mut data[*out]);
+                        break;
                     }
                 }
             }
         })
     })
 }
-
 
 fn main() { }
