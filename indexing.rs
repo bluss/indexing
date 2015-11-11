@@ -1182,19 +1182,33 @@ fn test_scan() {
 
 #[test]
 fn test_quicksort() {
-    fn qsort<T: Ord + std::fmt::Debug>(data: &mut [T]) {
-        indices(data, |mut data, r| {
-            if r.len() < 2 { return; }
-            if let Ok(r) = r.nonempty() {
-                let mut pivot = r.upper_middle();
+    fn qsort<T: Ord + std::fmt::Debug>(v: &mut [T]) {
+        indices(v, |mut v, range| {
+            if range.len() < 2 { return; }
+            if let Ok(range) = range.nonempty() {
+                // simple pivot
+                let mut pivot = range.upper_middle();
 
+                /*
+                // smart pivot -- use median of three
+                let (r, m, l) = (range.first(), range.upper_middle(), range.last());
+                let mut pivot = if v[l] <= v[m] && v[m] <= v[r] {
+                    m
+                } else if v[l] >= v[m] && v[l] <= v[r] {
+                    l
+                } else {
+                    r
+                };
+                */
+
+                println!("v={:?}, piv={:?}, {:?}", &v[..], pivot, &v[pivot]);
                 // partition
-                if let Ok(mut scan) = r.nonempty() {
+                if let Ok(mut scan) = range.nonempty() {
                     'main: loop {
-                        if data[scan.first()] > data[pivot] {
+                        if v[scan.first()] > v[pivot] {
                             loop {
-                                if data[scan.last()] <= data[pivot] {
-                                    data.swap(scan.first(), scan.last());
+                                if v[scan.last()] <= v[pivot] {
+                                    v.swap(scan.first(), scan.last());
                                     break;
                                 }
                                 if !scan.advance_back() {
@@ -1203,17 +1217,16 @@ fn test_quicksort() {
                             }
                         }
                         if !scan.advance() {
-                            data.swap(pivot, scan.first());
-                            pivot = scan.first();
+                            v.swap(pivot, scan.first());
                             break;
                         }
                     }
 
-                    println!("recurse, data={:?}", &data[..]);
+                    println!("recurse, v={:?}, piv={:?}", &v[..], pivot);
                     // ok split at pivot location and recurse
-                    let (a, b) = data.split_at(pivot);
-                    qsort(&mut data[a]);
-                    qsort(&mut data[b]);
+                    let (a, b) = v.split_at(scan.first());
+                    qsort(&mut v[a]);
+                    qsort(&mut v[b]);
                 }
             }
         });
@@ -1222,6 +1235,10 @@ fn test_quicksort() {
     let mut data = [1, 0];
     qsort(&mut data);
     assert_eq!(&data, &[0, 1]);
+
+    let mut data = [1, 2, 2, 1, 3, 3, 2, 3];
+    qsort(&mut data);
+    assert_eq!(&data, &[1, 1, 2, 2, 2, 3, 3, 3]);
 
     let mut data = [1, 4, 2, 0, 3];
     qsort(&mut data);
