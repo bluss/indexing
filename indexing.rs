@@ -1196,16 +1196,21 @@ fn test_scan() {
 
 #[test]
 fn test_quicksort() {
+    /// Simple quicksort implemented using `indexing`,
     fn qsort<T: Ord + std::fmt::Debug>(v: &mut [T]) {
         // I think this is similar to Hoare’s version?
         indices(v, |mut v, range| {
-            if range.len() < 2 { return; }
             if let Ok(range) = range.nonempty() {
-                // simple pivot
-                // let mut pivot = range.upper_middle();
 
-                // smart pivot -- use median of three
                 let (r, m, l) = (range.first(), range.upper_middle(), range.last());
+                // return, if the range is too short to sort
+                if r == l {
+                    return;
+                }
+                // simple pivot
+                // let pivot = m;
+                //
+                // smart pivot -- use median of three
                 let pivot = if v[l] <= v[m] && v[m] <= v[r] {
                     m
                 } else if v[l] >= v[m] && v[l] <= v[r] {
