@@ -242,8 +242,8 @@ impl<'id, T, Array> Indexer<'id, Array>
     ///
     /// Result always includes `index` in the range
     #[inline]
-    pub fn scan_tail<F>(&self, index: Index<'id>, mut f: F) -> Checked<Range<'id>, NonEmpty>
-        where F: FnMut(&T) -> bool
+    pub fn scan_tail<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Checked<Range<'id>, NonEmpty>
+        where F: FnMut(&'b T) -> bool, T: 'b
     {
         unsafe {
             let mut start = index;
