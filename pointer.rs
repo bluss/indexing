@@ -3,7 +3,6 @@ use std::marker::PhantomData;
 use std::mem;
 use super::Id;
 use super::{Checked, Empty, NonEmpty};
-use super::{Range, Index};
 
 use std::intrinsics::assume;
 

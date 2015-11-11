@@ -111,6 +111,12 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Deref<Target=[T]> {
         Range { id: PhantomData, start: 0, end: 0 }
     }
 
+    /// Return the full range of the Indexer.
+    #[inline]
+    pub fn range(&self) -> Range<'id> {
+        Range { id: PhantomData, start: 0, end: self.arr.len() }
+    }
+
     #[inline]
     pub fn split_at(&self, index: Index<'id>) -> (Range<'id>, Range<'id>) {
         unsafe {
@@ -403,7 +409,7 @@ impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<Index<'id>>> for Indexer<'id, &'a mu
 impl<'id, 'a, T> ops::Index<ops::RangeFull> for Indexer<'id, &'a mut [T]> {
     type Output = [T];
     #[inline(always)]
-    fn index(&self, r: ops::RangeFull) -> &[T] {
+    fn index(&self, _: ops::RangeFull) -> &[T] {
         &self.arr[..]
     }
 }
@@ -500,7 +506,7 @@ impl<'id> Range<'id> {
     #[inline]
     pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
 
-    /// Check if the range is empty. Nonempty ranges have extra methods.
+    /// Check if the range is empty. non-empty ranges have extra methods.
     #[inline]
     pub fn nonempty(&self) -> Result<Checked<Self, NonEmpty>, Checked<Self, Empty>> {
         unsafe {
@@ -512,8 +518,11 @@ impl<'id> Range<'id> {
         }
     }
 
+    /// Return the length of the range.
     #[inline]
     pub fn len(&self) -> usize { self.end - self.start }
+
+    /// Return `true` if the range is empty.
     #[inline]
     pub fn is_empty(&self) -> bool { self.start == self.end }
 
@@ -524,23 +533,27 @@ impl<'id> Range<'id> {
          Range { id: self.id, start: mid, end: self.start })
     }
 
-    /// If `i` is past the end, clamp it at the end
+    /// If `abs_index` is past the end, clamp it at the end
+    ///
+    /// `abs_index` is an absolute index
     #[inline]
-    pub fn split_at_clamp(&self, i: usize) -> (Range<'id>, Range<'id>) {
-        let mid = cmp::min(i, self.end);
+    pub fn split_at_clamp(&self, abs_index: usize) -> (Range<'id>, Range<'id>) {
+        let mid = cmp::min(abs_index, self.end);
         (Range { id: self.id, start: self.start, end: mid },
          Range { id: self.id, start: mid, end: self.end })
     }
 
-    /// Split to length `i`; if past the end, return false and clamp to the end
+    /// Split to length `index`; if past the end, return false and clamp to the end
+    ///
+    /// `index` is a relative index.
     #[inline]
-    pub fn split_at(&self, i: usize) -> (Range<'id>, Range<'id>, bool) {
-        let mid = if i > self.len() {
+    pub fn split_at(&self, index: usize) -> (Range<'id>, Range<'id>, bool) {
+        let mid = if index > self.len() {
              self.end
-        } else { self.start + i };
+        } else { self.start + index };
         (Range { id: self.id, start: self.start, end: mid },
          Range { id: self.id, start: mid, end: self.end },
-         i <= self.len())
+         index <= self.len())
     }
 
     #[inline]
@@ -565,10 +578,11 @@ impl<'id> Range<'id> {
         self.end = cmp::max(self.start, self.end.saturating_sub(offset));
     }
 
+    /// `abs_index` is an absolute index
     #[inline]
-    pub fn contains(&self, index: usize) -> Option<Index<'id>> {
-        if index >= self.start && index <= self.end {
-            Some(Index { id: self.id, idx: index })
+    pub fn contains(&self, abs_index: usize) -> Option<Index<'id>> {
+        if abs_index >= self.start && abs_index <= self.end {
+            Some(Index { id: self.id, idx: abs_index })
         } else { None }
     }
 
@@ -607,6 +621,9 @@ impl<'id> IntoCheckedRange<'id> for Checked<Range<'id>, Empty> {
         Err(self)
     }
 }
+
+/// Type alias for **N**on **E**mpty Range.
+pub type NeRange<'id> = Checked<Range<'id>, NonEmpty>;
 
 impl<'id> Checked<Range<'id>, NonEmpty> {
     #[inline]
@@ -730,7 +747,7 @@ pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     // care.
     let len = arr.len();
     let indexer = Indexer { id: PhantomData, arr: arr };
-    let indices = Range { id: PhantomData, start: 0, end: len };
+    let indices = indexer.range();
     f(indexer, indices)
 }
 
