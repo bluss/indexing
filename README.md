@@ -1,6 +1,11 @@
 # indexing
 “Sound unchecked indexing” in Rust using branding
 
+Extremely experimental, but somewhat promising & exciting.
+
+Main focus is on index ranges, not just single indices.
+
+```
 // This program demonstrates sound unchecked indexing
 // by having slices generate valid indices, and "signing"
 // them with an invariant lifetime. These indices cannot be used on another
@@ -35,3 +40,4 @@
 //
 // The example isn't maximally generic or fleshed out because I got bored trying
 // to express the bounds necessary to handle &[T] and &mut [T] appropriately.
+```
