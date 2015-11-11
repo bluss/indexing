@@ -54,6 +54,7 @@ pub struct Index<'id> {
 
 /// Index can only be compared with other indices of the same branding
 impl<'id> PartialEq for Index<'id> {
+    #[inline(always)]
     fn eq(&self, other: &Index<'id>) -> bool {
         self.idx == other.idx
     }
@@ -630,7 +631,7 @@ impl<'id> IntoCheckedRange<'id> for Checked<Range<'id>, Empty> {
 pub type NeRange<'id> = Checked<Range<'id>, NonEmpty>;
 
 impl<'id> Checked<Range<'id>, NonEmpty> {
-    #[inline]
+    #[inline(always)]
     pub fn first(&self) -> Index<'id> {
         Index { id: self.id, idx: self.start }
     }
@@ -668,7 +669,8 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
                                     Checked<Range<'id>, Empty>>
     {
         unsafe {
-            let next = Range::from(self.start + 1, self.end);
+            let mut next = **self;
+            next.start += 1;
             if !next.is_empty() {
                 Ok(Checked::new(next))
             } else {
