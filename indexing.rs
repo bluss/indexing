@@ -665,7 +665,7 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
     }
 
     #[inline]
-    pub fn advance(&self) -> Result<Checked<Range<'id>, NonEmpty>, ()>
+    pub fn advance_(&self) -> Result<Checked<Range<'id>, NonEmpty>, ()>
     {
         unsafe {
             let mut next = **self;
@@ -678,16 +678,20 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
         }
     }
 
+    /// Step this range forward, if the result is still a non-empty range.
+    ///
+    /// Return `true` if stepped successfully, `false` if the range would be empty.
     #[inline]
-    pub fn advance_back(&self) -> Result<Checked<Range<'id>, NonEmpty>,
-                                         Checked<Range<'id>, Empty>>
+    pub fn advance(&mut self) -> bool
     {
         unsafe {
-            let next = Range::from(self.start, self.end - 1);
-            if !next.is_empty() {
-                Ok(Checked::new(next))
+            let mut next = **self;
+            next.start += 1;
+            if next.start < next.end {
+                self.item = next;
+                true
             } else {
-                Err(Checked::new(next))
+                false
             }
         }
     }
