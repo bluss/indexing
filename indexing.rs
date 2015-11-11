@@ -134,6 +134,17 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
+    /// Split in two ranges, where the first includes the `index` and the second
+    /// starts with the following index.
+    #[inline]
+    pub fn split_after(&self, index: Index<'id>) -> (Range<'id>, Range<'id>) {
+        let mid = index.idx + 1; // must be <= len since `index` is in bounds
+        unsafe {
+            (Range::from(0, mid), Range::from(mid, self.arr.len()))
+        }
+    }
+
+
     /// Return the range before (not including) the index itself
     #[inline]
     pub fn before(&self, index: Index<'id>) -> Range<'id> {
@@ -685,15 +696,29 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
     #[inline]
     pub fn advance(&mut self) -> bool
     {
-        unsafe {
-            let mut next = **self;
-            next.start += 1;
-            if next.start < next.end {
-                self.item = next;
-                true
-            } else {
-                false
-            }
+        let mut next = **self;
+        next.start += 1;
+        if next.start < next.end {
+            self.item = next;
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Step the range's end, if the result is still a non-empty range.
+    ///
+    /// Return `true` if stepped successfully, `false` if the range would be empty.
+    #[inline]
+    pub fn advance_back(&mut self) -> bool
+    {
+        let mut next = **self;
+        next.end -= 1;
+        if next.start < next.end {
+            self.item = next;
+            true
+        } else {
+            false
         }
     }
 }
@@ -1153,4 +1178,64 @@ fn test_scan() {
         let range = data.scan_head(range.last(), |elt| *elt != 0);
         assert_eq!(&data[*range], &[0, 1, 2]);
     });
+}
+
+#[test]
+fn test_quicksort() {
+    fn qsort<T: Ord + std::fmt::Debug>(data: &mut [T]) {
+        indices(data, |mut data, r| {
+            if r.len() < 2 { return; }
+            if let Ok(r) = r.nonempty() {
+                let mut pivot = r.upper_middle();
+
+                // partition
+                if let Ok(mut scan) = r.nonempty() {
+                    'main: loop {
+                        if data[scan.first()] > data[pivot] {
+                            loop {
+                                if data[scan.last()] <= data[pivot] {
+                                    data.swap(scan.first(), scan.last());
+                                    break;
+                                }
+                                if !scan.advance_back() {
+                                    break 'main;
+                                }
+                            }
+                        }
+                        if !scan.advance() {
+                            data.swap(pivot, scan.first());
+                            pivot = scan.first();
+                            break;
+                        }
+                    }
+
+                    println!("recurse, data={:?}", &data[..]);
+                    // ok split at pivot location and recurse
+                    let (a, b) = data.split_at(pivot);
+                    qsort(&mut data[a]);
+                    qsort(&mut data[b]);
+                }
+            }
+        });
+    }
+
+    let mut data = [1, 0];
+    qsort(&mut data);
+    assert_eq!(&data, &[0, 1]);
+
+    let mut data = [1, 4, 2, 0, 3];
+    qsort(&mut data);
+    assert_eq!(&data, &[0, 1, 2, 3, 4]);
+
+    let mut data = [4, 3, 2, 1, 0];
+    qsort(&mut data);
+    assert_eq!(&data, &[0, 1, 2, 3, 4]);
+
+    let mut data = [0, 1, 2, 3, 4];
+    qsort(&mut data);
+    assert_eq!(&data, &[0, 1, 2, 3, 4]);
+
+    let mut data = [0, 1, 5, 2, 3, 4];
+    qsort(&mut data);
+    assert_eq!(&data, &[0, 1, 2, 3, 4, 5]);
 }
