@@ -25,11 +25,10 @@ use std::ops::{Deref, DerefMut};
 use pointer::PRange;
 use pointer::PIndex;
 
-/// A marker trait for collections where we can safely use `AsRef` and `AsMut`
+/// A marker trait for collections where we can safely vet indices
 pub unsafe trait Buffer : Deref {
 }
 
-//unsafe impl<T> Buffer<T> for [T] { }
 unsafe impl<'a, T> Buffer for &'a [T] { }
 unsafe impl<'a, T> Buffer for &'a mut [T] { }
 
