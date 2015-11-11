@@ -162,7 +162,9 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
     }
 }
 
-impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
+impl<'id, T, Array> Indexer<'id, Array>
+    where Array: BufferMut<Target=[T]>,
+{
     #[inline]
     pub fn swap(&mut self, i: Index<'id>, j: Index<'id>) {
         // ptr::swap is ok with equal pointers
@@ -197,7 +199,7 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
     /// Result always includes `index` in the range
     #[inline]
     pub fn scan_head<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Checked<Range<'id>, NonEmpty>
-        where F: FnMut(&'b T) -> bool
+        where F: FnMut(&'b T) -> bool, T: 'b,
     {
         let mut end = index;
         for elt in &self[self.after(index)] {
@@ -219,7 +221,7 @@ impl<'id, 'a, T> Indexer<'id, &'a mut [T]> {
     /// Result always includes `index` in the range
     #[inline]
     pub fn scan_range<'b, F>(&'b self, range: Range<'id>, mut f: F) -> Range<'id>
-        where F: FnMut(&'b T) -> bool
+        where F: FnMut(&'b T) -> bool, T: 'b,
     {
         let mut end = range.start;
         for elt in &self[range] {
@@ -318,7 +320,9 @@ impl<'id, T, Array> ops::Index<Index<'id>> for Indexer<'id, Array>
     }
 }
 
-impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a [T]> {
+impl<'id, T, Array> ops::Index<Range<'id>> for Indexer<'id, Array>
+    where Array: Buffer<Target=[T]>,
+{
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: Range<'id>) -> &[T] {
@@ -330,7 +334,9 @@ impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a [T]> {
     }
 }
 
-impl<'id, 'a, T> ops::IndexMut<Index<'id>> for Indexer<'id, &'a mut [T]> {
+impl<'id, T, Array> ops::IndexMut<Index<'id>> for Indexer<'id, Array>
+    where Array: BufferMut<Target=[T]>,
+{
     #[inline(always)]
     fn index_mut(&mut self, idx: Index<'id>) -> &mut T {
         unsafe {
@@ -339,19 +345,9 @@ impl<'id, 'a, T> ops::IndexMut<Index<'id>> for Indexer<'id, &'a mut [T]> {
     }
 }
 
-impl<'id, 'a, T> ops::Index<Range<'id>> for Indexer<'id, &'a mut [T]> {
-    type Output = [T];
-    #[inline(always)]
-    fn index(&self, r: Range<'id>) -> &[T] {
-        unsafe {
-            std::slice::from_raw_parts(
-                self.arr.as_ptr().offset(r.start as isize),
-                r.len())
-        }
-    }
-}
-
-impl<'id, 'a, T> ops::IndexMut<Range<'id>> for Indexer<'id, &'a mut [T]> {
+impl<'id, T, Array> ops::IndexMut<Range<'id>> for Indexer<'id, Array>
+    where Array: BufferMut<Target=[T]>,
+{
     #[inline(always)]
     fn index_mut(&mut self, r: Range<'id>) -> &mut [T] {
         unsafe {
