@@ -665,16 +665,15 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
     }
 
     #[inline]
-    pub fn advance(&self) -> Result<Checked<Range<'id>, NonEmpty>,
-                                    Checked<Range<'id>, Empty>>
+    pub fn advance(&self) -> Result<Checked<Range<'id>, NonEmpty>, ()>
     {
         unsafe {
             let mut next = **self;
             next.start += 1;
-            if !next.is_empty() {
+            if next.start < next.end {
                 Ok(Checked::new(next))
             } else {
-                Err(Checked::new(next))
+                Err(())
             }
         }
     }
