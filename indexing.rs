@@ -621,12 +621,22 @@ impl<'id> Range<'id, NonEmpty> {
         Index { id: self.id, idx: self.start }
     }
 
+    /// Return the middle index, rounding down.
+    ///
+    /// Produces `mid` where `mid = start + (len - 1)/ 2`.
+    #[inline]
+    pub fn lower_middle(&self) -> Index<'id> {
+        // nonempty, so len - 1 >= 0
+        let mid = (self.len() - 1) / 2 + self.start;
+        Index { id: self.id, idx: mid }
+    }
+
     /// Return the middle index, rounding up.
     ///
     /// Produces `mid` where `mid = start + len / 2`.
     #[inline]
     pub fn upper_middle(&self) -> Index<'id> {
-        let mid = (self.end - self.start) / 2 + self.start;
+        let mid = self.len() / 2 + self.start;
         Index { id: self.id, idx: mid }
     }
 
@@ -895,46 +905,6 @@ fn test_intervals() {
 }
 
 
-
-#[test]
-fn main() {
-    let arr1: &[u32] = &[1, 2, 3, 4, 5];
-    let arr2: &[u32] = &[10, 20, 30];
-
-    // concurrent iteration (hardest thing to do with iterators)
-    indices(arr1, |arr1, it1| {
-        indices(arr2, move |arr2, it2| {
-            for (i, j) in it1.into_iter().zip(it2) {
-                println!("{} {}", arr1[i], arr2[j]);
-                //
-                // println!("{} ", arr2.get(i));    // should be invalid to idx wrong source
-                // println!("{} ", arr1.get(j));    // should be invalid to idx wrong source
-            }
-        });
-    });
-
-    // can hold onto the indices for later, as long they stay in the closure
-    let _a = indices(arr1, |arr, mut r| {
-        let mut it = r.into_iter();
-        let a = it.next().unwrap();
-        let b = it.next_back().unwrap();
-        println!("{} {}", arr[a], arr[b]);
-        // a    // should be invalid to return an index
-    });
-    //
-
-    /*
-    // can get references out, just not indices
-    let (x, y) = indices(arr1, |arr, mut r| {
-        println!("{:?}", arr.slice(r));
-        let a = r.next().unwrap();
-        let b = r.next_back().unwrap();
-        (arr.get(a), arr.get(b))
-    });
-    println!("{} {}", x, y);
-    */
-}
-
 #[test]
 fn intervals() {
     let mut data = [0; 16];
@@ -1161,5 +1131,36 @@ fn test_scan() {
         assert_eq!(&data[range], &[0, 0, 0]);
         let range = data.scan_head(range.last(), |elt| *elt != 0);
         assert_eq!(&data[range], &[0, 1, 2]);
+    });
+}
+
+#[test]
+fn test_nonempty() {
+    let mut data = [0, 1, 2, 3, 4, 5];
+    indices(&mut data[..], |data, r| {
+        let mut r = r.nonempty().unwrap();
+        assert_eq!(data[r.first()], 0);
+        assert_eq!(data[r.lower_middle()], 2);
+        assert_eq!(data[r.upper_middle()], 3);
+        assert_eq!(data[r.last()], 5);
+
+        assert!(r.advance());
+        assert_eq!(data[r.first()], 1);
+        assert_eq!(data[r.lower_middle()], 3);
+        assert_eq!(data[r.upper_middle()], 3);
+        assert_eq!(data[r.last()], 5);
+
+        assert!(r.advance());
+        assert_eq!(data[r.first()], 2);
+        assert_eq!(data[r.lower_middle()], 3);
+        assert_eq!(data[r.upper_middle()], 4);
+        assert_eq!(data[r.last()], 5);
+
+        // skip to end
+        while r.advance() { }
+        assert_eq!(data[r.first()], 5);
+        assert_eq!(data[r.lower_middle()], 5);
+        assert_eq!(data[r.upper_middle()], 5);
+        assert_eq!(data[r.last()], 5);
     });
 }
