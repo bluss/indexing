@@ -143,7 +143,7 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
-    /// Return true if the index is still in bounds
+    /// Return true if the index was advanced
     #[inline]
     pub fn forward(&self, index: &mut Index<'id>) -> bool {
         let i = index.idx + 1;
