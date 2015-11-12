@@ -622,7 +622,7 @@ impl<'id> Range<'id> {
     }
 
     /// Return an iterator that divides the range in `n` parts, in as
-    /// eaven length chunks as possible.
+    /// even length chunks as possible.
     #[inline]
     pub fn even_chunks(&self, n: usize) -> Intervals<'id> {
         Intervals {
