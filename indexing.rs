@@ -92,24 +92,6 @@ trait LengthMarker {}
 impl LengthMarker for NonEmpty {}
 impl LengthMarker for Empty {}
 
-impl<'id, 'a, T> Indexer<'id, &'a [T]> {
-    #[inline]
-    pub fn get(&self, idx: Index<'id>) -> &'a T {
-        unsafe {
-            self.arr.get_unchecked(idx.idx)
-        }
-    }
-
-    #[inline]
-    pub fn slice(&self, r: Range<'id>) -> &'a [T] {
-        unsafe {
-            std::slice::from_raw_parts(
-                self.arr.as_ptr().offset(r.start as isize),
-                r.end - r.start)
-        }
-    }
-}
-
 impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn len(&self) -> usize {
@@ -947,7 +929,7 @@ fn main() {
     indices(arr1, |arr1, it1| {
         indices(arr2, move |arr2, it2| {
             for (i, j) in it1.zip(it2) {
-                println!("{} {}", arr1.get(i), arr2.get(j));
+                println!("{} {}", arr1[i], arr2[j]);
                 //
                 // println!("{} ", arr2.get(i));    // should be invalid to idx wrong source
                 // println!("{} ", arr1.get(j));    // should be invalid to idx wrong source
@@ -959,10 +941,12 @@ fn main() {
     let _a = indices(arr1, |arr, mut it| {
         let a = it.next().unwrap();
         let b = it.next_back().unwrap();
-        println!("{} {}", arr.get(a), arr.get(b));
+        println!("{} {}", arr[a], arr[b]);
         // a    // should be invalid to return an index
     });
     //
+
+    /*
     // can get references out, just not indices
     let (x, y) = indices(arr1, |arr, mut r| {
         println!("{:?}", arr.slice(r));
@@ -971,9 +955,7 @@ fn main() {
         (arr.get(a), arr.get(b))
     });
     println!("{} {}", x, y);
-    //
-    // Excercise to the reader: sound multi-index mutable indexing!?
-    // (hint: it would be unsound with the current design)
+    */
 }
 
 #[test]
