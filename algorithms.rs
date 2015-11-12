@@ -38,6 +38,11 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
     // I think this is similar to Hoare’s version?
     indices(v, |mut v, range| {
         if let Ok(range) = range.nonempty() {
+            // Fall back to insertion short sections
+            if range.len() <= 16 {
+                insertion_sort_indexes(&mut v[..], |x, y| x < y);
+                return;
+            }
 
             let (r, m, l) = (range.first(), range.upper_middle(), range.last());
             // return, if the range is too short to sort
