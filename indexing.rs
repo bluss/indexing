@@ -25,9 +25,7 @@ use std::fmt::{self, Debug};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
-use pointer::PRange;
 use pointer::PIndex;
-use pointer::Checked;
 
 /// A marker trait for collections where we can safely vet indices
 pub unsafe trait Buffer : Deref {
@@ -109,7 +107,7 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn split_at(&self, index: Index<'id>) -> (Range<'id>, Range<'id, NonEmpty>) {
         unsafe {
-            (Range::from(0, index.idx), Range::from(index.idx, self.arr.len()))
+            (Range::from(0, index.idx), Range::from_ne(index.idx, self.arr.len()))
         }
     }
 
@@ -119,7 +117,7 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
     pub fn split_after(&self, index: Index<'id>) -> (Range<'id, NonEmpty>, Range<'id>) {
         let mid = index.idx + 1; // must be <= len since `index` is in bounds
         unsafe {
-            (Range::from(0, mid), Range::from(mid, self.arr.len()))
+            (Range::from_ne(0, mid), Range::from(mid, self.arr.len()))
         }
     }
 
@@ -200,7 +198,7 @@ impl<'id, T, Array> Indexer<'id, Array>
         }
         end.idx += 1;
         unsafe {
-            Range::from(index.idx, end.idx)
+            Range::from_ne(index.idx, end.idx)
         }
     }
 
@@ -242,7 +240,7 @@ impl<'id, T, Array> Indexer<'id, Array>
                 }
                 start.idx -= 1;
             }
-            Range::from(start.idx, index.idx + 1)
+            Range::from_ne(start.idx, index.idx + 1)
         }
     }
 }
@@ -466,12 +464,23 @@ impl<'id, P> Clone for Range<'id, P> {
     fn clone(&self) -> Self { *self }
 }
 
-impl<'id, P> Range<'id, P> {
+impl<'id> Range<'id> {
     #[inline(always)]
-    unsafe fn from(start: usize, end: usize) -> Self {
+    unsafe fn from(start: usize, end: usize) -> Range<'id> {
+        debug_assert!(start <= end);
         Range { id: PhantomData, start: start, end: end, proof: PhantomData }
     }
+}
 
+impl<'id> Range<'id, NonEmpty> {
+    #[inline(always)]
+    unsafe fn from_ne(start: usize, end: usize) -> Range<'id, NonEmpty> {
+        debug_assert!(start < end);
+        Range { id: PhantomData, start: start, end: end, proof: PhantomData }
+    }
+}
+
+impl<'id, P> Range<'id, P> {
     #[inline]
     pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
 
@@ -814,7 +823,7 @@ impl<'id> Iterator for Intervals<'id> {
             debug_assert!(self.range.contains(j).is_some() || j == self.range.end);
             debug_assert!(i != j);
             unsafe {
-                Range::from(i, j)
+                Range::from_ne(i, j)
             }
         })
     }
