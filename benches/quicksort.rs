@@ -37,6 +37,16 @@ fn bench_quicksort(b: &mut Bencher) {
 }
 
 #[bench]
+fn bench_quicksort_bounds(b: &mut Bencher) {
+    let data = test_data_max(N, MAX);
+    b.iter(|| {
+        let mut v = data.clone();
+        indexing::algorithms::quicksort_bounds(&mut v);
+        v
+    });
+}
+
+#[bench]
 fn bench_libstdsort(b: &mut Bencher) {
     let data = test_data_max(N, MAX);
     b.iter(|| {

@@ -29,7 +29,6 @@ macro_rules! puts {
     }
 }
 
-
 /// Simple quicksort implemented using `indexing`,
 pub fn quicksort<T: Data>(v: &mut [T]) {
     indices(v, |mut v, range| {
@@ -88,6 +87,54 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
             quicksort(&mut v[b]);
         }
     });
+}
+
+/// quicksort implemented using regular bounds checked indexing
+pub fn quicksort_bounds<T: Data>(v: &mut [T]) {
+    // Fall back to insertion sort for short sections
+    if v.len() <= 16 {
+        insertion_sort_indexes(&mut v[..], |x, y| x < y);
+        return;
+    }
+
+    let (l, m, r) = (0, v.len() / 2, v.len() - 1);
+    let mut pivot = if v[l] <= v[m] && v[m] <= v[r] {
+        m
+    } else if v[m] <= v[l] && v[l] <= v[r] {
+        l
+    } else {
+        r
+    };
+
+    // partition
+    // I think this is similar to Hoare’s version, wikipedia
+    let mut i = 0;
+    let mut j = v.len() - 1;
+    'main: loop {
+        if v[i] > v[pivot] {
+            loop {
+                if v[j] <= v[pivot] {
+                    v.swap(i, j);
+                    if j == pivot {
+                        pivot = i;
+                    }
+                    break;
+                }
+                j -= 1;
+                if i >= j { break 'main; }
+            }
+        }
+        if i >= j {
+            v.swap(pivot, i);
+            break;
+        }
+        i += 1;
+    }
+
+    // ok split at pivot location and recurse
+    let (a, b) = v.split_at_mut(i);
+    quicksort_bounds(a);
+    quicksort_bounds(b);
 }
 
 

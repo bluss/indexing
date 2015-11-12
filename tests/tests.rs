@@ -16,3 +16,13 @@ fn qc_quicksort() {
 
     quickcheck::quickcheck(prop as fn(_) -> bool);
 }
+
+#[test]
+fn qc_quicksort_bounds() {
+    fn prop(mut v: Vec<i32>) -> bool {
+        indexing::algorithms::quicksort_bounds(&mut v);
+        is_sorted(&v)
+    }
+
+    quickcheck::quickcheck(prop as fn(_) -> bool);
+}
