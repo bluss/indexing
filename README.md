@@ -45,3 +45,14 @@ Main focus is on index ranges, not just single indices.
 // The example isn't maximally generic or fleshed out because I got bored trying
 // to express the bounds necessary to handle &[T] and &mut [T] appropriately.
 ```
+
+License
+-------
+
+Dual-licensed to be compatible with the Rust project.
+
+Licensed under the Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0 or the MIT license
+http://opensource.org/licenses/MIT, at your
+option. This file may not be copied, modified, or distributed
+except according to those terms.
