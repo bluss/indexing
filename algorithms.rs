@@ -35,7 +35,6 @@ macro_rules! puts {
 
 /// Simple quicksort implemented using `indexing`,
 pub fn quicksort<T: Data>(v: &mut [T]) {
-    // I think this is similar to Hoare’s version?
     indices(v, |mut v, range| {
         if let Ok(range) = range.nonempty() {
             // Fall back to insertion short sections
@@ -64,30 +63,30 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
             puts!("v={:?}, pivot={:?}, {:?}", &v[..], pivot, v[pivot]);
 
             // partition
-            if let Ok(mut scan) = range.nonempty() {
-                'main: loop {
-                    if v[scan.first()] > v[pivot] {
-                        loop {
-                            if v[scan.last()] <= v[pivot] {
-                                v.swap(scan.first(), scan.last());
-                                break;
-                            }
-                            if !scan.advance_back() {
-                                break 'main;
-                            }
+            // I think this is similar to Hoare’s version, wikipedia
+            let mut scan = range;
+            'main: loop {
+                if v[scan.first()] > v[pivot] {
+                    loop {
+                        if v[scan.last()] <= v[pivot] {
+                            v.swap(scan.first(), scan.last());
+                            break;
+                        }
+                        if !scan.advance_back() {
+                            break 'main;
                         }
                     }
-                    if !scan.advance() {
-                        v.swap(pivot, scan.first());
-                        break;
-                    }
                 }
-
-                // ok split at pivot location and recurse
-                let (a, b) = v.split_at(scan.first());
-                quicksort(&mut v[a]);
-                quicksort(&mut v[b]);
+                if !scan.advance() {
+                    v.swap(pivot, scan.first());
+                    break;
+                }
             }
+
+            // ok split at pivot location and recurse
+            let (a, b) = v.split_at(scan.first());
+            quicksort(&mut v[a]);
+            quicksort(&mut v[b]);
         }
     });
 }
