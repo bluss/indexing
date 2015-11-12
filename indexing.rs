@@ -449,6 +449,14 @@ impl<'id, T, Array> ops::Index<ops::RangeTo<PIndex<'id, T>>> for Indexer<'id, Ar
     }
 }
 
+/// A branded range.
+///
+/// `Range<'id>` only indexes the container instantiated with the exact same
+/// particular lifetime for the parameter `'id` at its inception from
+/// the `indices()` constructor.
+///
+/// The `Range` may carry a proof of nonemptiness (type parameter `Proof`),
+/// which enables further methods.
 pub struct Range<'id, Proof=Unknown> {
     id: Id<'id>,
     start: usize,
@@ -480,10 +488,16 @@ impl<'id> Range<'id, NonEmpty> {
 }
 
 impl<'id, P> Range<'id, P> {
+    /// Return the length of the range.
     #[inline]
-    pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
+    pub fn len(&self) -> usize { self.end - self.start }
 
-    /// Check if the range is empty. non-empty ranges have extra methods.
+    /// Return `true` if the range is empty.
+    #[inline]
+    pub fn is_empty(&self) -> bool { self.start == self.end }
+
+    /// Try to create a proof that the Range is nonempty; return
+    /// a `Result` where the `Ok` branch carries a non-empty Range.
     #[inline]
     pub fn nonempty(&self) -> Result<Range<'id, NonEmpty>, Range<'id>> {
         unsafe {
@@ -494,14 +508,6 @@ impl<'id, P> Range<'id, P> {
             }
         }
     }
-
-    /// Return the length of the range.
-    #[inline]
-    pub fn len(&self) -> usize { self.end - self.start }
-
-    /// Return `true` if the range is empty.
-    #[inline]
-    pub fn is_empty(&self) -> bool { self.start == self.end }
 
     #[inline]
     pub fn split_in_half(&self) -> (Range<'id>, Range<'id>) {
@@ -577,6 +583,9 @@ impl<'id, P> Range<'id, P> {
             }
         }
     }
+
+    #[inline]
+    pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
 }
 
 impl<'id, P> Debug for Range<'id, P> {
