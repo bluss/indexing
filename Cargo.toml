@@ -9,6 +9,7 @@ path = "indexing.rs"
 
 [dev-dependencies]
 compiletest_rs = "0.0.10"
+rand = "0.3"
 
 [profile.bench]
 debug = true

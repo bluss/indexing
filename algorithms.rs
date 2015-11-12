@@ -4,7 +4,7 @@
 //!
 //!
 
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 
 use super::indices;
 
@@ -12,8 +12,29 @@ use super::indices;
 pub trait Data : Ord + Debug { }
 impl<T: Ord + Debug> Data for T { }
 
+
+// for debugging -- like println during debugging
+#[cfg(debug_assertions)]
+fn print(a: fmt::Arguments) {
+    print!("{}\n", a);
+}
+
+#[cfg(debug_assertions)]
+macro_rules! puts {
+    ($($t:tt)*) => {
+        print(format_args!($($t)*))
+    }
+}
+
+#[cfg(not(debug_assertions))]
+macro_rules! puts {
+    ($($t:tt)*) => {
+    }
+}
+
+
 /// Simple quicksort implemented using `indexing`,
-fn quicksort<T: Data>(v: &mut [T]) {
+pub fn quicksort<T: Data>(v: &mut [T]) {
     // I think this is similar to Hoare’s version?
     indices(v, |mut v, range| {
         if let Ok(range) = range.nonempty() {
@@ -35,7 +56,7 @@ fn quicksort<T: Data>(v: &mut [T]) {
                 r
             };
 
-            println!("v={:?}, pivot={:?}, {:?}", &v[..], pivot, v[pivot]);
+            puts!("v={:?}, pivot={:?}, {:?}", &v[..], pivot, v[pivot]);
 
             // partition
             if let Ok(mut scan) = range.nonempty() {
