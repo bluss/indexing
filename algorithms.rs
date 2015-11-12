@@ -34,7 +34,7 @@ macro_rules! puts {
 pub fn quicksort<T: Data>(v: &mut [T]) {
     indices(v, |mut v, range| {
         if let Ok(range) = range.nonempty() {
-            // Fall back to insertion short sections
+            // Fall back to insertion sort for short sections
             if range.len() <= 16 {
                 insertion_sort_indexes(&mut v[..], |x, y| x < y);
                 return;
