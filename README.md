@@ -1,6 +1,10 @@
 # indexing
 “Sound unchecked indexing” in Rust using branding
 
+Based on [sound unchecked indexing by Gankro][1].
+
+[1]: https://www.reddit.com/r/rust/comments/3oo0oe/sound_unchecked_indexing_with_lifetimebased_value/
+
 Extremely experimental, but somewhat promising & exciting.
 
 Main focus is on index ranges, not just single indices.
