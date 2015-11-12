@@ -4,7 +4,7 @@ use std::mem;
 use std::ops::Deref;
 use std::ptr;
 use super::Id;
-use super::{Empty, NonEmpty, BufferMut, Indexer};
+use super::{NonEmpty, BufferMut, Indexer};
 
 use std::intrinsics::assume;
 
@@ -66,12 +66,12 @@ impl<'id, T> PRange<'id, T> {
 
     /// Check if the range is empty. `NonEmpty` ranges have extra methods.
     #[inline]
-    pub fn nonempty(&self) -> Result<Checked<Self, NonEmpty>, Checked<Self, Empty>> {
+    pub fn nonempty(&self) -> Result<Checked<Self, NonEmpty>, Self> {
         unsafe {
             if self.len() > 0 {
                 Ok(Checked::new(*self))
             } else {
-                Err(Checked::new(*self))
+                Err(*self)
             }
         }
     }

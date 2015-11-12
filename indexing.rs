@@ -68,17 +68,16 @@ impl<'id> PartialEq for Index<'id> {
 }
 
 
+/// Length marker for range known to not be empty.
 #[derive(Copy, Clone, Debug)]
 pub enum NonEmpty {}
-#[derive(Copy, Clone, Debug)]
-pub enum Empty {}
+/// Length marker for unknown length.
 #[derive(Copy, Clone, Debug)]
 pub enum Unknown {}
 
 trait LengthMarker {}
 
 impl LengthMarker for NonEmpty {}
-impl LengthMarker for Empty {}
 impl LengthMarker for Unknown {}
 
 impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
