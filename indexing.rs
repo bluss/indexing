@@ -687,7 +687,27 @@ impl<'id> Range<'id, NonEmpty> {
     }
 }
 
-impl<'id> Iterator for Range<'id> {
+impl<'id, P> IntoIterator for Range<'id, P> {
+    type Item = Index<'id>;
+    type IntoIter = RangeIter<'id>;
+    #[inline]
+    fn into_iter(self) -> RangeIter<'id> {
+        RangeIter {
+            id: self.id,
+            start: self.start,
+            end: self.end,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct RangeIter<'id> {
+    id: Id<'id>,
+    start: usize,
+    end: usize,
+}
+
+impl<'id> Iterator for RangeIter<'id> {
     type Item = Index<'id>;
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -701,7 +721,7 @@ impl<'id> Iterator for Range<'id> {
     }
 }
 
-impl<'id> DoubleEndedIterator for Range<'id> {
+impl<'id> DoubleEndedIterator for RangeIter<'id> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.start < self.end {
@@ -875,7 +895,7 @@ fn main() {
     // concurrent iteration (hardest thing to do with iterators)
     indices(arr1, |arr1, it1| {
         indices(arr2, move |arr2, it2| {
-            for (i, j) in it1.zip(it2) {
+            for (i, j) in it1.into_iter().zip(it2) {
                 println!("{} {}", arr1[i], arr2[j]);
                 //
                 // println!("{} ", arr2.get(i));    // should be invalid to idx wrong source
@@ -885,7 +905,8 @@ fn main() {
     });
 
     // can hold onto the indices for later, as long they stay in the closure
-    let _a = indices(arr1, |arr, mut it| {
+    let _a = indices(arr1, |arr, mut r| {
+        let mut it = r.into_iter();
         let a = it.next().unwrap();
         let b = it.next_back().unwrap();
         println!("{} {}", arr[a], arr[b]);
