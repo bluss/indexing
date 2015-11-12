@@ -27,6 +27,7 @@ use std::ops::{Deref, DerefMut};
 
 use pointer::PRange;
 use pointer::PIndex;
+use pointer::Checked;
 
 /// A marker trait for collections where we can safely vet indices
 pub unsafe trait Buffer : Deref {
@@ -70,27 +71,17 @@ impl<'id> PartialEq for Index<'id> {
 
 
 #[derive(Copy, Clone, Debug)]
-pub struct Checked<X, L> {
-    item: X,
-    proof: PhantomData<L>,
-}
-
-impl<X, L> Checked<X, L> {
-    #[inline]
-    unsafe fn new(item: X) -> Self {
-        Checked { item: item, proof: PhantomData }
-    }
-}
-
-#[derive(Copy, Clone, Debug)]
 pub enum NonEmpty {}
 #[derive(Copy, Clone, Debug)]
 pub enum Empty {}
+#[derive(Copy, Clone, Debug)]
+pub enum Unknown {}
 
 trait LengthMarker {}
 
 impl LengthMarker for NonEmpty {}
 impl LengthMarker for Empty {}
+impl LengthMarker for Unknown {}
 
 impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
@@ -102,17 +93,21 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
     /// Return the range [0, 0)
     #[inline]
     pub fn empty_range(&self) -> Range<'id> {
-        Range { id: PhantomData, start: 0, end: 0 }
+        unsafe {
+            Range::from(0, 0)
+        }
     }
 
     /// Return the full range of the Indexer.
     #[inline]
     pub fn range(&self) -> Range<'id> {
-        Range { id: PhantomData, start: 0, end: self.arr.len() }
+        unsafe {
+            Range::from(0, self.arr.len())
+        }
     }
 
     #[inline]
-    pub fn split_at(&self, index: Index<'id>) -> (Range<'id>, Range<'id>) {
+    pub fn split_at(&self, index: Index<'id>) -> (Range<'id>, Range<'id, NonEmpty>) {
         unsafe {
             (Range::from(0, index.idx), Range::from(index.idx, self.arr.len()))
         }
@@ -121,7 +116,7 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
     /// Split in two ranges, where the first includes the `index` and the second
     /// starts with the following index.
     #[inline]
-    pub fn split_after(&self, index: Index<'id>) -> (Range<'id>, Range<'id>) {
+    pub fn split_after(&self, index: Index<'id>) -> (Range<'id, NonEmpty>, Range<'id>) {
         let mid = index.idx + 1; // must be <= len since `index` is in bounds
         unsafe {
             (Range::from(0, mid), Range::from(mid, self.arr.len()))
@@ -193,7 +188,7 @@ impl<'id, T, Array> Indexer<'id, Array>
     ///
     /// Result always includes `index` in the range
     #[inline]
-    pub fn scan_head<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Checked<Range<'id>, NonEmpty>
+    pub fn scan_head<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Range<'id, NonEmpty>
         where F: FnMut(&'b T) -> bool, T: 'b,
     {
         let mut end = index;
@@ -205,7 +200,7 @@ impl<'id, T, Array> Indexer<'id, Array>
         }
         end.idx += 1;
         unsafe {
-            Checked::new(Range::from(index.idx, end.idx))
+            Range::from(index.idx, end.idx)
         }
     }
 
@@ -215,7 +210,7 @@ impl<'id, T, Array> Indexer<'id, Array>
     ///
     /// Result always includes `index` in the range
     #[inline]
-    pub fn scan_range<'b, F>(&'b self, range: Range<'id>, mut f: F) -> Range<'id>
+    pub fn scan_range<'b, F, P>(&'b self, range: Range<'id, P>, mut f: F) -> Range<'id>
         where F: FnMut(&'b T) -> bool, T: 'b,
     {
         let mut end = range.start;
@@ -236,7 +231,7 @@ impl<'id, T, Array> Indexer<'id, Array>
     ///
     /// Result always includes `index` in the range
     #[inline]
-    pub fn scan_tail<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Checked<Range<'id>, NonEmpty>
+    pub fn scan_tail<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Range<'id, NonEmpty>
         where F: FnMut(&'b T) -> bool, T: 'b
     {
         unsafe {
@@ -247,57 +242,7 @@ impl<'id, T, Array> Indexer<'id, Array>
                 }
                 start.idx -= 1;
             }
-            Checked::new(Range::from(start.idx, index.idx + 1))
-        }
-    }
-}
-
-impl<'id, T, Array> Indexer<'id, Array> where Array: BufferMut<Target=[T]> {
-    #[inline]
-    pub fn pointer_range(&self) -> PRange<'id, T> {
-        unsafe {
-            let start = self.arr.as_ptr();
-            let end = start.offset(self.arr.len() as isize);
-            PRange::from(start, end)
-        }
-    }
-
-    /// Rotate elements in the range by one step to the right (towards higher indices)
-    #[inline]
-    pub fn rotate1_(&mut self, r: Checked<PRange<'id, T>, NonEmpty>) {
-        unsafe {
-            let last_ptr = r.last().ptr();
-            let first_ptr = r.first().ptr_mut();
-            if first_ptr as *const _ == last_ptr {
-                return;
-            }
-            let tmp = ptr::read(last_ptr);
-            ptr::copy(first_ptr,
-                      first_ptr.offset(1),
-                      r.len() - 1);
-            ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
-            mem::forget(tmp);
-        }
-    }
-
-    /// Examine the elements before `index` in order from higher indices towards lower.
-    /// While the closure returns `true`, continue scan and include the scanned
-    /// element in the range.
-    ///
-    /// Result always includes `index` in the range
-    #[inline]
-    pub fn scan_tail_<F>(&self, index: PIndex<'id, T>, mut f: F) -> Checked<PRange<'id, T>, NonEmpty>
-        where F: FnMut(&T) -> bool
-    {
-        unsafe {
-            let mut start = index.ptr();
-            for elt in self[..index].iter().rev() {
-                if !f(elt) {
-                    break;
-                }
-                start = elt as *const _;
-            }
-            Checked::new(PRange::from(start, index.ptr().offset(1)))
+            Range::from(start.idx, index.idx + 1)
         }
     }
 }
@@ -315,12 +260,12 @@ impl<'id, T, Array> ops::Index<Index<'id>> for Indexer<'id, Array>
     }
 }
 
-impl<'id, T, Array> ops::Index<Range<'id>> for Indexer<'id, Array>
+impl<'id, T, Array, P> ops::Index<Range<'id, P>> for Indexer<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
     #[inline(always)]
-    fn index(&self, r: Range<'id>) -> &[T] {
+    fn index(&self, r: Range<'id, P>) -> &[T] {
         unsafe {
             std::slice::from_raw_parts(
                 self.arr.as_ptr().offset(r.start as isize),
@@ -340,11 +285,11 @@ impl<'id, T, Array> ops::IndexMut<Index<'id>> for Indexer<'id, Array>
     }
 }
 
-impl<'id, T, Array> ops::IndexMut<Range<'id>> for Indexer<'id, Array>
+impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Indexer<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline(always)]
-    fn index_mut(&mut self, r: Range<'id>) -> &mut [T] {
+    fn index_mut(&mut self, r: Range<'id, P>) -> &mut [T] {
         unsafe {
             std::slice::from_raw_parts_mut(
                 self.arr.as_mut_ptr().offset(r.start as isize),
@@ -487,7 +432,7 @@ impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Indexer<'id, &'a mut [T]> {
     type Output = T;
     #[inline(always)]
     fn index(&self, r: PIndex<'id, T>) -> &T {
-        //ptr_iselement(self.arr, r.ptr());
+        ptr_iselement(self.arr, r.ptr());
         unsafe {
             &*r.ptr()
         }
@@ -507,17 +452,24 @@ impl<'id, T, Array> ops::Index<ops::RangeTo<PIndex<'id, T>>> for Indexer<'id, Ar
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct Range<'id> {
+pub struct Range<'id, Proof=Unknown> {
     id: Id<'id>,
     start: usize,
     end: usize,
+    /// NonEmpty or Not
+    proof: PhantomData<Proof>,
 }
 
-impl<'id> Range<'id> {
+impl<'id, P> Copy for Range<'id, P> { }
+impl<'id, P> Clone for Range<'id, P> {
+    #[inline]
+    fn clone(&self) -> Self { *self }
+}
+
+impl<'id, P> Range<'id, P> {
     #[inline(always)]
     unsafe fn from(start: usize, end: usize) -> Self {
-        Range { id: PhantomData, start: start, end: end }
+        Range { id: PhantomData, start: start, end: end, proof: PhantomData }
     }
 
     #[inline]
@@ -525,12 +477,12 @@ impl<'id> Range<'id> {
 
     /// Check if the range is empty. non-empty ranges have extra methods.
     #[inline]
-    pub fn nonempty(&self) -> Result<Checked<Self, NonEmpty>, Checked<Self, Empty>> {
+    pub fn nonempty(&self) -> Result<Range<'id, NonEmpty>, Range<'id>> {
         unsafe {
-            if self.len() > 0 {
-                Ok(Checked::new(*self))
+            if !self.is_empty() {
+                Ok(mem::transmute(*self))
             } else {
-                Err(Checked::new(*self))
+                Err(mem::transmute(*self))
             }
         }
     }
@@ -546,8 +498,9 @@ impl<'id> Range<'id> {
     #[inline]
     pub fn split_in_half(&self) -> (Range<'id>, Range<'id>) {
         let mid = (self.end - self.start) / 2 + self.start;
-        (Range { id: self.id, start: self.start, end: mid },
-         Range { id: self.id, start: mid, end: self.start })
+        unsafe {
+            (Range::from(self.start, mid), Range::from(mid, self.end))
+        }
     }
 
     /// If `abs_index` is past the end, clamp it at the end
@@ -556,8 +509,9 @@ impl<'id> Range<'id> {
     #[inline]
     pub fn split_at_clamp(&self, abs_index: usize) -> (Range<'id>, Range<'id>) {
         let mid = cmp::min(abs_index, self.end);
-        (Range { id: self.id, start: self.start, end: mid },
-         Range { id: self.id, start: mid, end: self.end })
+        unsafe {
+            (Range::from(self.start, mid), Range::from(mid, self.end))
+        }
     }
 
     /// Split to length `index`; if past the end, return false and clamp to the end
@@ -568,9 +522,10 @@ impl<'id> Range<'id> {
         let mid = if index > self.len() {
              self.end
         } else { self.start + index };
-        (Range { id: self.id, start: self.start, end: mid },
-         Range { id: self.id, start: mid, end: self.end },
-         index <= self.len())
+        unsafe {
+            (Range::from(self.start, mid), Range::from(mid, self.end),
+             index <= self.len())
+        }
     }
 
     #[inline]
@@ -607,48 +562,43 @@ impl<'id> Range<'id> {
     /// even length chunks as possible.
     #[inline]
     pub fn even_chunks(&self, n: usize) -> Intervals<'id> {
-        Intervals {
-            fs: FracStep::new(self.start, self.end, n),
-            range: *self,
+        unsafe {
+            Intervals {
+                fs: FracStep::new(self.start, self.end, n),
+                range: Range::from(self.start, self.end),
+            }
         }
     }
 }
 
-impl<'id> Debug for Range<'id> {
+impl<'id, P> Debug for Range<'id, P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Range({}, {})", self.start, self.end)
     }
 }
 
 pub trait IntoCheckedRange<'id> : Sized {
-    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>>;
+    fn into(self) -> Result<Range<'id, NonEmpty>, Range<'id>>;
 }
 
 impl<'id> IntoCheckedRange<'id> for Range<'id> {
     #[inline]
-    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>> {
+    fn into(self) -> Result<Range<'id, NonEmpty>, Range<'id>> {
         self.nonempty()
     }
 }
 
-impl<'id> IntoCheckedRange<'id> for Checked<Range<'id>, NonEmpty> {
+impl<'id> IntoCheckedRange<'id> for Range<'id, NonEmpty> {
     #[inline]
-    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>> {
+    fn into(self) -> Result<Range<'id, NonEmpty>, Range<'id>> {
         Ok(self)
     }
 }
 
-impl<'id> IntoCheckedRange<'id> for Checked<Range<'id>, Empty> {
-    #[inline]
-    fn into(self) -> Result<Checked<Range<'id>, NonEmpty>, Checked<Range<'id>, Empty>> {
-        Err(self)
-    }
-}
-
 /// Type alias for **N**on **E**mpty Range.
-pub type NeRange<'id> = Checked<Range<'id>, NonEmpty>;
+pub type NeRange<'id> = Range<'id, NonEmpty>;
 
-impl<'id> Checked<Range<'id>, NonEmpty> {
+impl<'id> Range<'id, NonEmpty> {
     #[inline(always)]
     pub fn first(&self) -> Index<'id> {
         Index { id: self.id, idx: self.start }
@@ -685,16 +635,14 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
     }
 
     #[inline]
-    pub fn advance_(&self) -> Result<Checked<Range<'id>, NonEmpty>, ()>
+    pub fn advance_(&self) -> Result<Range<'id, NonEmpty>, ()>
     {
-        unsafe {
-            let mut next = **self;
-            next.start += 1;
-            if next.start < next.end {
-                Ok(Checked::new(next))
-            } else {
-                Err(())
-            }
+        let mut next = *self;
+        next.start += 1;
+        if next.start < next.end {
+            Ok(next)
+        } else {
+            Err(())
         }
     }
 
@@ -704,10 +652,10 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
     #[inline]
     pub fn advance(&mut self) -> bool
     {
-        let mut next = **self;
+        let mut next = *self;
         next.start += 1;
         if next.start < next.end {
-            self.item = next;
+            *self = next;
             true
         } else {
             false
@@ -720,23 +668,14 @@ impl<'id> Checked<Range<'id>, NonEmpty> {
     #[inline]
     pub fn advance_back(&mut self) -> bool
     {
-        let mut next = **self;
+        let mut next = *self;
         next.end -= 1;
         if next.start < next.end {
-            self.item = next;
+            *self = next;
             true
         } else {
             false
         }
-    }
-}
-
-/// Deref to the inner range
-// NOTE: immutable deref is ok, mutable would be unsound
-impl<'id, X, L> Deref for Checked<X, L> {
-    type Target = X;
-    fn deref(&self) -> &X {
-        &self.item
     }
 }
 
@@ -867,15 +806,15 @@ impl<'id> Intervals<'id> {
 }
 
 impl<'id> Iterator for Intervals<'id> {
-    type Item = Checked<Range<'id>, NonEmpty>;
+    type Item = Range<'id, NonEmpty>;
     #[inline]
-    fn next(&mut self) -> Option<Checked<Range<'id>, NonEmpty>> {
+    fn next(&mut self) -> Option<Range<'id, NonEmpty>> {
         self.fs.next().map(|(i, j)| {
             debug_assert!(self.range.contains(i).is_some());
             debug_assert!(self.range.contains(j).is_some() || j == self.range.end);
             debug_assert!(i != j);
             unsafe {
-                Checked::new(Range::from(i, j))
+                Range::from(i, j)
             }
         })
     }
@@ -910,7 +849,7 @@ fn test_intervals() {
     let mut data = [0; 8];
     indices(&mut data[..], |mut data, r| {
         for (index, part) in r.even_chunks(3).enumerate() {
-            for elt in &mut data[*part] {
+            for elt in &mut data[part] {
                 *elt = index;
             }
         }
@@ -1181,8 +1120,8 @@ fn test_scan() {
     indices(&mut data[..], |data, r| {
         let r = r.nonempty().unwrap();
         let range = data.scan_head(r.first(), |elt| *elt == 0);
-        assert_eq!(&data[*range], &[0, 0, 0]);
+        assert_eq!(&data[range], &[0, 0, 0]);
         let range = data.scan_head(range.last(), |elt| *elt != 0);
-        assert_eq!(&data[*range], &[0, 1, 2]);
+        assert_eq!(&data[range], &[0, 1, 2]);
     });
 }

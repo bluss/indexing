@@ -1,8 +1,10 @@
 
 use std::marker::PhantomData;
 use std::mem;
+use std::ops::Deref;
+use std::ptr;
 use super::Id;
-use super::{Checked, Empty, NonEmpty};
+use super::{Empty, NonEmpty, BufferMut, Indexer};
 
 use std::intrinsics::assume;
 
@@ -75,6 +77,29 @@ impl<'id, T> PRange<'id, T> {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct Checked<X, L> {
+    item: X,
+    proof: PhantomData<L>,
+}
+
+impl<X, L> Checked<X, L> {
+    #[inline]
+    unsafe fn new(item: X) -> Self {
+        Checked { item: item, proof: PhantomData }
+    }
+}
+
+/// Deref to the inner range
+// NOTE: immutable deref is ok, mutable would be unsound
+impl<'id, X, L> Deref for Checked<X, L> {
+    type Target = X;
+    fn deref(&self) -> &X {
+        &self.item
+    }
+}
+
+
 impl<'id, T> Checked<PRange<'id, T>, NonEmpty> {
     #[inline]
     pub fn first(&self) -> PIndex<'id, T> {
@@ -113,6 +138,57 @@ impl<'id, T> Checked<PRange<'id, T>, NonEmpty> {
         }
     }
 }
+
+impl<'id, T, Array> Indexer<'id, Array> where Array: BufferMut<Target=[T]> {
+    #[inline]
+    pub fn pointer_range(&self) -> PRange<'id, T> {
+        unsafe {
+            let start = self.arr.as_ptr();
+            let end = start.offset(self.arr.len() as isize);
+            PRange::from(start, end)
+        }
+    }
+
+    /// Rotate elements in the range by one step to the right (towards higher indices)
+    #[inline]
+    pub fn rotate1_(&mut self, r: Checked<PRange<'id, T>, NonEmpty>) {
+        unsafe {
+            let last_ptr = r.last().ptr();
+            let first_ptr = r.first().ptr_mut();
+            if first_ptr as *const _ == last_ptr {
+                return;
+            }
+            let tmp = ptr::read(last_ptr);
+            ptr::copy(first_ptr,
+                      first_ptr.offset(1),
+                      r.len() - 1);
+            ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
+            mem::forget(tmp);
+        }
+    }
+
+    /// Examine the elements before `index` in order from higher indices towards lower.
+    /// While the closure returns `true`, continue scan and include the scanned
+    /// element in the range.
+    ///
+    /// Result always includes `index` in the range
+    #[inline]
+    pub fn scan_tail_<F>(&self, index: PIndex<'id, T>, mut f: F) -> Checked<PRange<'id, T>, NonEmpty>
+        where F: FnMut(&T) -> bool
+    {
+        unsafe {
+            let mut start = index.ptr();
+            for elt in self[..index].iter().rev() {
+                if !f(elt) {
+                    break;
+                }
+                start = elt as *const _;
+            }
+            Checked::new(PRange::from(start, index.ptr().offset(1)))
+        }
+    }
+}
+
 
 impl<'id, T> Iterator for PRange<'id, T> {
     type Item = PIndex<'id, T>;

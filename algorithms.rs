@@ -240,7 +240,7 @@ pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &m
                     if !out.advance() { return; }
                     if !j.advance() {
                         // block swap remainder
-                        block_swap2(&mut buffer[*i], &mut data[*out]);
+                        block_swap2(&mut buffer[i], &mut data[out]);
                         break;
                     }
                 }
