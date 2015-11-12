@@ -49,15 +49,13 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
             // let pivot = m;
             //
             // smart pivot -- use median of three
-            let pivot = if v[l] <= v[m] && v[m] <= v[r] {
+            let mut pivot = if v[l] <= v[m] && v[m] <= v[r] {
                 m
             } else if v[m] <= v[l] && v[l] <= v[r] {
                 l
             } else {
                 r
             };
-
-            puts!("v={:?}, pivot={:?}, {:?}", &v[..], pivot, v[pivot]);
 
             // partition
             // I think this is similar to Hoare’s version, wikipedia
@@ -67,6 +65,9 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
                     loop {
                         if v[scan.last()] <= v[pivot] {
                             v.swap(scan.first(), scan.last());
+                            if scan.last() == pivot {
+                                pivot = scan.first();
+                            }
                             break;
                         }
                         if !scan.advance_back() {
@@ -82,6 +83,7 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
 
             // ok split at pivot location and recurse
             let (a, b) = v.split_at(scan.first());
+            //puts!("a={:?}, pivot={:?}, b={:?}", &v[a], &v[scan.first()], &v[b]);
             quicksort(&mut v[a]);
             quicksort(&mut v[b]);
         }
@@ -114,6 +116,10 @@ fn test_quicksort() {
     let mut data = [0, 1, 5, 2, 3, 4];
     quicksort(&mut data);
     assert_eq!(&data, &[0, 1, 2, 3, 4, 5]);
+
+    let mut data = [0, 1, 1, -1, 0, -1];
+    quicksort(&mut data);
+    assert_eq!(&data, &[-1, -1, 0, 0, 1, 1]);
 }
 
 pub fn insertion_sort_indexes<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
