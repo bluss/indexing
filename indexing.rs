@@ -646,6 +646,11 @@ impl<'id> Range<'id, NonEmpty> {
     }
 
     #[inline]
+    pub fn last(&self) -> Index<'id> {
+        Index { id: self.id, idx: self.end - 1 }
+    }
+
+    #[inline]
     pub fn tail(&self) -> Range<'id> {
         // in bounds since it's nonempty
         unsafe {
@@ -659,11 +664,6 @@ impl<'id> Range<'id, NonEmpty> {
         unsafe {
             Range::from(self.start, self.end - 1)
         }
-    }
-
-    #[inline]
-    pub fn last(&self) -> Index<'id> {
-        Index { id: self.id, idx: self.end - 1 }
     }
 
     #[inline]
