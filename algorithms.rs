@@ -4,7 +4,7 @@
 //!
 //!
 
-use std::fmt::{self, Debug};
+use std::fmt::{Debug};
 use std::cmp;
 use std::mem::swap;
 
@@ -17,14 +17,9 @@ impl<T: Ord + Debug> Data for T { }
 
 // for debugging -- like println during debugging
 #[cfg(debug_assertions)]
-fn print(a: fmt::Arguments) {
-    print!("{}\n", a);
-}
-
-#[cfg(debug_assertions)]
 macro_rules! puts {
     ($($t:tt)*) => {
-        print(format_args!($($t)*))
+        println!($($t)*)
     }
 }
 
@@ -56,7 +51,7 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
             // smart pivot -- use median of three
             let pivot = if v[l] <= v[m] && v[m] <= v[r] {
                 m
-            } else if v[l] >= v[m] && v[l] <= v[r] {
+            } else if v[m] <= v[l] && v[l] <= v[r] {
                 l
             } else {
                 r

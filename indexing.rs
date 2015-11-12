@@ -806,7 +806,6 @@ pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     // to somehow bind the lifetime to the inside of this function, making
     // it sound again. Borrowck will never do such analysis, so we don't
     // care.
-    let len = arr.len();
     let indexer = Indexer { id: PhantomData, arr: arr };
     let indices = indexer.range();
     f(indexer, indices)
