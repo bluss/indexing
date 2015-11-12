@@ -421,11 +421,22 @@ impl<'id, T, Array> ops::IndexMut<ops::RangeTo<Index<'id>>> for Indexer<'id, Arr
     }
 }
 
-impl<'id, 'a, T> ops::Index<ops::RangeFull> for Indexer<'id, &'a mut [T]> {
+impl<'id, T, Array> ops::Index<ops::RangeFull> for Indexer<'id, Array>
+    where Array: Buffer<Target=[T]>,
+{
     type Output = [T];
     #[inline(always)]
     fn index(&self, _: ops::RangeFull) -> &[T] {
         &self.arr[..]
+    }
+}
+
+impl<'id, T, Array> ops::IndexMut<ops::RangeFull> for Indexer<'id, Array>
+    where Array: BufferMut<Target=[T]>,
+{
+    #[inline(always)]
+    fn index_mut(&mut self, _: ops::RangeFull) -> &mut [T] {
+        &mut self.arr[..]
     }
 }
 
