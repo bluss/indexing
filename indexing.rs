@@ -10,6 +10,7 @@ extern crate test;
 
 // Modules
 pub mod pointer;
+pub mod algorithms;
 
 #[cfg(test)]
 use test::Bencher;
@@ -1192,85 +1193,4 @@ fn test_scan() {
         let range = data.scan_head(range.last(), |elt| *elt != 0);
         assert_eq!(&data[*range], &[0, 1, 2]);
     });
-}
-
-#[test]
-fn test_quicksort() {
-    /// Simple quicksort implemented using `indexing`,
-    fn qsort<T: Ord + std::fmt::Debug>(v: &mut [T]) {
-        // I think this is similar to Hoare’s version?
-        indices(v, |mut v, range| {
-            if let Ok(range) = range.nonempty() {
-
-                let (r, m, l) = (range.first(), range.upper_middle(), range.last());
-                // return, if the range is too short to sort
-                if r == l {
-                    return;
-                }
-                // simple pivot
-                // let pivot = m;
-                //
-                // smart pivot -- use median of three
-                let pivot = if v[l] <= v[m] && v[m] <= v[r] {
-                    m
-                } else if v[l] >= v[m] && v[l] <= v[r] {
-                    l
-                } else {
-                    r
-                };
-
-                println!("v={:?}, pivot={:?}, {:?}", &v[..], pivot, v[pivot]);
-
-                // partition
-                if let Ok(mut scan) = range.nonempty() {
-                    'main: loop {
-                        if v[scan.first()] > v[pivot] {
-                            loop {
-                                if v[scan.last()] <= v[pivot] {
-                                    v.swap(scan.first(), scan.last());
-                                    break;
-                                }
-                                if !scan.advance_back() {
-                                    break 'main;
-                                }
-                            }
-                        }
-                        if !scan.advance() {
-                            v.swap(pivot, scan.first());
-                            break;
-                        }
-                    }
-
-                    // ok split at pivot location and recurse
-                    let (a, b) = v.split_at(scan.first());
-                    qsort(&mut v[a]);
-                    qsort(&mut v[b]);
-                }
-            }
-        });
-    }
-
-    let mut data = [1, 0];
-    qsort(&mut data);
-    assert_eq!(&data, &[0, 1]);
-
-    let mut data = [1, 2, 2, 1, 3, 3, 2, 3];
-    qsort(&mut data);
-    assert_eq!(&data, &[1, 1, 2, 2, 2, 3, 3, 3]);
-
-    let mut data = [1, 4, 2, 0, 3];
-    qsort(&mut data);
-    assert_eq!(&data, &[0, 1, 2, 3, 4]);
-
-    let mut data = [4, 3, 2, 1, 0];
-    qsort(&mut data);
-    assert_eq!(&data, &[0, 1, 2, 3, 4]);
-
-    let mut data = [0, 1, 2, 3, 4];
-    qsort(&mut data);
-    assert_eq!(&data, &[0, 1, 2, 3, 4]);
-
-    let mut data = [0, 1, 5, 2, 3, 4];
-    qsort(&mut data);
-    assert_eq!(&data, &[0, 1, 2, 3, 4, 5]);
 }
