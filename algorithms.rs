@@ -114,3 +114,23 @@ fn test_quicksort() {
     quicksort(&mut data);
     assert_eq!(&data, &[0, 1, 2, 3, 4, 5]);
 }
+
+pub fn insertion_sort_indexes<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
+    indices(v, move |mut v, r| {
+        for i in r {
+            let jtail = v.scan_tail(i, |j_elt| less_than(&v[i], j_elt));
+            v.rotate1(jtail);
+        }
+    });
+}
+
+pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
+    indices(v, move |mut v, r| {
+        if let Ok(mut i) = r.nonempty() {
+            while i.advance() {
+                let jtail = v.scan_tail(i.first(), |j_elt| less_than(&v[i.first()], j_elt));
+                v.rotate1(jtail);
+            }
+        }
+    });
+}

@@ -23,9 +23,12 @@ fn test_data_max(n: usize, max: i32) -> Vec<i32> {
     v
 }
 
+const N: usize = 10240;
+const MAX: i32 = 10240;
+
 #[bench]
 fn bench_quicksort(b: &mut Bencher) {
-    let data = test_data_max(1024, 128);
+    let data = test_data_max(N, MAX);
     b.iter(|| {
         let mut v = data.clone();
         indexing::algorithms::quicksort(&mut v);
@@ -35,7 +38,7 @@ fn bench_quicksort(b: &mut Bencher) {
 
 #[bench]
 fn bench_libstdsort(b: &mut Bencher) {
-    let data = test_data_max(1024, 128);
+    let data = test_data_max(N, MAX);
     b.iter(|| {
         let mut v = data.clone();
         v.sort();
