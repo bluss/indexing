@@ -47,6 +47,11 @@ pub struct Indexer<'id, Array> {
     arr: Array,
 }
 
+/// A branded index.
+///
+/// `Index<'id>` only indexes the container instantiated with the exact same
+/// particular lifetime for the parameter `'id` at its inception from
+/// the `indices()` constructor.
 #[derive(Copy, Clone, Eq)]
 pub struct Index<'id> {
     id: Id<'id>,
