@@ -42,7 +42,9 @@ unsafe impl<X: ?Sized> BufferMut for X where X: Buffer + DerefMut { }
 // grow 'id to solve the borrow system.
 type Id<'id> = PhantomData<::std::cell::Cell<&'id mut ()>>;
 
-pub struct Indexer<'id, Array> {
+/// A branded container, that allows access only to indices and ranges with
+/// the exact same brand in the `'id` parameter.
+pub struct Container<'id, Array> {
     id: Id<'id>,
     arr: Array,
 }
@@ -85,7 +87,7 @@ trait LengthMarker {}
 impl LengthMarker for NonEmpty {}
 impl LengthMarker for Unknown {}
 
-impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
+impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn len(&self) -> usize {
         self.arr.len()
@@ -100,7 +102,7 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
-    /// Return the full range of the Indexer.
+    /// Return the full range of the Container.
     #[inline]
     pub fn range(&self) -> Range<'id> {
         unsafe {
@@ -154,7 +156,7 @@ impl<'id, 'a, Array, T> Indexer<'id, Array> where Array: Buffer<Target=[T]> {
     }
 }
 
-impl<'id, T, Array> Indexer<'id, Array>
+impl<'id, T, Array> Container<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline]
@@ -249,7 +251,7 @@ impl<'id, T, Array> Indexer<'id, Array>
 }
 
 
-impl<'id, T, Array> ops::Index<Index<'id>> for Indexer<'id, Array>
+impl<'id, T, Array> ops::Index<Index<'id>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>
 {
     type Output = T;
@@ -261,7 +263,7 @@ impl<'id, T, Array> ops::Index<Index<'id>> for Indexer<'id, Array>
     }
 }
 
-impl<'id, T, Array, P> ops::Index<Range<'id, P>> for Indexer<'id, Array>
+impl<'id, T, Array, P> ops::Index<Range<'id, P>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
@@ -275,7 +277,7 @@ impl<'id, T, Array, P> ops::Index<Range<'id, P>> for Indexer<'id, Array>
     }
 }
 
-impl<'id, T, Array> ops::IndexMut<Index<'id>> for Indexer<'id, Array>
+impl<'id, T, Array> ops::IndexMut<Index<'id>> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline(always)]
@@ -286,7 +288,7 @@ impl<'id, T, Array> ops::IndexMut<Index<'id>> for Indexer<'id, Array>
     }
 }
 
-impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Indexer<'id, Array>
+impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline(always)]
@@ -299,7 +301,7 @@ impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Indexer<'id, Array>
     }
 }
 
-impl<'id, 'a, T> ops::Index<ops::RangeFrom<Index<'id>>> for Indexer<'id, &'a mut [T]> {
+impl<'id, 'a, T> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, &'a mut [T]> {
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeFrom<Index<'id>>) -> &[T] {
@@ -312,7 +314,7 @@ impl<'id, 'a, T> ops::Index<ops::RangeFrom<Index<'id>>> for Indexer<'id, &'a mut
     }
 }
 
-impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Indexer<'id, &'a mut [T]> {
+impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Container<'id, &'a mut [T]> {
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeFrom<Index<'id>>) -> &mut [T] {
         let i = r.start.idx;
@@ -324,7 +326,7 @@ impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Indexer<'id, &'a 
     }
 }
 
-impl<'id, T, Array> ops::Index<ops::RangeTo<Index<'id>>> for Indexer<'id, Array>
+impl<'id, T, Array> ops::Index<ops::RangeTo<Index<'id>>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
@@ -337,7 +339,7 @@ impl<'id, T, Array> ops::Index<ops::RangeTo<Index<'id>>> for Indexer<'id, Array>
     }
 }
 
-impl<'id, T, Array> ops::IndexMut<ops::RangeTo<Index<'id>>> for Indexer<'id, Array>
+impl<'id, T, Array> ops::IndexMut<ops::RangeTo<Index<'id>>> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>
 {
     #[inline(always)]
@@ -349,7 +351,7 @@ impl<'id, T, Array> ops::IndexMut<ops::RangeTo<Index<'id>>> for Indexer<'id, Arr
     }
 }
 
-impl<'id, T, Array> ops::Index<ops::RangeFull> for Indexer<'id, Array>
+impl<'id, T, Array> ops::Index<ops::RangeFull> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
@@ -359,7 +361,7 @@ impl<'id, T, Array> ops::Index<ops::RangeFull> for Indexer<'id, Array>
     }
 }
 
-impl<'id, T, Array> ops::IndexMut<ops::RangeFull> for Indexer<'id, Array>
+impl<'id, T, Array> ops::IndexMut<ops::RangeFull> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline(always)]
@@ -370,7 +372,7 @@ impl<'id, T, Array> ops::IndexMut<ops::RangeFull> for Indexer<'id, Array>
 
 
 // ###### Bounds checking impls #####
-impl<'id, 'a, T> ops::Index<ops::Range<usize>> for Indexer<'id, &'a mut [T]> {
+impl<'id, 'a, T> ops::Index<ops::Range<usize>> for Container<'id, &'a mut [T]> {
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::Range<usize>) -> &[T] {
@@ -378,7 +380,7 @@ impl<'id, 'a, T> ops::Index<ops::Range<usize>> for Indexer<'id, &'a mut [T]> {
     }
 }
 
-impl<'id, 'a, T> ops::Index<ops::RangeFrom<usize>> for Indexer<'id, &'a mut [T]> {
+impl<'id, 'a, T> ops::Index<ops::RangeFrom<usize>> for Container<'id, &'a mut [T]> {
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeFrom<usize>) -> &[T] {
@@ -386,7 +388,7 @@ impl<'id, 'a, T> ops::Index<ops::RangeFrom<usize>> for Indexer<'id, &'a mut [T]>
     }
 }
 
-impl<'id, 'a, T> ops::Index<ops::RangeTo<usize>> for Indexer<'id, &'a mut [T]> {
+impl<'id, 'a, T> ops::Index<ops::RangeTo<usize>> for Container<'id, &'a mut [T]> {
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeTo<usize>) -> &[T] {
@@ -394,21 +396,21 @@ impl<'id, 'a, T> ops::Index<ops::RangeTo<usize>> for Indexer<'id, &'a mut [T]> {
     }
 }
 
-impl<'id, 'a, T> ops::IndexMut<ops::Range<usize>> for Indexer<'id, &'a mut [T]> {
+impl<'id, 'a, T> ops::IndexMut<ops::Range<usize>> for Container<'id, &'a mut [T]> {
     #[inline(always)]
     fn index_mut(&mut self, r: ops::Range<usize>) -> &mut [T] {
         &mut self.arr[r]
     }
 }
 
-impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<usize>> for Indexer<'id, &'a mut [T]> {
+impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<usize>> for Container<'id, &'a mut [T]> {
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeFrom<usize>) -> &mut [T] {
         &mut self.arr[r]
     }
 }
 
-impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<usize>> for Indexer<'id, &'a mut [T]> {
+impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<usize>> for Container<'id, &'a mut [T]> {
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeTo<usize>) -> &mut [T] {
         &mut self.arr[r]
@@ -429,7 +431,7 @@ fn ptr_iselement<T>(arr: &[T], ptr: *const T) {
     }
 }
 
-impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Indexer<'id, &'a mut [T]> {
+impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Container<'id, &'a mut [T]> {
     type Output = T;
     #[inline(always)]
     fn index(&self, r: PIndex<'id, T>) -> &T {
@@ -440,7 +442,7 @@ impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Indexer<'id, &'a mut [T]> {
     }
 }
 
-impl<'id, T, Array> ops::Index<ops::RangeTo<PIndex<'id, T>>> for Indexer<'id, Array>
+impl<'id, T, Array> ops::Index<ops::RangeTo<PIndex<'id, T>>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
@@ -768,9 +770,18 @@ impl<'id> DoubleEndedIterator for RangeIter<'id> {
     }
 }
 
+/// Create an indexing scope for a container.
+///
+/// The indexing scope is a closure that is passed a unique lifetime for
+/// the parameter `'id`; this lifetime brands the container and its indices
+/// and ranges, so that they are trusted to be in bounds.
+///
+/// Indices and ranges branded with `'id` can not leave the closure. The
+/// container can only be accessed and mutated through the `Container` wrapper
+/// passed as the first argument to the indexing scope.
 #[inline]
 pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
-    where F: for<'id> FnOnce(Indexer<'id, Array>, Range<'id>) -> Out,
+    where F: for<'id> FnOnce(Container<'id, Array>, Range<'id>) -> Out,
           Array: Buffer<Target=[T]>,
 {
     // This is where the magic happens. We bind the indexer and indices
@@ -790,7 +801,7 @@ pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     // to somehow bind the lifetime to the inside of this function, making
     // it sound again. Borrowck will never do such analysis, so we don't
     // care.
-    let indexer = Indexer { id: PhantomData, arr: arr };
+    let indexer = Container { id: PhantomData, arr: arr };
     let indices = indexer.range();
     f(indexer, indices)
 }

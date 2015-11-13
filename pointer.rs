@@ -4,7 +4,7 @@ use std::mem;
 use std::ops::Deref;
 use std::ptr;
 use super::Id;
-use super::{NonEmpty, BufferMut, Indexer};
+use super::{NonEmpty, BufferMut, Container};
 
 use std::intrinsics::assume;
 
@@ -139,7 +139,7 @@ impl<'id, T> Checked<PRange<'id, T>, NonEmpty> {
     }
 }
 
-impl<'id, T, Array> Indexer<'id, Array> where Array: BufferMut<Target=[T]> {
+impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
     #[inline]
     pub fn pointer_range(&self) -> PRange<'id, T> {
         unsafe {
