@@ -92,7 +92,7 @@ trait LengthMarker {}
 impl LengthMarker for NonEmpty {}
 impl LengthMarker for Unknown {}
 
-impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
+impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn len(&self) -> usize {
         self.arr.len()
@@ -343,7 +343,9 @@ impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Container<'id, Array>
     }
 }
 
-impl<'id, 'a, T> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, &'a mut [T]> {
+impl<'id, T, Array> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, Array>
+    where Array: Buffer<Target=[T]>,
+{
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeFrom<Index<'id>>) -> &[T] {
@@ -356,7 +358,9 @@ impl<'id, 'a, T> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, &'a m
     }
 }
 
-impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Container<'id, &'a mut [T]> {
+impl<'id, T, Array> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Container<'id, Array>
+    where Array: BufferMut<Target=[T]>,
+{
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeFrom<Index<'id>>) -> &mut [T] {
         let i = r.start.index;
