@@ -189,6 +189,56 @@ pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut
     });
 }
 
+pub fn insertion_sort_pointerindex<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
+    indices(v, move |mut v, _r| {
+        for i in v.pointer_range() {
+            let jtail = v.scan_tail_(i, |j_elt| less_than(&v[i], j_elt));
+            v.rotate1_(jtail);
+        }
+    });
+}
+
+/// Copied from rust / libcollections/slice.rs, using raw pointers
+pub fn insertion_sort_rust<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
+    use std::mem;
+    use std::ptr;
+    let len = v.len() as isize;
+    let buf_v = v.as_mut_ptr();
+
+    // 1 <= i < len;
+    for i in 1..len {
+        // j satisfies: 0 <= j <= i;
+        let mut j = i;
+        unsafe {
+            // `i` is in bounds.
+            let read_ptr = buf_v.offset(i) as *const T;
+
+            // find where to insert, we need to do strict <,
+            // rather than <=, to maintain stability.
+
+            // 0 <= j - 1 < len, so .offset(j - 1) is in bounds.
+            while j > 0 && less_than(&*read_ptr, &*buf_v.offset(j - 1)) {
+                j -= 1;
+            }
+
+            // shift everything to the right, to make space to
+            // insert this value.
+
+            // j + 1 could be `len` (for the last `i`), but in
+            // that case, `i == j` so we don't copy. The
+            // `.offset(j)` is always in bounds.
+
+            if i != j {
+                let tmp = ptr::read(read_ptr);
+                ptr::copy(&*buf_v.offset(j),
+                          buf_v.offset(j + 1),
+                          (i - j) as usize);
+                ptr::copy_nonoverlapping(&tmp, buf_v.offset(j), 1);
+                mem::forget(tmp);
+            }
+        }
+    }
+}
 
 
 // block swap between two different slices
