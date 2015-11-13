@@ -206,27 +206,6 @@ impl<'id, T, Array> Indexer<'id, Array>
         }
     }
 
-    /// Examine the elements `range` in order from lower indices towards higher
-    /// While the closure returns `true`, continue scan and include the scanned
-    /// element in the range.
-    ///
-    /// Result always includes `index` in the range
-    #[inline]
-    pub fn scan_range<'b, F, P>(&'b self, range: Range<'id, P>, mut f: F) -> Range<'id>
-        where F: FnMut(&'b T) -> bool, T: 'b,
-    {
-        let mut end = range.start;
-        for elt in &self[range] {
-            if !f(elt) {
-                break;
-            }
-            end += 1;
-        }
-        unsafe {
-            Range::from(range.start, end)
-        }
-    }
-
     /// Examine the elements before `index` in order from higher indices towards lower.
     /// While the closure returns `true`, continue scan and include the scanned
     /// element in the range.
@@ -247,6 +226,26 @@ impl<'id, T, Array> Indexer<'id, Array>
             Range::from_ne(start.idx, index.idx + 1)
         }
     }
+
+    /// Examine the elements `range` in order from lower indices towards higher
+    /// While the closure returns `true`, continue scan and include the scanned
+    /// element in the range.
+    #[inline]
+    pub fn scan_range<'b, F, P>(&'b self, range: Range<'id, P>, mut f: F) -> Range<'id>
+        where F: FnMut(&'b T) -> bool, T: 'b,
+    {
+        let mut end = range.start;
+        for elt in &self[range] {
+            if !f(elt) {
+                break;
+            }
+            end += 1;
+        }
+        unsafe {
+            Range::from(range.start, end)
+        }
+    }
+
 }
 
 
