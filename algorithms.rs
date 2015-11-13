@@ -330,29 +330,25 @@ pub fn heapify<T: Data>(v: &mut [T]) {
     indices(v, |mut v, range| {
         // for 0-indexed element k, heap parents are:
         // 2k + 1, 2k + 2
-        'outer: for i in range.split_in_half().0.into_iter().rev() {
-            // sift down v.after(i)
-            if let Ok(tail) = v.split_at(i).1.nonempty() {
-                let start = tail.first();
-                let mut pos = tail.first();
-                let mut child_index = pos.integer() * 2 + 1;
-                while let Ok(mut child) = v.vet(child_index) {
-                    // pick the smaller of the two children
-                    let mut right = child;
-                    if v.forward(&mut right) && v[child] > v[right] {
-                        child_index += 1;
-                        child = right;
-                    }
-                    // sift down is done if we are already in order
-                    if v[pos] < v[child] { continue 'outer; }
-                    //puts!("mov {:?} => {:?} (value={:?})", pos, child, &v[pos]);
-                    v.swap(pos, child);
-                    pos = child;
-                    child_index = child_index * 2 + 1;
+        let (left, _right) = range.split_in_half();
+        for i in left.into_iter().rev() {
+            // Sift down element at `i`.
+            let mut pos = i;
+            while let Ok(mut child) = v.vet(pos.integer() * 2 + 1) {
+                // pick the smaller of the two children
+                let mut right = child;
+                if v.forward(&mut right) && v[child] > v[right] {
+                    child = right;
                 }
+                // sift down is done if we are already in order
+                if v[pos] < v[child] {
+                    break;
+                }
+                //puts!("mov {:?} => {:?} (value={:?})", pos, child, &v[pos]);
+                v.swap(pos, child);
+                pos = child;
             }
         }
-        puts!("end {:?}", &v[..]);
     });
 }
 
