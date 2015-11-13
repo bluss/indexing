@@ -172,7 +172,7 @@ fn test_quicksort() {
 pub fn insertion_sort_indexes<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
     indices(v, move |mut v, r| {
         for i in r {
-            let jtail = v.scan_tail(i, |j_elt| less_than(&v[i], j_elt));
+            let jtail = v.scan_from_rev(i, |j_elt| less_than(&v[i], j_elt));
             v.rotate1_up(jtail);
         }
     });
@@ -182,7 +182,7 @@ pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut
     indices(v, move |mut v, r| {
         if let Ok(mut i) = r.nonempty() {
             while i.advance() {
-                let jtail = v.scan_tail(i.first(), |j_elt| less_than(&v[i.first()], j_elt));
+                let jtail = v.scan_from_rev(i.first(), |j_elt| less_than(&v[i.first()], j_elt));
                 v.rotate1_up(jtail);
             }
         }

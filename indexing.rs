@@ -196,13 +196,13 @@ impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         } else { false }
     }
 
-    /// Examine the elements after `index` in order from lower indices towards higher
+    /// Examine the elements after `index` in order from lower indices towards higher.
     /// While the closure returns `true`, continue scan and include the scanned
     /// element in the range.
     ///
     /// Result always includes `index` in the range
     #[inline]
-    pub fn scan_head<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Range<'id, NonEmpty>
+    pub fn scan_from<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Range<'id, NonEmpty>
         where F: FnMut(&'b T) -> bool, T: 'b,
     {
         let mut end = index;
@@ -222,9 +222,9 @@ impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     /// While the closure returns `true`, continue scan and include the scanned
     /// element in the range.
     ///
-    /// Result always includes `index` in the range
+    /// Result always includes `index` in the range.
     #[inline]
-    pub fn scan_tail<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Range<'id, NonEmpty>
+    pub fn scan_from_rev<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Range<'id, NonEmpty>
         where F: FnMut(&'b T) -> bool, T: 'b
     {
         unsafe {
@@ -239,7 +239,7 @@ impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
-    /// Examine the elements `range` in order from lower indices towards higher
+    /// Examine the elements `range` in order from lower indices towards higher.
     /// While the closure returns `true`, continue scan and include the scanned
     /// element in the range.
     #[inline]
@@ -991,9 +991,9 @@ fn test_scan() {
     let mut data = [0, 0, 0, 1, 2];
     indices(&mut data[..], |data, r| {
         let r = r.nonempty().unwrap();
-        let range = data.scan_head(r.first(), |elt| *elt == 0);
+        let range = data.scan_from(r.first(), |elt| *elt == 0);
         assert_eq!(&data[range], &[0, 0, 0]);
-        let range = data.scan_head(range.last(), |elt| *elt != 0);
+        let range = data.scan_from(range.last(), |elt| *elt != 0);
         assert_eq!(&data[range], &[0, 1, 2]);
     });
 }
