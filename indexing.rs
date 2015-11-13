@@ -57,12 +57,19 @@ pub struct Container<'id, Array> {
 #[derive(Copy, Clone, Eq)]
 pub struct Index<'id> {
     id: Id<'id>,
-    idx: usize,
+    index: usize,
+}
+
+impl<'id> Index<'id> {
+    #[inline(always)]
+    unsafe fn from(index: usize) -> Index<'id> {
+        Index { id: PhantomData, index: index }
+    }
 }
 
 impl<'id> Debug for Index<'id> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Index({})", self.idx)
+        write!(f, "Index({})", self.index)
     }
 }
 
@@ -70,7 +77,7 @@ impl<'id> Debug for Index<'id> {
 impl<'id> PartialEq for Index<'id> {
     #[inline(always)]
     fn eq(&self, other: &Index<'id>) -> bool {
-        self.idx == other.idx
+        self.index == other.index
     }
 }
 
@@ -110,10 +117,20 @@ impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
+    pub fn vet(&self, index: usize) -> Result<Index<'id>, ()> {
+        if index < self.len() {
+            unsafe {
+                Ok(Index::from(index))
+            }
+        } else {
+            Err(())
+        }
+    }
+
     #[inline]
     pub fn split_at(&self, index: Index<'id>) -> (Range<'id>, Range<'id, NonEmpty>) {
         unsafe {
-            (Range::from(0, index.idx), Range::from_ne(index.idx, self.arr.len()))
+            (Range::from(0, index.index), Range::from_ne(index.index, self.arr.len()))
         }
     }
 
@@ -121,7 +138,7 @@ impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     /// starts with the following index.
     #[inline]
     pub fn split_after(&self, index: Index<'id>) -> (Range<'id, NonEmpty>, Range<'id>) {
-        let mid = index.idx + 1; // must be <= len since `index` is in bounds
+        let mid = index.index + 1; // must be <= len since `index` is in bounds
         unsafe {
             (Range::from_ne(0, mid), Range::from(mid, self.arr.len()))
         }
@@ -132,25 +149,25 @@ impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn before(&self, index: Index<'id>) -> Range<'id> {
         unsafe {
-            Range::from(0, index.idx)
+            Range::from(0, index.index)
         }
     }
 
     /// Return the range after (not including) the index itself
     #[inline]
     pub fn after(&self, index: Index<'id>) -> Range<'id> {
-        // in bounds because idx + 1 is <= .len()
+        // in bounds because index + 1 is <= .len()
         unsafe {
-            Range::from(index.idx + 1, self.arr.len())
+            Range::from(index.index + 1, self.arr.len())
         }
     }
 
     /// Return true if the index was advanced
     #[inline]
     pub fn forward(&self, index: &mut Index<'id>) -> bool {
-        let i = index.idx + 1;
+        let i = index.index + 1;
         if i < self.arr.len() {
-            index.idx = i;
+            index.index = i;
             true
         } else { false }
     }
@@ -200,11 +217,11 @@ impl<'id, T, Array> Container<'id, Array>
             if !f(elt) {
                 break;
             }
-            end.idx += 1;
+            end.index += 1;
         }
-        end.idx += 1;
+        end.index += 1;
         unsafe {
-            Range::from_ne(index.idx, end.idx)
+            Range::from_ne(index.index, end.index)
         }
     }
 
@@ -223,9 +240,9 @@ impl<'id, T, Array> Container<'id, Array>
                 if !f(elt) {
                     break;
                 }
-                start.idx -= 1;
+                start.index -= 1;
             }
-            Range::from_ne(start.idx, index.idx + 1)
+            Range::from_ne(start.index, index.index + 1)
         }
     }
 
@@ -256,9 +273,9 @@ impl<'id, T, Array> ops::Index<Index<'id>> for Container<'id, Array>
 {
     type Output = T;
     #[inline(always)]
-    fn index(&self, idx: Index<'id>) -> &T {
+    fn index(&self, index: Index<'id>) -> &T {
         unsafe {
-            self.arr.get_unchecked(idx.idx)
+            self.arr.get_unchecked(index.index)
         }
     }
 }
@@ -281,9 +298,9 @@ impl<'id, T, Array> ops::IndexMut<Index<'id>> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline(always)]
-    fn index_mut(&mut self, idx: Index<'id>) -> &mut T {
+    fn index_mut(&mut self, index: Index<'id>) -> &mut T {
         unsafe {
-            self.arr.get_unchecked_mut(idx.idx)
+            self.arr.get_unchecked_mut(index.index)
         }
     }
 }
@@ -305,7 +322,7 @@ impl<'id, 'a, T> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, &'a m
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeFrom<Index<'id>>) -> &[T] {
-        let i = r.start.idx;
+        let i = r.start.index;
         unsafe {
             std::slice::from_raw_parts(
                 self.arr.as_ptr().offset(i as isize),
@@ -317,7 +334,7 @@ impl<'id, 'a, T> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, &'a m
 impl<'id, 'a, T> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Container<'id, &'a mut [T]> {
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeFrom<Index<'id>>) -> &mut [T] {
-        let i = r.start.idx;
+        let i = r.start.index;
         unsafe {
             std::slice::from_raw_parts_mut(
                 self.arr.as_mut_ptr().offset(i as isize),
@@ -332,7 +349,7 @@ impl<'id, T, Array> ops::Index<ops::RangeTo<Index<'id>>> for Container<'id, Arra
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeTo<Index<'id>>) -> &[T] {
-        let i = r.end.idx;
+        let i = r.end.index;
         unsafe {
             std::slice::from_raw_parts(self.arr.as_ptr(), i)
         }
@@ -344,7 +361,7 @@ impl<'id, T, Array> ops::IndexMut<ops::RangeTo<Index<'id>>> for Container<'id, A
 {
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeTo<Index<'id>>) -> &mut [T] {
-        let i = r.end.idx;
+        let i = r.end.index;
         unsafe {
             std::slice::from_raw_parts_mut(self.arr.as_mut_ptr(), i)
         }
@@ -574,7 +591,7 @@ impl<'id, P> Range<'id, P> {
     #[inline]
     pub fn contains(&self, abs_index: usize) -> Option<Index<'id>> {
         if abs_index >= self.start && abs_index <= self.end {
-            Some(Index { id: self.id, idx: abs_index })
+            Some(Index { id: self.id, index: abs_index })
         } else { None }
     }
 
@@ -636,7 +653,7 @@ pub type NeRange<'id> = Range<'id, NonEmpty>;
 impl<'id> Range<'id, NonEmpty> {
     #[inline(always)]
     pub fn first(&self) -> Index<'id> {
-        Index { id: self.id, idx: self.start }
+        Index { id: self.id, index: self.start }
     }
 
     /// Return the middle index, rounding down.
@@ -646,7 +663,7 @@ impl<'id> Range<'id, NonEmpty> {
     pub fn lower_middle(&self) -> Index<'id> {
         // nonempty, so len - 1 >= 0
         let mid = (self.len() - 1) / 2 + self.start;
-        Index { id: self.id, idx: mid }
+        Index { id: self.id, index: mid }
     }
 
     /// Return the middle index, rounding up.
@@ -655,12 +672,12 @@ impl<'id> Range<'id, NonEmpty> {
     #[inline]
     pub fn upper_middle(&self) -> Index<'id> {
         let mid = self.len() / 2 + self.start;
-        Index { id: self.id, idx: mid }
+        Index { id: self.id, index: mid }
     }
 
     #[inline]
     pub fn last(&self) -> Index<'id> {
-        Index { id: self.id, idx: self.end - 1 }
+        Index { id: self.id, index: self.end - 1 }
     }
 
     #[inline]
@@ -751,7 +768,7 @@ impl<'id> Iterator for RangeIter<'id> {
         if self.start < self.end {
             let index = self.start;
             self.start += 1;
-            Some(Index { id: PhantomData, idx: index })
+            Some(Index { id: PhantomData, index: index })
         } else {
             None
         }
@@ -763,7 +780,7 @@ impl<'id> DoubleEndedIterator for RangeIter<'id> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.start < self.end {
             self.end -= 1;
-            Some(Index { id: PhantomData, idx: self.end })
+            Some(Index { id: PhantomData, index: self.end })
         } else {
             None
         }
