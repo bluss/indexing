@@ -172,7 +172,9 @@ impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
-    /// Return true if the index was advanced
+    /// Increment `index`, if doing so would still be in bounds.
+    ///
+    /// Return `true` if the index was incremented.
     #[inline]
     pub fn forward(&self, index: &mut Index<'id>) -> bool {
         let i = index.index + 1;
@@ -181,36 +183,17 @@ impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
             true
         } else { false }
     }
-}
 
-impl<'id, T, Array> Container<'id, Array>
-    where Array: BufferMut<Target=[T]>,
-{
+    /// Decrement `index`, if doing so would still be in bounds.
+    ///
+    /// Return `true` if the index was decremented.
     #[inline]
-    pub fn swap(&mut self, i: Index<'id>, j: Index<'id>) {
-        // ptr::swap is ok with equal pointers
-        unsafe {
-            ptr::swap(&mut self[i], &mut self[j])
-        }
-    }
-
-    /// Rotate elements in the range by one step to the right (towards higher indices)
-    #[inline]
-    pub fn rotate1_up<R>(&mut self, r: R) where R: IntoCheckedRange<'id> {
-        if let Ok(r) = r.into() {
-            if r.first() != r.last() {
-                unsafe {
-                    let last_ptr = &self[r.last()] as *const _;
-                    let first_ptr = &mut self[r.first()] as *mut _;
-                    let tmp = ptr::read(last_ptr);
-                    ptr::copy(first_ptr,
-                              first_ptr.offset(1),
-                              r.len() - 1);
-                    ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
-                    mem::forget(tmp);
-                }
-            }
-        }
+    pub fn backward(&self, index: &mut Index<'id>) -> bool {
+        let i = index.index;
+        if i > 0 {
+            index.index = i - 1;
+            true
+        } else { false }
     }
 
     /// Examine the elements after `index` in order from lower indices towards higher
@@ -275,6 +258,38 @@ impl<'id, T, Array> Container<'id, Array>
         }
     }
 
+    /// Swap elements at `i` and `j` (they may be equal).
+    #[inline]
+    pub fn swap(&mut self, i: Index<'id>, j: Index<'id>)
+        where Array: BufferMut<Target=[T]>,
+    {
+        // ptr::swap is ok with equal pointers
+        unsafe {
+            ptr::swap(&mut self[i], &mut self[j])
+        }
+    }
+
+    /// Rotate elements in the range `r` by one step to the right (towards higher indices)
+    #[inline]
+    pub fn rotate1_up<R>(&mut self, r: R)
+        where Array: BufferMut<Target=[T]>,
+              R: IntoCheckedRange<'id>
+    {
+        if let Ok(r) = r.into() {
+            if r.first() != r.last() {
+                unsafe {
+                    let last_ptr = &self[r.last()] as *const _;
+                    let first_ptr = &mut self[r.first()] as *mut _;
+                    let tmp = ptr::read(last_ptr);
+                    ptr::copy(first_ptr,
+                              first_ptr.offset(1),
+                              r.len() - 1);
+                    ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
+                    mem::forget(tmp);
+                }
+            }
+        }
+    }
 }
 
 
