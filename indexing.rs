@@ -186,7 +186,7 @@ impl<'id, T, Array> Container<'id, Array>
 
     /// Rotate elements in the range by one step to the right (towards higher indices)
     #[inline]
-    pub fn rotate1<R>(&mut self, r: R) where R: IntoCheckedRange<'id> {
+    pub fn rotate1_up<R>(&mut self, r: R) where R: IntoCheckedRange<'id> {
         if let Ok(r) = r.into() {
             if r.first() != r.last() {
                 unsafe {
@@ -1009,7 +1009,7 @@ fn indexing_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&
     indices(v, move |mut v, r| {
         for i in r {
             let jtail = v.scan_tail(i, |j_elt| less_than(&v[i], j_elt));
-            v.rotate1(jtail);
+            v.rotate1_up(jtail);
         }
     });
 }
@@ -1020,7 +1020,7 @@ fn range_insertion_sort<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, 
         if let Ok(mut i) = r.nonempty() {
             while i.advance() {
                 let jtail = v.scan_tail(i.first(), |j_elt| less_than(&v[i.first()], j_elt));
-                v.rotate1(jtail);
+                v.rotate1_up(jtail);
             }
         }
     });

@@ -173,7 +173,7 @@ pub fn insertion_sort_indexes<T, F>(v: &mut [T], mut less_than: F) where F: FnMu
     indices(v, move |mut v, r| {
         for i in r {
             let jtail = v.scan_tail(i, |j_elt| less_than(&v[i], j_elt));
-            v.rotate1(jtail);
+            v.rotate1_up(jtail);
         }
     });
 }
@@ -183,7 +183,7 @@ pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut
         if let Ok(mut i) = r.nonempty() {
             while i.advance() {
                 let jtail = v.scan_tail(i.first(), |j_elt| less_than(&v[i.first()], j_elt));
-                v.rotate1(jtail);
+                v.rotate1_up(jtail);
             }
         }
     });
