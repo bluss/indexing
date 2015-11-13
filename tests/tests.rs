@@ -26,3 +26,28 @@ fn qc_quicksort_bounds() {
 
     quickcheck::quickcheck(prop as fn(_) -> bool);
 }
+
+// check the heap property
+fn is_minheap<T: Ord>(v: &[T]) -> bool {
+    // minheap:  parent is less or equal to child
+    // k -> 2k + 1, 2k + 2
+    for (index, parent) in v.iter().enumerate() {
+        let child = 2 * index + 1;
+        if child < v.len() && &v[child] < parent {
+            return false;
+        }
+        if child + 1 < v.len() && &v[child + 1] < parent {
+            return false;
+        }
+    }
+    true
+}
+
+#[test]
+fn qc_heapify() {
+    fn prop(mut v: Vec<i32>) -> bool {
+        indexing::algorithms::heapify(&mut v);
+        is_minheap(&v)
+    }
+    quickcheck::quickcheck(prop as fn(_) -> bool);
+}

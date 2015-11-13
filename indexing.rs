@@ -54,7 +54,7 @@ pub struct Container<'id, Array> {
 /// `Index<'id>` only indexes the container instantiated with the exact same
 /// particular lifetime for the parameter `'id` at its inception from
 /// the `indices()` constructor.
-#[derive(Copy, Clone, Eq)]
+#[derive(Copy, Clone, Eq, PartialOrd)]
 pub struct Index<'id> {
     id: Id<'id>,
     index: usize,
@@ -65,6 +65,10 @@ impl<'id> Index<'id> {
     unsafe fn from(index: usize) -> Index<'id> {
         Index { id: PhantomData, index: index }
     }
+
+    // FIXME: Is this a good idea? Incompatible with pointer representation.
+    #[inline]
+    pub fn integer(&self) -> usize { self.index }
 }
 
 impl<'id> Debug for Index<'id> {

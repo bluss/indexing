@@ -325,3 +325,63 @@ fn test_merge_internal() {
         assert!(buffer.iter().all(|x| *x == 0));
     }
 }
+
+pub fn heapify<T: Data>(v: &mut [T]) {
+    indices(v, |mut v, range| {
+        // for 0-indexed element k, heap parents are:
+        // 2k + 1, 2k + 2
+        'outer: for i in range.split_in_half().0.into_iter().rev() {
+            // sift down v.after(i)
+            if let Ok(tail) = v.split_at(i).1.nonempty() {
+                let start = tail.first();
+                let mut pos = tail.first();
+                let mut child_index = pos.integer() * 2 + 1;
+                while let Ok(mut child) = v.vet(child_index) {
+                    // pick the smaller of the two children
+                    let mut right = child;
+                    if v.forward(&mut right) && v[child] > v[right] {
+                        child_index += 1;
+                        child = right;
+                    }
+                    // sift down is done if we are already in order
+                    if v[pos] < v[child] { continue 'outer; }
+                    //puts!("mov {:?} => {:?} (value={:?})", pos, child, &v[pos]);
+                    v.swap(pos, child);
+                    pos = child;
+                    child_index = child_index * 2 + 1;
+                }
+            }
+        }
+        puts!("end {:?}", &v[..]);
+    });
+}
+
+#[test]
+fn test_heapify() {
+    let mut data = [8, 12, 9, 7, 22, 3, 26, 14, 11, 15, 22];
+    let heap = [3, 7, 8, 11, 15, 9, 26, 14, 12, 22, 22];
+    heapify(&mut data);
+    assert_eq!(&data, &heap);
+}
+
+    // Sift up
+    // Now sift up start..pos
+        /*
+    while hole.pos() > start {
+        let parent = (hole.pos() - 1) / 2;
+        if hole.removed() <= hole.get(parent) { break }
+        hole.move_to(parent);
+    }
+    */
+    /*
+    while pos > start {
+        let parent_index = (pos.index - 1) / 2;
+        let parent = v.vet(parent_index).unwrap();
+        if v[pos] > v[parent] { break; }
+        // mov
+        puts!("mov {:?} => {:?} (value={:?})", pos, parent, &v[pos]);
+        v.swap(pos, parent);
+        pos = parent;
+        puts!("sup {:?}", &v[..]);
+    }
+    */
