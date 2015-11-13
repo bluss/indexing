@@ -35,7 +35,7 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
         if let Ok(range) = range.nonempty() {
             // Fall back to insertion sort for short sections
             if range.len() <= 16 {
-                insertion_sort_indexes(&mut v[..], |x, y| x < y);
+                insertion_sort_ranges(&mut v[..], |x, y| x < y);
                 return;
             }
 
@@ -93,7 +93,7 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
 pub fn quicksort_bounds<T: Data>(v: &mut [T]) {
     // Fall back to insertion sort for short sections
     if v.len() <= 16 {
-        insertion_sort_indexes(&mut v[..], |x, y| x < y);
+        insertion_sort_ranges(&mut v[..], |x, y| x < y);
         return;
     }
 
