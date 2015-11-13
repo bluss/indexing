@@ -142,6 +142,18 @@ impl<'id, 'a, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
+    /// Split around the Range `r`: Return ranges corresponding to `0..r.start`
+    /// and `r.end..`.
+    ///
+    /// So that input `r` and return values `(s, t)` cover the whole container
+    /// in the order `s`, `r`, `t`.
+    #[inline]
+    pub fn split_around<P>(&self, r: Range<'id, P>) -> (Range<'id>, Range<'id>) {
+        unsafe {
+            (Range::from(0, r.start), Range::from(r.end, self.arr.len()))
+        }
+    }
+
 
     /// Return the range before (not including) the index itself
     #[inline]
