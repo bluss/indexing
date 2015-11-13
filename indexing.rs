@@ -588,6 +588,18 @@ impl<'id, P> Range<'id, P> {
         }
     }
 
+    /// Join together two adjacent ranges (they must be touching)
+    pub fn join<Q>(&self, other: Range<'id, Q>) -> Result<Range<'id, P>, ()> {
+        // FIXME: type algebra, use P + Q in return type
+        if self.end == other.start {
+            let mut next = *self;
+            next.end = other.end;
+            Ok(next)
+        } else {
+            Err(())
+        }
+    }
+
     #[inline]
     pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
 }
