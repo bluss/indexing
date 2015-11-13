@@ -39,7 +39,7 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
                 return;
             }
 
-            let (r, m, l) = (range.first(), range.upper_middle(), range.last());
+            let (l, m, r) = (range.first(), range.upper_middle(), range.last());
             // return, if the range is too short to sort
             if r == l {
                 return;
