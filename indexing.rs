@@ -733,7 +733,7 @@ impl<'id> Range<'id, NonEmpty> {
         }
     }
 
-    /// Step this range forward, if the result is still a non-empty range.
+    /// Increase the range's start, if the result is still a non-empty range.
     ///
     /// Return `true` if stepped successfully, `false` if the range would be empty.
     #[inline]
@@ -749,7 +749,7 @@ impl<'id> Range<'id, NonEmpty> {
         }
     }
 
-    /// Step the range's end, if the result is still a non-empty range.
+    /// Decrease the range's end, if the result is still a non-empty range.
     ///
     /// Return `true` if stepped successfully, `false` if the range would be empty.
     #[inline]
