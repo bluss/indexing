@@ -627,9 +627,9 @@ impl<'id, P> Range<'id, P> {
     /// Return an iterator that divides the range in `n` parts, in as
     /// even length chunks as possible.
     #[inline]
-    pub fn even_chunks(&self, n: usize) -> Intervals<'id> {
+    pub fn subdivide(&self, n: usize) -> Subdivide<'id> {
         unsafe {
-            Intervals {
+            Subdivide {
                 fs: FracStep::new(self.start, self.end, n),
                 range: Range::from(self.start, self.end),
             }
@@ -912,20 +912,20 @@ impl FracStep {
     }
 }
 
-/// `Intervals` is an iterator of evenly sized nonempty, nonoverlapping ranges
+/// `Subdivide` is an iterator of evenly sized nonempty, nonoverlapping ranges
 #[derive(Copy, Clone, Debug)]
-pub struct Intervals<'id> {
+pub struct Subdivide<'id> {
     range: Range<'id>,
     fs: FracStep,
 }
 
-impl<'id> Intervals<'id> {
+impl<'id> Subdivide<'id> {
     /// Reset counter and double up
     pub fn double(&mut self) {
     }
 }
 
-impl<'id> Iterator for Intervals<'id> {
+impl<'id> Iterator for Subdivide<'id> {
     type Item = Range<'id, NonEmpty>;
     #[inline]
     fn next(&mut self) -> Option<Range<'id, NonEmpty>> {
@@ -968,7 +968,7 @@ fn test_frac_step() {
 fn test_intervals() {
     let mut data = [0; 8];
     indices(&mut data[..], |mut data, r| {
-        for (index, part) in r.even_chunks(3).enumerate() {
+        for (index, part) in r.subdivide(3).enumerate() {
             for elt in &mut data[part] {
                 *elt = index;
             }
