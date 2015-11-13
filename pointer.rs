@@ -140,6 +140,7 @@ impl<'id, T> Checked<PRange<'id, T>, NonEmpty> {
 }
 
 impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
+    #[doc(hidden)]
     #[inline]
     pub fn pointer_range(&self) -> PRange<'id, T> {
         unsafe {
@@ -149,6 +150,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
         }
     }
 
+    #[doc(hidden)]
     /// Rotate elements in the range by one step to the right (towards higher indices)
     #[inline]
     pub fn rotate1_(&mut self, r: Checked<PRange<'id, T>, NonEmpty>) {
@@ -167,6 +169,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
         }
     }
 
+    #[doc(hidden)]
     /// Examine the elements before `index` in order from higher indices towards lower.
     /// While the closure returns `true`, continue scan and include the scanned
     /// element in the range.
