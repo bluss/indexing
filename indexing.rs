@@ -637,6 +637,14 @@ impl<'id, P> Range<'id, P> {
         self.end = cmp::min(cmp::max(self.start, end), self.end);
     }
 
+    /// Cut the range to `len` if it's longer.
+    #[inline]
+    pub fn truncate_to_len(&mut self, len: usize) {
+        if len <= self.len() {
+            self.end = self.start + len;
+        }
+    }
+
     #[inline]
     pub fn decrease_end(&mut self, offset: usize) {
         self.end = cmp::max(self.start, self.end.saturating_sub(offset));
