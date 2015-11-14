@@ -578,7 +578,7 @@ impl<'id, P> Range<'id, P> {
 
     /// Return `true` if the range is empty.
     #[inline]
-    pub fn is_empty(&self) -> bool { self.start == self.end }
+    pub fn is_empty(&self) -> bool { self.start >= self.end }
 
     /// Try to create a proof that the Range is nonempty; return
     /// a `Result` where the `Ok` branch carries a non-empty Range.
