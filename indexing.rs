@@ -622,11 +622,6 @@ impl<'id, P> Range<'id, P> {
     }
 
     #[inline]
-    pub fn clamp_end_at(&mut self, end: usize) {
-        self.end = cmp::min(cmp::max(self.start, end), self.end);
-    }
-
-    #[inline]
     pub fn decrease_end(&mut self, offset: usize) {
         self.end = cmp::max(self.start, self.end.saturating_sub(offset));
     }
