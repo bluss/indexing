@@ -6,8 +6,6 @@ use std::ptr;
 use super::Id;
 use super::{NonEmpty, BufferMut, Container};
 
-use std::intrinsics::assume;
-
 /// `PIndex` wraps a valid, non-dangling index or pointer to a location
 #[allow(raw_pointer_derive)]
 #[derive(Debug)]
@@ -201,7 +199,7 @@ impl<'id, T> Iterator for PRange<'id, T> {
         if self.start != self.end {
             let index = self.start;
             unsafe {
-                assume(!index.is_null());
+                //assume(!index.is_null());
                 self.start = self.start.offset(1);
                 Some(PIndex { id: PhantomData, idx: index })
             }
@@ -216,7 +214,7 @@ impl<'id, T> DoubleEndedIterator for PRange<'id, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.start != self.end {
             unsafe {
-                assume(!self.end.is_null());
+                //assume(!self.end.is_null());
                 self.end  = self.end.offset(-1);
                 Some(PIndex { id: PhantomData, idx: self.end })
             }

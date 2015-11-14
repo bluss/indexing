@@ -3,8 +3,6 @@
 //!
 //! Extended to include interval (range) API
 
-#![feature(core_intrinsics)]
-
 // Modules
 pub mod pointer;
 pub mod algorithms;
