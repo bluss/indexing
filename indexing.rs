@@ -638,12 +638,6 @@ impl<'id, P> Range<'id, P> {
     }
 
     #[inline]
-    pub fn clamp_len(&mut self, len: usize) {
-        let diff = cmp::min(self.len(), len);
-        self.end -= diff;
-    }
-
-    #[inline]
     pub fn decrease_end(&mut self, offset: usize) {
         self.end = cmp::max(self.start, self.end.saturating_sub(offset));
     }
