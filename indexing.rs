@@ -290,6 +290,28 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
             }
         }
     }
+
+    /// Rotate elements in the range `r` by one step to the right (towards higher indices)
+    #[inline]
+    pub fn rotate1_down<R>(&mut self, r: R)
+        where Array: BufferMut<Target=[T]>,
+              R: IntoCheckedRange<'id>
+    {
+        if let Ok(r) = r.into() {
+            if r.first() != r.last() {
+                unsafe {
+                    let last_ptr = &mut self[r.last()] as *mut _;
+                    let first_ptr = &mut self[r.first()] as *mut _;
+                    let tmp = ptr::read(first_ptr);
+                    ptr::copy(first_ptr.offset(1),
+                              first_ptr,
+                              r.len() - 1);
+                    ptr::copy_nonoverlapping(&tmp, last_ptr, 1);
+                    mem::forget(tmp);
+                }
+            }
+        }
+    }
 }
 
 
