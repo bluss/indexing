@@ -113,10 +113,22 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
+    #[inline]
     pub fn vet(&self, index: usize) -> Result<Index<'id>, ()> {
         if index < self.len() {
             unsafe {
                 Ok(Index::from(index))
+            }
+        } else {
+            Err(())
+        }
+    }
+
+    #[inline]
+    pub fn vet_range(&self, r: ops::Range<usize>) -> Result<Range<'id>, ()> {
+        if r.start <= r.end && r.end <= self.len() {
+            unsafe {
+                Ok(Range::from(r.start, r.end))
             }
         } else {
             Err(())
