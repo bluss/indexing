@@ -111,7 +111,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn range(&self) -> Range<'id> {
         unsafe {
-            Range::from(0, self.arr.len())
+            Range::from(0, self.len())
         }
     }
 
@@ -128,7 +128,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn split_at(&self, index: Index<'id>) -> (Range<'id>, Range<'id, NonEmpty>) {
         unsafe {
-            (Range::from(0, index.index), Range::from_ne(index.index, self.arr.len()))
+            (Range::from(0, index.index), Range::from_ne(index.index, self.len()))
         }
     }
 
@@ -138,7 +138,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     pub fn split_after(&self, index: Index<'id>) -> (Range<'id, NonEmpty>, Range<'id>) {
         let mid = index.index + 1; // must be <= len since `index` is in bounds
         unsafe {
-            (Range::from_ne(0, mid), Range::from(mid, self.arr.len()))
+            (Range::from_ne(0, mid), Range::from(mid, self.len()))
         }
     }
 
@@ -150,7 +150,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn split_around<P>(&self, r: Range<'id, P>) -> (Range<'id>, Range<'id>) {
         unsafe {
-            (Range::from(0, r.start), Range::from(r.end, self.arr.len()))
+            (Range::from(0, r.start), Range::from(r.end, self.len()))
         }
     }
 
@@ -168,7 +168,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     pub fn after(&self, index: Index<'id>) -> Range<'id> {
         // in bounds because index + 1 is <= .len()
         unsafe {
-            Range::from(index.index + 1, self.arr.len())
+            Range::from(index.index + 1, self.len())
         }
     }
 
@@ -178,7 +178,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn forward(&self, index: &mut Index<'id>) -> bool {
         let i = index.index + 1;
-        if i < self.arr.len() {
+        if i < self.len() {
             index.index = i;
             true
         } else { false }
