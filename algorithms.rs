@@ -378,7 +378,7 @@ fn test_merge_internal() {
 
 pub fn heapify<T: Data>(v: &mut [T]) {
     indices(v, |mut v, range| {
-        // for 0-indexed element k, heap parents are:
+        // for 0-indexed element k, children are:
         // 2k + 1, 2k + 2
         let (left, _right) = range.split_in_half();
         for i in left.into_iter().rev() {
