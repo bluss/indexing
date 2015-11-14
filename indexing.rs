@@ -708,9 +708,6 @@ impl<'id> IntoCheckedRange<'id> for Range<'id, NonEmpty> {
     }
 }
 
-/// Type alias for **N**on **E**mpty Range.
-pub type NeRange<'id> = Range<'id, NonEmpty>;
-
 impl<'id> Range<'id, NonEmpty> {
     #[inline(always)]
     pub fn first(&self) -> Index<'id> {
