@@ -601,17 +601,6 @@ impl<'id, P> Range<'id, P> {
         }
     }
 
-    /// If `abs_index` is past the end, clamp it at the end
-    ///
-    /// `abs_index` is an absolute index
-    #[inline]
-    pub fn split_at_clamp(&self, abs_index: usize) -> (Range<'id>, Range<'id>) {
-        let mid = cmp::min(abs_index, self.end);
-        unsafe {
-            (Range::from(self.start, mid), Range::from(mid, self.end))
-        }
-    }
-
     /// Split to length `index`; if past the end, return false and clamp to the end
     ///
     /// `index` is a relative index.
@@ -635,14 +624,6 @@ impl<'id, P> Range<'id, P> {
     #[inline]
     pub fn clamp_end_at(&mut self, end: usize) {
         self.end = cmp::min(cmp::max(self.start, end), self.end);
-    }
-
-    /// Cut the range to `len` if it's longer.
-    #[inline]
-    pub fn truncate_to_len(&mut self, len: usize) {
-        if len <= self.len() {
-            self.end = self.start + len;
-        }
     }
 
     #[inline]
