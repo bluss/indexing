@@ -629,7 +629,7 @@ impl<'id, P> Range<'id, P> {
     /// `abs_index` is an absolute index
     #[inline]
     pub fn contains(&self, abs_index: usize) -> Option<Index<'id>> {
-        if abs_index >= self.start && abs_index <= self.end {
+        if abs_index >= self.start && abs_index < self.end {
             Some(Index { id: self.id, index: abs_index })
         } else { None }
     }
@@ -1037,5 +1037,18 @@ fn test_nonempty() {
         assert_eq!(data[r.lower_middle()], 5);
         assert_eq!(data[r.upper_middle()], 5);
         assert_eq!(data[r.last()], 5);
+    });
+}
+
+#[test]
+fn test_contains() {
+    let mut data = [0, 1, 2, 3, 4, 5];
+    indices(&mut data[..], |data, r| {
+        for i in 0..data.len() {
+            assert!(r.contains(i).is_some());
+            assert_eq!(r.contains(i).unwrap(), data.vet(i).unwrap());
+        }
+        assert!(r.contains(r.len()).is_none());
+        assert!(data.vet(r.len()).is_err());
     });
 }
