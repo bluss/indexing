@@ -85,10 +85,10 @@ pub enum NonEmpty {}
 #[derive(Copy, Clone, Debug)]
 pub enum Unknown {}
 
-trait LengthMarker {}
+trait LengthProof {}
 
-impl LengthMarker for NonEmpty {}
-impl LengthMarker for Unknown {}
+impl LengthProof for NonEmpty {}
+impl LengthProof for Unknown {}
 
 impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
