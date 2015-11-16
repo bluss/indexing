@@ -545,7 +545,7 @@ pub struct Range<'id, Proof=Unknown> {
     id: Id<'id>,
     start: usize,
     end: usize,
-    /// NonEmpty or Not
+    /// NonEmpty or Unknown
     proof: PhantomData<Proof>,
 }
 
