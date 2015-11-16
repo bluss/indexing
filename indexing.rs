@@ -816,6 +816,22 @@ impl<'id> Range<'id, NonEmpty> {
         }
     }
 
+    /// Increase the range's start, if the result is still a non-empty range.
+    ///
+    /// Return `true` if stepped successfully, `false` if the range would be empty.
+    #[inline]
+    pub fn advance_by(&mut self, offset: usize) -> bool
+    {
+        let mut next = *self;
+        next.start = next.start.saturating_add(offset);
+        if next.start < next.end {
+            *self = next;
+            true
+        } else {
+            false
+        }
+    }
+
     /// Decrease the range's end, if the result is still a non-empty range.
     ///
     /// Return `true` if stepped successfully, `false` if the range would be empty.
