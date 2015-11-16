@@ -199,7 +199,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     /// Return `true` if the index was incremented.
     #[inline]
     pub fn forward_by(&self, index: &mut Index<'id>, offset: usize) -> bool {
-        let i = index.index.saturating_add(offset);
+        let i = index.index + offset;
         if i < self.len() {
             index.index = i;
             true
@@ -716,6 +716,18 @@ impl<'id, P> Range<'id, P> {
         unsafe {
             (Range::from(s, s), Range::from(e, e))
         }
+    }
+
+    /// Increment `index`, if doing so would still be before the end of the range
+    ///
+    /// Return `true` if the index was incremented.
+    #[inline]
+    pub fn forward_by(&self, index: &mut Index<'id>, offset: usize) -> bool {
+        let i = index.index + offset;
+        if i < self.end {
+            index.index = i;
+            true
+        } else { false }
     }
 }
 
