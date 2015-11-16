@@ -279,7 +279,8 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     /// While the closure returns `true`, continue scan and include the scanned
     /// element in the range.
     #[inline]
-    pub fn scan_range<'b, F, P>(&'b self, range: Range<'id, P>, mut f: F) -> Range<'id>
+    pub fn scan_range<'b, F, P>(&'b self, range: Range<'id, P>, mut f: F)
+        -> (Range<'id>, Range<'id>)
         where F: FnMut(&'b T) -> bool, T: 'b,
     {
         let mut end = range.start;
@@ -290,7 +291,8 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
             end += 1;
         }
         unsafe {
-            Range::from(range.start, end)
+            (Range::from(range.start, end),
+             Range::from(end, range.end))
         }
     }
 
