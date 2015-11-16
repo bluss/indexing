@@ -337,7 +337,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
 
     /// Index by two nonoverlapping ranges, where `r` is before `s`.
     #[inline]
-    pub fn index_twice<P, Q>(&mut self, r: Range<'id, P>, s: Range<'id, P>)
+    pub fn index_twice<P, Q>(&mut self, r: Range<'id, P>, s: Range<'id, Q>)
         -> Result<(&mut [T], &mut [T]), ()>
         where Array: BufferMut<Target=[T]>,
     {
