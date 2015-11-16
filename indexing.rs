@@ -718,23 +718,6 @@ impl<'id, P> Range<'id, P> {
     #[inline]
     pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
 
-    /// Increase the range's start, if self is not empty
-    ///
-    /// Return `true` if stepped successfully, `false` if the range was empty.
-    #[inline]
-    pub fn advance_any_by(&mut self, offset: usize) -> bool
-    {
-        let mut next = *self;
-        next.start = next.start.saturating_add(offset);
-        if next.start <= next.end {
-            *self = next;
-            true
-        } else {
-            self.start = self.end;
-            false
-        }
-    }
-
     /// Return two empty ranges, at the front and the back of the range respectively
     #[inline]
     pub fn frontiers(&self) -> (Range<'id>, Range<'id>) {
