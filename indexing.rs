@@ -700,8 +700,15 @@ impl<'id, P> Range<'id, P> {
         }
     }
 
+    /// Extend the range to the end of `other`, including any space in between
+    pub fn join_cover<Q>(&self, other: Range<'id, Q>) -> Range<'id, P> {
+        let mut next = *self;
+        next.end = cmp::max(self.end, other.end);
+        next
+    }
+
     /// Extend the range with `other`, including any space in between
-    pub fn cover_both<Q>(&self, other: Range<'id, Q>) -> Range<'id, P> {
+    pub fn join_cover_both<Q>(&self, other: Range<'id, Q>) -> Range<'id, P> {
         let mut next = *self;
         next.start = cmp::min(self.start, other.start);
         next.end = cmp::max(self.end, other.end);
