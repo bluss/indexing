@@ -194,6 +194,18 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         } else { false }
     }
 
+    /// Increment `index`, if doing so would still be in bounds.
+    ///
+    /// Return `true` if the index was incremented.
+    #[inline]
+    pub fn forward_by(&self, index: &mut Index<'id>, offset: usize) -> bool {
+        let i = index.index.saturating_add(offset);
+        if i < self.len() {
+            index.index = i;
+            true
+        } else { false }
+    }
+
     /// Decrement `index`, if doing so would still be in bounds.
     ///
     /// Return `true` if the index was decremented.
@@ -676,6 +688,23 @@ impl<'id, P> Range<'id, P> {
 
     #[inline]
     pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
+
+    /// Increase the range's start, if self is not empty
+    ///
+    /// Return `true` if stepped successfully, `false` if the range was empty.
+    #[inline]
+    pub fn advance_any_by(&mut self, offset: usize) -> bool
+    {
+        let mut next = *self;
+        next.start = next.start.saturating_add(offset);
+        if next.start <= next.end {
+            *self = next;
+            true
+        } else {
+            self.start = self.end;
+            false
+        }
+    }
 }
 
 impl<'id, P> Debug for Range<'id, P> {
