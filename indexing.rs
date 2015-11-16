@@ -206,6 +206,20 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         } else { false }
     }
 
+    /// Increment `range`, if doing so would still be in bounds.
+    ///
+    /// Return `true` if the range was incremented.
+    #[inline]
+    pub fn forward_range_by<P>(&self, r: Range<'id, P>, offset: usize) -> Range<'id>
+    {
+        let start = r.start.saturating_add(offset);
+        let end = r.end.saturating_add(offset);
+        let len = self.len();
+        unsafe {
+            Range::from(cmp::min(len, start), cmp::min(len, end))
+        }
+    }
+
     /// Decrement `index`, if doing so would still be in bounds.
     ///
     /// Return `true` if the index was decremented.
@@ -686,6 +700,14 @@ impl<'id, P> Range<'id, P> {
         }
     }
 
+    /// Extend the range with `other`, including any space in between
+    pub fn cover_both<Q>(&self, other: Range<'id, Q>) -> Range<'id, P> {
+        let mut next = *self;
+        next.start = cmp::min(self.start, other.start);
+        next.end = cmp::max(self.end, other.end);
+        next
+    }
+
     #[inline]
     pub fn as_range(&self) -> std::ops::Range<usize> { self.start..self.end }
 
@@ -703,6 +725,16 @@ impl<'id, P> Range<'id, P> {
         } else {
             self.start = self.end;
             false
+        }
+    }
+
+    /// Return two empty ranges, at the front and the back of the range respectively
+    #[inline]
+    pub fn frontiers(&self) -> (Range<'id>, Range<'id>) {
+        let s = self.start;
+        let e = self.end;
+        unsafe {
+            (Range::from(s, s), Range::from(e, e))
         }
     }
 }
