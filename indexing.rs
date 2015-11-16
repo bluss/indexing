@@ -208,8 +208,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
 
     /// Increment `r`, clamping to the end of the Container.
     #[inline]
-    pub fn forward_range_by<P>(&self, r: Range<'id, P>, offset: usize) -> Range<'id>
-    {
+    pub fn forward_range_by<P>(&self, r: Range<'id, P>, offset: usize) -> Range<'id> {
         let start = r.start.saturating_add(offset);
         let end = r.end.saturating_add(offset);
         let len = self.len();
@@ -507,6 +506,7 @@ impl<'id, T, Array> ops::IndexMut<ops::RangeFull> for Container<'id, Array>
 }
 
 
+/*
 // ###### Bounds checking impls #####
 impl<'id, 'a, T> ops::Index<ops::Range<usize>> for Container<'id, &'a mut [T]> {
     type Output = [T];
@@ -553,6 +553,7 @@ impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<usize>> for Container<'id, &'a mut [
     }
 }
 // ####
+*/
 
 /// return the number of steps between a and b
 fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
