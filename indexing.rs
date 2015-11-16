@@ -206,9 +206,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         } else { false }
     }
 
-    /// Increment `range`, if doing so would still be in bounds.
-    ///
-    /// Return `true` if the range was incremented.
+    /// Increment `r`, clamping to the end of the Container.
     #[inline]
     pub fn forward_range_by<P>(&self, r: Range<'id, P>, offset: usize) -> Range<'id>
     {
@@ -730,6 +728,18 @@ impl<'id, P> Range<'id, P> {
             index.index = i;
             true
         } else { false }
+    }
+
+    /// Increment `r`, clamping to the end of `self`.
+    #[inline]
+    pub fn forward_range_by<Q>(&self, r: Range<'id, Q>, offset: usize) -> Range<'id> {
+        // XXX saturating_add is faster in real use, for some reason
+        let max = self.end;
+        let start = cmp::min(r.start.saturating_add(offset), max);
+        let end = cmp::min(r.end.saturating_add(offset), max);
+        unsafe {
+            Range::from(start, end)
+        }
     }
 }
 
