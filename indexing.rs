@@ -327,7 +327,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
-    /// Rotate elements in the range `r` by one step to the right (towards higher indices)
+    /// Rotate elements in the range `r` by one step to the left (towards lower indices)
     #[inline]
     pub fn rotate1_down<R>(&mut self, r: R)
         where Array: BufferMut<Target=[T]>,
@@ -677,7 +677,8 @@ impl<'id, P> Range<'id, P> {
         }
     }
 
-    /// Join together two adjacent ranges (they must be touching)
+    /// Join together two adjacent ranges (they must be exactly touching, and
+    /// in left to right order).
     pub fn join<Q>(&self, other: Range<'id, Q>) -> Result<Range<'id, P>, ()> {
         // FIXME: type algebra, use P + Q in return type
         if self.end == other.start {
@@ -696,7 +697,7 @@ impl<'id, P> Range<'id, P> {
         next
     }
 
-    /// Extend the range with `other`, including any space in between
+    /// Extend the range to start and end of `other`, including any space in between
     pub fn join_cover_both<Q>(&self, other: Range<'id, Q>) -> Range<'id, P> {
         let mut next = *self;
         next.start = cmp::min(self.start, other.start);
