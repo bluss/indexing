@@ -322,6 +322,22 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
             }
         }
     }
+
+    /// Index by two nonoverlapping ranges, where `r` is before `s`.
+    #[inline]
+    pub fn index_twice<P, Q>(&mut self, r: Range<'id, P>, s: Range<'id, P>)
+        -> Result<(&mut [T], &mut [T]), ()>
+        where Array: BufferMut<Target=[T]>,
+    {
+        if r.end <= s.start {
+            let self_mut = self as *mut Self;
+            unsafe {
+                Ok((&mut (*self_mut)[r], &mut (*self_mut)[s]))
+            }
+        } else {
+            Err(())
+        }
+    }
 }
 
 
