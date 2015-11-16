@@ -364,6 +364,22 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
             Err(())
         }
     }
+
+    /// Zip by raw pointer (will be indentical if ranges have same starting point)
+    pub fn zip_mut_raw<P, Q, F>(&mut self, r: Range<'id, P>, s: Range<'id, Q>, mut f: F)
+        where F: FnMut(*mut T, *mut T),
+              Array: BufferMut<Target=[T]>,
+    {
+        let len = cmp::min(r.len(), s.len());
+        for i in 0..len {
+            unsafe {
+                f(
+                    self.arr.get_unchecked_mut(r.start + i),
+                    self.arr.get_unchecked_mut(s.start + i)
+                )
+            }
+        }
+    }
 }
 
 
