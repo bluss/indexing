@@ -657,17 +657,6 @@ impl<'id, P> Range<'id, P> {
         }
     }
 
-    #[inline]
-    pub fn increase_start(&mut self, offset: usize) {
-        // FIXME saturating?
-        self.start = cmp::min(self.start.saturating_add(offset), self.end);
-    }
-
-    #[inline]
-    pub fn decrease_end(&mut self, offset: usize) {
-        self.end = cmp::max(self.start, self.end.saturating_sub(offset));
-    }
-
     /// `abs_index` is an absolute index
     #[inline]
     pub fn contains(&self, abs_index: usize) -> Option<Index<'id>> {
