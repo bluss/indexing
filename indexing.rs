@@ -1059,12 +1059,6 @@ pub struct Subdivide<'id> {
     fs: FracStep,
 }
 
-impl<'id> Subdivide<'id> {
-    /// Reset counter and double up
-    pub fn double(&mut self) {
-    }
-}
-
 impl<'id> Iterator for Subdivide<'id> {
     type Item = Range<'id, NonEmpty>;
     #[inline]
