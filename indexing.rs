@@ -624,6 +624,12 @@ impl<'id, P> Clone for Range<'id, P> {
     fn clone(&self) -> Self { *self }
 }
 
+impl<'id, P, Q> PartialEq<Range<'id, Q>> for Range<'id, P> {
+    fn eq(&self, other: &Range<'id, Q>) -> bool {
+        self.start == other.start && self.end == other.end
+    }
+}
+
 impl<'id> Range<'id> {
     #[inline(always)]
     unsafe fn from(start: usize, end: usize) -> Range<'id> {
