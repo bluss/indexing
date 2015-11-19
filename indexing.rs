@@ -774,6 +774,13 @@ impl<'id, P> Range<'id, P> {
             Range::from(start, end)
         }
     }
+
+    #[inline]
+    pub fn no_proof(&self) -> Range<'id> {
+        unsafe {
+            mem::transmute(*self)
+        }
+    }
 }
 
 impl<'id, P> Debug for Range<'id, P> {
