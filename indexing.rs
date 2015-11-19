@@ -921,6 +921,15 @@ pub struct RangeIter<'id> {
     end: usize,
 }
 
+impl<'id> RangeIter<'id> {
+    #[inline]
+    pub fn into_range(&self) -> Range<'id> {
+        unsafe {
+            Range::from(self.start, self.end)
+        }
+    }
+}
+
 impl<'id> Iterator for RangeIter<'id> {
     type Item = Index<'id>;
     #[inline]
