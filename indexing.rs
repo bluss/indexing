@@ -382,6 +382,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
 }
 
 
+/// `&self[i]` where `i` is an `Index<'id>`.
 impl<'id, T, Array> ops::Index<Index<'id>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>
 {
@@ -394,6 +395,19 @@ impl<'id, T, Array> ops::Index<Index<'id>> for Container<'id, Array>
     }
 }
 
+/// `&mut self[i]` where `i` is an `Index<'id>`.
+impl<'id, T, Array> ops::IndexMut<Index<'id>> for Container<'id, Array>
+    where Array: BufferMut<Target=[T]>,
+{
+    #[inline(always)]
+    fn index_mut(&mut self, index: Index<'id>) -> &mut T {
+        unsafe {
+            self.arr.get_unchecked_mut(index.index)
+        }
+    }
+}
+
+/// `&self[r]` where `r` is a `Range<'id>`.
 impl<'id, T, Array, P> ops::Index<Range<'id, P>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
@@ -408,17 +422,7 @@ impl<'id, T, Array, P> ops::Index<Range<'id, P>> for Container<'id, Array>
     }
 }
 
-impl<'id, T, Array> ops::IndexMut<Index<'id>> for Container<'id, Array>
-    where Array: BufferMut<Target=[T]>,
-{
-    #[inline(always)]
-    fn index_mut(&mut self, index: Index<'id>) -> &mut T {
-        unsafe {
-            self.arr.get_unchecked_mut(index.index)
-        }
-    }
-}
-
+/// `&mut self[r]` where `r` is a `Range<'id>`.
 impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
@@ -432,6 +436,7 @@ impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Container<'id, Array>
     }
 }
 
+/// `&self[i..]` where `i` is an `Index<'id>`.
 impl<'id, T, Array> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
@@ -447,6 +452,7 @@ impl<'id, T, Array> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, Ar
     }
 }
 
+/// `&mut self[i..]` where `i` is an `Index<'id>`.
 impl<'id, T, Array> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
@@ -461,6 +467,7 @@ impl<'id, T, Array> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Container<'id,
     }
 }
 
+/// `&self[..i]` where `i` is an `Index<'id>`.
 impl<'id, T, Array> ops::Index<ops::RangeTo<Index<'id>>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
@@ -474,6 +481,7 @@ impl<'id, T, Array> ops::Index<ops::RangeTo<Index<'id>>> for Container<'id, Arra
     }
 }
 
+/// `&mut self[..i]` where `i` is an `Index<'id>`.
 impl<'id, T, Array> ops::IndexMut<ops::RangeTo<Index<'id>>> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>
 {
@@ -486,6 +494,7 @@ impl<'id, T, Array> ops::IndexMut<ops::RangeTo<Index<'id>>> for Container<'id, A
     }
 }
 
+/// `&self[..]`
 impl<'id, T, Array> ops::Index<ops::RangeFull> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
@@ -496,6 +505,7 @@ impl<'id, T, Array> ops::Index<ops::RangeFull> for Container<'id, Array>
     }
 }
 
+/// `&mut self[..]`
 impl<'id, T, Array> ops::IndexMut<ops::RangeFull> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
