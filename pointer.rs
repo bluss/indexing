@@ -7,7 +7,6 @@ use super::Id;
 use super::{NonEmpty, BufferMut, Container};
 
 /// `PIndex` wraps a valid, non-dangling index or pointer to a location
-#[allow(raw_pointer_derive)]
 #[derive(Debug)]
 pub struct PIndex<'id, T> {
     id: Id<'id>,
@@ -32,7 +31,6 @@ impl<'id, T> PIndex<'id, T> {
 }
 
 /// `PRange` wraps a valid range
-#[allow(raw_pointer_derive)]
 #[derive(Debug)]
 pub struct PRange<'id, T> {
     id: Id<'id>,
