@@ -434,16 +434,21 @@ fn test_heapify() {
 
 pub fn binary_search<T: Data>(v: &[T], elt: &T) -> Result<usize, usize> {
     indices(v, move |v, mut range| {
-        while let Ok(r) = range.nonempty() {
-            let (fst, ix) = r.split_in_half();
-            match v[ix.first()].cmp(elt) {
-                Ordering::Equal => return Ok(ix.first().integer()),
-                Ordering::Greater => {
-                    range = fst;
+        loop {
+            let (a, b) = range.split_in_half();
+            if let Ok(b_) = b.nonempty() {
+                let mid = b_.first();
+                match v[mid].cmp(elt) {
+                    Ordering::Equal => return Ok(mid.integer()),
+                    Ordering::Greater => {
+                        range = a;
+                    }
+                    Ordering::Less => {
+                        range = b_.tail();
+                    }
                 }
-                Ordering::Less => {
-                    range = ix.tail();
-                }
+            } else {
+                break;
             }
         }
         Err(range.as_range().start)
