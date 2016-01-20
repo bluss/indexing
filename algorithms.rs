@@ -451,7 +451,7 @@ pub fn binary_search<T: Data>(v: &[T], elt: &T) -> Result<usize, usize> {
                 break;
             }
         }
-        Err(range.as_range().start)
+        Err(range.start())
     })
 }
 

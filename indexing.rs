@@ -674,6 +674,14 @@ impl<'id, P> Range<'id, P> {
         }
     }
 
+    /// Return the start index.
+    #[inline]
+    pub fn start(&self) -> usize { self.start }
+
+    /// Return the end index.
+    #[inline]
+    pub fn end(&self) -> usize { self.end }
+
     #[inline]
     pub fn split_in_half(&self) -> (Range<'id>, Range<'id, P>) {
         let mid = (self.end - self.start) / 2 + self.start;
