@@ -647,6 +647,12 @@ impl<'id> Range<'id, NonEmpty> {
 }
 
 impl<'id, P> Range<'id, P> {
+    #[inline(always)]
+    unsafe fn from_any(start: usize, end: usize) -> Range<'id, P> {
+        debug_assert!(start <= end);
+        Range { id: PhantomData, start: start, end: end, proof: PhantomData }
+    }
+
     /// Return the length of the range.
     #[inline]
     pub fn len(&self) -> usize { self.end - self.start }
@@ -669,10 +675,10 @@ impl<'id, P> Range<'id, P> {
     }
 
     #[inline]
-    pub fn split_in_half(&self) -> (Range<'id>, Range<'id>) {
+    pub fn split_in_half(&self) -> (Range<'id>, Range<'id, P>) {
         let mid = (self.end - self.start) / 2 + self.start;
         unsafe {
-            (Range::from(self.start, mid), Range::from(mid, self.end))
+            (Range::from(self.start, mid), Range::from_any(mid, self.end))
         }
     }
 

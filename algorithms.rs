@@ -5,7 +5,7 @@
 //!
 
 use std::fmt::{Debug};
-use std::cmp;
+use std::cmp::{self, Ordering};
 use std::mem::swap;
 
 use super::indices;
@@ -431,3 +431,34 @@ fn test_heapify() {
         puts!("sup {:?}", &v[..]);
     }
     */
+
+pub fn binary_search<T: Data>(v: &[T], elt: &T) -> Result<usize, usize> {
+    indices(v, move |v, mut range| {
+        while let Ok(r) = range.nonempty() {
+            let (fst, ix) = r.split_in_half();
+            match v[ix.first()].cmp(elt) {
+                Ordering::Equal => return Ok(ix.first().integer()),
+                Ordering::Greater => {
+                    range = fst;
+                }
+                Ordering::Less => {
+                    range = ix.tail();
+                }
+            }
+        }
+        Err(range.as_range().start)
+    })
+}
+
+#[test]
+fn test_binary_search() {
+    let data = [3, 7, 8, 11, 15, 22, 26];
+    assert_eq!(binary_search(&data, &3), Ok(0));
+    assert_eq!(binary_search(&data, &2), Err(0));
+
+    let elts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 25, 26, 27, 28];
+
+    for elt in &elts {
+        assert_eq!(binary_search(&data, elt), data.binary_search(elt));
+    }
+}
