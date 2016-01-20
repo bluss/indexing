@@ -8,6 +8,7 @@ extern crate indexing;
 use rand::{StdRng, Rng, SeedableRng};
 
 use test::Bencher;
+use test::black_box;
 
 
 fn test_data(n: usize) -> Vec<i32> {
@@ -53,5 +54,29 @@ fn libstdsort(b: &mut Bencher) {
         let mut v = data.clone();
         v.sort();
         v
+    });
+}
+
+#[bench]
+fn std_binary_search(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(data.binary_search(&elt));
+        }
+    });
+}
+
+#[bench]
+fn indexing_binary_search(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(indexing::algorithms::binary_search(&data, &elt));
+        }
     });
 }
