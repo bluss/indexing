@@ -8,7 +8,7 @@ Extremely experimental, but somewhat promising & exciting.
 
 Main focus is on index ranges, not just single indices.
 
-|build_status|_
+|build_status|_ |crates|_
 
 .. |build_status| image:: https://travis-ci.org/bluss/indexing.svg?branch=master
 .. _build_status: https://travis-ci.org/bluss/indexing
