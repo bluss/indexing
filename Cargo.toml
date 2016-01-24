@@ -1,10 +1,17 @@
 [package]
 name = "indexing"
-version = "0.1.0"
+version = "0.1.0-alpha1"
 authors = ["bluss", "Gankro"]
 
-[lib]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/bluss/indexing"
+documentation = "http://bluss.github.io/indexing"
 
+description = "Sound unchecked indexing using “generativity”; a type system approach to indices and ranges that are trusted to be in bounds."
+
+keywords = ["data-structure", "generativity"]
+
+[lib]
 path = "indexing.rs"
 
 [dev-dependencies]

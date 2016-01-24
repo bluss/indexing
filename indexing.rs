@@ -1,4 +1,7 @@
 
+//! “Sound unchecked indexing” in Rust using “generativity” (branding by unique
+//! lifetime parameter).
+//!
 //! Based on “sound unchecked indexing”/“signing” by Gankro.
 //!
 //! Extended to include interval (range) API
