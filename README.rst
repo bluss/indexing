@@ -4,6 +4,10 @@ indexing
 “Sound unchecked indexing” in Rust using “generativity” (branding by unique
 lifetime parameter).
 
+Extremely experimental, but somewhat promising & exciting.
+
+Main focus is on index ranges, not just single indices.
+
 |build_status|_
 
 .. |build_status| image:: https://travis-ci.org/bluss/indexing.svg?branch=master
@@ -12,14 +16,15 @@ lifetime parameter).
 .. |crates| image:: http://meritbadge.herokuapp.com/indexing
 .. _crates: https://crates.io/crates/indexing
 
+References
+----------
 
-Based on `sound unchecked indexing by Gankro`__
++ Inspired by Ganro’s exposition of `sound unchecked indexing`__.
 
 __ https://www.reddit.com/r/rust/comments/3oo0oe/sound_unchecked_indexing_with_lifetimebased_value/
 
-Extremely experimental, but somewhat promising & exciting.
+Also now described in: `You can't spell trust without Rust <https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf>`_. Chapter *6.3 hacking generativity onto rust*. Alexis Beingessner's master's thesis.
 
-Main focus is on index ranges, not just single indices.
 
 License
 -------

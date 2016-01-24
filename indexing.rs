@@ -7,6 +7,7 @@
 //! Extended to include interval (range) API
 
 // Modules
+#[doc(hidden)]
 pub mod pointer;
 pub mod algorithms;
 
