@@ -1,9 +1,12 @@
 
-//! Based on “sound unchecked indexing”/“signing” by Gankro.
+//! “Sound unchecked indexing” in Rust using “generativity” (branding by unique
+//! lifetime parameter).
 //!
-//! Extended to include interval (range) API
+//! Includes an index API and an interval (`Range<'id, P>`) API developing its
+//! own “algebra for transformations of in bounds ranges”.
 
 // Modules
+#[doc(hidden)]
 pub mod pointer;
 pub mod algorithms;
 
@@ -682,6 +685,8 @@ impl<'id, P> Range<'id, P> {
     #[inline]
     pub fn end(&self) -> usize { self.end }
 
+    /// Split the range in half, with the upper middle index landing in the
+    /// latter half. Proof of length `P` transfers to the latter half.
     #[inline]
     pub fn split_in_half(&self) -> (Range<'id>, Range<'id, P>) {
         let mid = (self.end - self.start) / 2 + self.start;
@@ -941,6 +946,9 @@ impl<'id, P> IntoIterator for Range<'id, P> {
     }
 }
 
+/// An iterator over the indices in a range.
+///
+/// Iterator element type is `Index<'id>`.
 #[derive(Copy, Clone, Debug)]
 pub struct RangeIter<'id> {
     id: Id<'id>,
