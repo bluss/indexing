@@ -19,7 +19,7 @@ Main focus is on index ranges, not just single indices.
 References
 ----------
 
-+ Inspired by Ganro’s exposition of `sound unchecked indexing`__.
++ Inspired by Gankro’s exposition of `sound unchecked indexing`__.
 
 __ https://www.reddit.com/r/rust/comments/3oo0oe/sound_unchecked_indexing_with_lifetimebased_value/
 
