@@ -5,6 +5,9 @@ sudo: false
 rust:
   - stable
   - nightly
+branches:
+  only:
+    - master
 
 # load travis-cargo
 before_script:
