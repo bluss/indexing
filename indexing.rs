@@ -88,10 +88,18 @@ pub enum NonEmpty {}
 #[derive(Copy, Clone, Debug)]
 pub enum Unknown {}
 
-trait LengthProof {}
+trait Proof { }
 
-impl LengthProof for NonEmpty {}
-impl LengthProof for Unknown {}
+impl Proof for NonEmpty {}
+impl Proof for Unknown {}
+
+/// Represents the combination of two proofs `P` and `Q` by a new type `Sum`.
+pub trait ProofAdd {
+    type Sum;
+}
+
+impl<Q> ProofAdd for (NonEmpty, Q) { type Sum = NonEmpty; }
+impl<Q> ProofAdd for (Unknown, Q) { type Sum = Q; }
 
 impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
@@ -731,22 +739,27 @@ impl<'id, P> Range<'id, P> {
 
     /// Join together two adjacent ranges (they must be exactly touching, and
     /// in left to right order).
-    pub fn join<Q>(&self, other: Range<'id, Q>) -> Result<Range<'id, P>, ()> {
+    pub fn join<Q>(&self, other: Range<'id, Q>) -> Result<Range<'id, <(P, Q) as ProofAdd>::Sum>, ()>
+        where (P, Q): ProofAdd
+    {
         // FIXME: type algebra, use P + Q in return type
         if self.end == other.start {
-            let mut next = *self;
-            next.end = other.end;
-            Ok(next)
+            unsafe {
+                Ok(Range::from_any(self.start, other.end))
+            }
         } else {
             Err(())
         }
     }
 
     /// Extend the range to the end of `other`, including any space in between
-    pub fn join_cover<Q>(&self, other: Range<'id, Q>) -> Range<'id, P> {
-        let mut next = *self;
-        next.end = cmp::max(self.end, other.end);
-        next
+    pub fn join_cover<Q>(&self, other: Range<'id, Q>) -> Range<'id, <(P, Q) as ProofAdd>::Sum>
+        where (P, Q): ProofAdd,
+    {
+        let end = cmp::max(self.end, other.end);
+        unsafe {
+            Range::from_any(self.start, end)
+        }
     }
 
     /// Extend the range to start and end of `other`, including any space in between

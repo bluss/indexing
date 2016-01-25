@@ -1,7 +1,37 @@
 extern crate indexing;
 extern crate quickcheck;
 
+use indexing::indices;
 use indexing::algorithms::*;
+
+
+#[test]
+fn join_add_proof() {
+    let data = [1, 2, 3];
+    indices(&data[..], move |_, r| {
+        if let Ok(r) = r.nonempty() {
+            let (front, back) = r.frontiers();
+
+            r.first();
+            // test nonempty range methods
+            front.join(r).unwrap().first();
+            r.join(back).unwrap().first();
+            front.join_cover(r).first();
+            r.join_cover(back).first();
+            r.join_cover(r).first();
+
+            assert_eq!(front.join(r).unwrap(), r);
+            assert_eq!(front.join_cover(back), r);
+            assert_eq!(back.join_cover(front), back);
+
+            let (a, b) = r.split_in_half();
+            assert_eq!(a.join(b), Ok(r));
+            assert_eq!(a.join_cover(back), r);
+            assert_eq!(front.join_cover(a), a);
+            assert_eq!(front.join_cover(b), r);
+        }
+    });
+}
 
 fn is_sorted<T: Clone + Ord>(v: &[T]) -> bool {
     let mut vec = v.to_vec();
