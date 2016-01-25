@@ -641,6 +641,8 @@ impl<'id, P, Q> PartialEq<Range<'id, Q>> for Range<'id, P> {
     }
 }
 
+impl<'id, P> Eq for Range<'id, P> { }
+
 impl<'id> Range<'id> {
     #[inline(always)]
     unsafe fn from(start: usize, end: usize) -> Range<'id> {
