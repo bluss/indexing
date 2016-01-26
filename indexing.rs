@@ -9,6 +9,10 @@
 #[doc(hidden)]
 pub mod pointer;
 pub mod algorithms;
+mod index_error;
+
+pub use index_error::IndexingError;
+use index_error::index_error;
 
 use std::cmp;
 use std::ops;
@@ -137,24 +141,24 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     }
 
     #[inline]
-    pub fn vet(&self, index: usize) -> Result<Index<'id>, ()> {
+    pub fn vet(&self, index: usize) -> Result<Index<'id>, IndexingError> {
         if index < self.len() {
             unsafe {
                 Ok(Index::from(index))
             }
         } else {
-            Err(())
+            Err(index_error())
         }
     }
 
     #[inline]
-    pub fn vet_range(&self, r: ops::Range<usize>) -> Result<Range<'id>, ()> {
+    pub fn vet_range(&self, r: ops::Range<usize>) -> Result<Range<'id>, IndexingError> {
         if r.start <= r.end && r.end <= self.len() {
             unsafe {
                 Ok(Range::from(r.start, r.end))
             }
         } else {
-            Err(())
+            Err(index_error())
         }
     }
 
@@ -374,7 +378,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     /// Index by two nonoverlapping ranges, where `r` is before `s`.
     #[inline]
     pub fn index_twice<P, Q>(&mut self, r: Range<'id, P>, s: Range<'id, Q>)
-        -> Result<(&mut [T], &mut [T]), ()>
+        -> Result<(&mut [T], &mut [T]), IndexingError>
         where Array: BufferMut<Target=[T]>,
     {
         if r.end <= s.start {
@@ -383,7 +387,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
                 Ok((&mut (*self_mut)[r], &mut (*self_mut)[s]))
             }
         } else {
-            Err(())
+            Err(index_error())
         }
     }
 
@@ -689,12 +693,12 @@ impl<'id, P> Range<'id, P> {
     /// Try to create a proof that the Range is nonempty; return
     /// a `Result` where the `Ok` branch carries a non-empty Range.
     #[inline]
-    pub fn nonempty(&self) -> Result<Range<'id, NonEmpty>, Range<'id>> {
+    pub fn nonempty(&self) -> Result<Range<'id, NonEmpty>, IndexingError> {
         unsafe {
             if !self.is_empty() {
                 Ok(mem::transmute(*self))
             } else {
-                Err(mem::transmute(*self))
+                Err(index_error())
             }
         }
     }
@@ -753,7 +757,7 @@ impl<'id, P> Range<'id, P> {
 
     /// Join together two adjacent ranges (they must be exactly touching, and
     /// in left to right order).
-    pub fn join<Q>(&self, other: Range<'id, Q>) -> Result<Range<'id, <(P, Q) as ProofAdd>::Sum>, ()>
+    pub fn join<Q>(&self, other: Range<'id, Q>) -> Result<Range<'id, <(P, Q) as ProofAdd>::Sum>, IndexingError>
         where (P, Q): ProofAdd
     {
         // FIXME: type algebra, use P + Q in return type
@@ -762,7 +766,7 @@ impl<'id, P> Range<'id, P> {
                 Ok(Range::from_any(self.start, other.end))
             }
         } else {
-            Err(())
+            Err(index_error())
         }
     }
 
@@ -836,19 +840,19 @@ impl<'id, P> Debug for Range<'id, P> {
 }
 
 pub trait IntoCheckedRange<'id> : Sized {
-    fn into(self) -> Result<Range<'id, NonEmpty>, Range<'id>>;
+    fn into(self) -> Result<Range<'id, NonEmpty>, IndexingError>;
 }
 
 impl<'id> IntoCheckedRange<'id> for Range<'id> {
     #[inline]
-    fn into(self) -> Result<Range<'id, NonEmpty>, Range<'id>> {
+    fn into(self) -> Result<Range<'id, NonEmpty>, IndexingError> {
         self.nonempty()
     }
 }
 
 impl<'id> IntoCheckedRange<'id> for Range<'id, NonEmpty> {
     #[inline]
-    fn into(self) -> Result<Range<'id, NonEmpty>, Range<'id>> {
+    fn into(self) -> Result<Range<'id, NonEmpty>, IndexingError> {
         Ok(self)
     }
 }
@@ -900,14 +904,14 @@ impl<'id> Range<'id, NonEmpty> {
     }
 
     #[inline]
-    pub fn advance_(&self) -> Result<Range<'id, NonEmpty>, ()>
+    pub fn advance_(&self) -> Result<Range<'id, NonEmpty>, IndexingError>
     {
         let mut next = *self;
         next.start += 1;
         if next.start < next.end {
             Ok(next)
         } else {
-            Err(())
+            Err(index_error())
         }
     }
 
