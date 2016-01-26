@@ -16,6 +16,18 @@ Main focus is on index ranges, not just single indices.
 .. |crates| image:: http://meritbadge.herokuapp.com/indexing
 .. _crates: https://crates.io/crates/indexing
 
+Recent Changes
+--------------
+
+- 0.1.0-alpha2
+
+  - Add ProofAdd and use it in Range::join, Range::join_cover
+  - Make Index<'id>, Range<'id> Send + Sync
+
+- 0.1.0-alpha1
+
+  - First release
+
 References
 ----------
 
