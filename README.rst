@@ -16,6 +16,18 @@ Main focus is on index ranges, not just single indices.
 .. |crates| image:: http://meritbadge.herokuapp.com/indexing
 .. _crates: https://crates.io/crates/indexing
 
+Recent Changes
+--------------
+
+- 0.1.0-alpha2
+
+  - Add ProofAdd and use it in Range::join, Range::join_cover
+  - Make Index<'id>, Range<'id> Send + Sync
+
+- 0.1.0-alpha1
+
+  - First release
+
 References
 ----------
 
@@ -23,7 +35,7 @@ References
 
 __ https://www.reddit.com/r/rust/comments/3oo0oe/sound_unchecked_indexing_with_lifetimebased_value/
 
-Also now described in: `You can't spell trust without Rust <https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf>`_. Chapter *6.3 hacking generativity onto rust*. Alexis Beingessner's master's thesis.
+Also now described in: `You can't spell trust without Rust <https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf>`_. Chapter *6.3 hacking generativity onto rust*. Gankro's master's thesis.
 
 
 License
