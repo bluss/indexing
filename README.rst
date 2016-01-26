@@ -35,7 +35,7 @@ References
 
 __ https://www.reddit.com/r/rust/comments/3oo0oe/sound_unchecked_indexing_with_lifetimebased_value/
 
-Also now described in: `You can't spell trust without Rust <https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf>`_. Chapter *6.3 hacking generativity onto rust*. Alexis Beingessner's master's thesis.
+Also now described in: `You can't spell trust without Rust <https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf>`_. Chapter *6.3 hacking generativity onto rust*. Gankro's master's thesis.
 
 
 License
