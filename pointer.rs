@@ -52,7 +52,7 @@ fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
 impl<'id, T> PRange<'id, T> {
     #[inline(always)]
     pub unsafe fn from(start: *const T, end: *const T) -> Self {
-        PRange { id: PhantomData, start: start, end: end }
+        PRange { id: Id::default(), start: start, end: end }
     }
 
     #[inline]
@@ -199,7 +199,7 @@ impl<'id, T> Iterator for PRange<'id, T> {
             unsafe {
                 //assume(!index.is_null());
                 self.start = self.start.offset(1);
-                Some(PIndex { id: PhantomData, idx: index })
+                Some(PIndex { id: self.id, idx: index })
             }
         } else {
             None
@@ -214,7 +214,7 @@ impl<'id, T> DoubleEndedIterator for PRange<'id, T> {
             unsafe {
                 //assume(!self.end.is_null());
                 self.end  = self.end.offset(-1);
-                Some(PIndex { id: PhantomData, idx: self.end })
+                Some(PIndex { id: self.id, idx: self.end })
             }
         } else {
             None

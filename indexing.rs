@@ -32,10 +32,22 @@ unsafe impl<'a, T> Buffer for &'a mut [T] { }
 pub unsafe trait BufferMut : Buffer + DerefMut { }
 unsafe impl<X: ?Sized> BufferMut for X where X: Buffer + DerefMut { }
 
-// Cell<T> is invariant in T; so Cell<&'id _> makes `id` invariant.
-// This means that the inference engine is not allowed to shrink or
-// grow 'id to solve the borrow system.
-type Id<'id> = PhantomData<::std::cell::Cell<&'id mut ()>>;
+/// `Id<'id>` is invariant w.r.t `'id`
+///
+/// This means that the inference engine is not allowed to shrink or
+/// grow 'id to solve the borrow system.
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Eq)]
+struct Id<'id> { id: PhantomData<*mut &'id ()>, }
+
+unsafe impl<'id> Sync for Id<'id> { }
+unsafe impl<'id> Send for Id<'id> { }
+
+impl<'id> Default for Id<'id> {
+    #[inline]
+    fn default() -> Self {
+        Id { id: PhantomData }
+    }
+}
 
 /// A branded container, that allows access only to indices and ranges with
 /// the exact same brand in the `'id` parameter.
@@ -58,7 +70,7 @@ pub struct Index<'id> {
 impl<'id> Index<'id> {
     #[inline(always)]
     unsafe fn from(index: usize) -> Index<'id> {
-        Index { id: PhantomData, index: index }
+        Index { id: Id::default(), index: index }
     }
 
     // FIXME: Is this a good idea? Incompatible with pointer representation.
@@ -647,7 +659,7 @@ impl<'id> Range<'id> {
     #[inline(always)]
     unsafe fn from(start: usize, end: usize) -> Range<'id> {
         debug_assert!(start <= end);
-        Range { id: PhantomData, start: start, end: end, proof: PhantomData }
+        Range { id: Id::default(), start: start, end: end, proof: PhantomData }
     }
 }
 
@@ -655,7 +667,7 @@ impl<'id> Range<'id, NonEmpty> {
     #[inline(always)]
     unsafe fn from_ne(start: usize, end: usize) -> Range<'id, NonEmpty> {
         debug_assert!(start < end);
-        Range { id: PhantomData, start: start, end: end, proof: PhantomData }
+        Range { id: Id::default(), start: start, end: end, proof: PhantomData }
     }
 }
 
@@ -663,7 +675,7 @@ impl<'id, P> Range<'id, P> {
     #[inline(always)]
     unsafe fn from_any(start: usize, end: usize) -> Range<'id, P> {
         debug_assert!(start <= end);
-        Range { id: PhantomData, start: start, end: end, proof: PhantomData }
+        Range { id: Id::default(), start: start, end: end, proof: PhantomData }
     }
 
     /// Return the length of the range.
@@ -987,7 +999,7 @@ impl<'id> Iterator for RangeIter<'id> {
         if self.start < self.end {
             let index = self.start;
             self.start += 1;
-            Some(Index { id: PhantomData, index: index })
+            Some(Index { id: self.id, index: index })
         } else {
             None
         }
@@ -999,7 +1011,7 @@ impl<'id> DoubleEndedIterator for RangeIter<'id> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.start < self.end {
             self.end -= 1;
-            Some(Index { id: PhantomData, index: self.end })
+            Some(Index { id: self.id, index: self.end })
         } else {
             None
         }
@@ -1037,7 +1049,7 @@ pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     // to somehow bind the lifetime to the inside of this function, making
     // it sound again. Borrowck will never do such analysis, so we don't
     // care.
-    let indexer = Container { id: PhantomData, arr: arr };
+    let indexer = Container { id: Id::default(), arr: arr };
     let indices = indexer.range();
     f(indexer, indices)
 }
@@ -1228,4 +1240,15 @@ fn test_contains() {
         assert!(r.contains(r.len()).is_none());
         assert!(data.vet(r.len()).is_err());
     });
+}
+
+#[test]
+fn test_is_send_sync() {
+    fn _is_send_sync<T: Send + Sync>() { }
+
+    fn _test<'id>() {
+        _is_send_sync::<Id<'id>>();
+        _is_send_sync::<Index<'id>>();
+        _is_send_sync::<Range<'id>>();
+    }
 }
