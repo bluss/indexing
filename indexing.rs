@@ -1,9 +1,9 @@
 
-//! “Sound unchecked indexing” in Rust using “generativity” (branding by unique
-//! lifetime parameter).
+//! Sound unchecked indexing in Rust using “generativity”; a type system
+//! approach to indices and ranges that are trusted to be in bounds.
 //!
 //! Includes an index API and an interval (`Range<'id, P>`) API developing its
-//! own “algebra for transformations of in bounds ranges”.
+//! own “algebra” for transformations of in bounds ranges.
 
 // Modules
 #[doc(hidden)]
