@@ -1,6 +1,10 @@
 use std::fmt;
 use std::error::Error;
 
+/// Error produced when an indexing operation is out of bounds or otherwise
+/// inapplicable.
+///
+/// Carries no context information (to be as light as possible).
 #[derive(Copy, Debug, PartialEq)]
 pub struct IndexingError(());
 
