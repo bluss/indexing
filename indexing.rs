@@ -40,7 +40,7 @@ unsafe impl<X: ?Sized> BufferMut for X where X: Buffer + DerefMut { }
 ///
 /// This means that the inference engine is not allowed to shrink or
 /// grow 'id to solve the borrow system.
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Eq)]
+#[derive(Copy, Clone, PartialEq, PartialOrd, Eq)]
 struct Id<'id> { id: PhantomData<*mut &'id ()>, }
 
 unsafe impl<'id> Sync for Id<'id> { }
@@ -50,6 +50,12 @@ impl<'id> Default for Id<'id> {
     #[inline]
     fn default() -> Self {
         Id { id: PhantomData }
+    }
+}
+
+impl<'id> Debug for Id<'id> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("Id<'id>")
     }
 }
 
