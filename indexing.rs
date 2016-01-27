@@ -60,6 +60,25 @@ pub struct Container<'id, Array> {
     arr: Array,
 }
 
+impl<'id, Array> Debug for Container<'id, Array>
+    where Array: Debug
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.arr.fmt(f)
+    }
+}
+
+impl<'id, Array> Clone for Container<'id, Array>
+    where Array: Clone
+{
+    fn clone(&self) -> Self {
+        Container {
+            id: self.id,
+            arr: self.arr.clone(),
+        }
+    }
+}
+
 /// A branded index.
 ///
 /// `Index<'id>` only indexes the container instantiated with the exact same
