@@ -33,6 +33,28 @@ fn join_add_proof() {
     });
 }
 
+#[test]
+fn range_split_nonempty() {
+    let data = [1, 2, 3, 4, 5];
+    indices(&data[..], move |v, _| {
+        for i in 0..v.len() {
+            let r = v.vet_range(0..i).unwrap();
+            if let Ok(r) = r.nonempty() {
+                let (a, b) = r.split_in_half();
+                assert!(b.len() > 0);
+                assert_eq!(a.len() + b.len(), r.len());
+                assert!(b.first().integer() < r.len());
+            } else {
+                let (a, b) = r.split_in_half();
+                assert_eq!(a.len(), 0);
+                assert_eq!(b.len(), 0);
+                assert_eq!(a.start(), b.start());
+            }
+        }
+    });
+}
+    
+
 fn is_sorted<T: Clone + Ord>(v: &[T]) -> bool {
     let mut vec = v.to_vec();
     vec.sort();

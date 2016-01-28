@@ -440,12 +440,8 @@ pub fn binary_search<T: Data>(v: &[T], elt: &T) -> Result<usize, usize> {
                 let mid = b_.first();
                 match v[mid].cmp(elt) {
                     Ordering::Equal => return Ok(mid.integer()),
-                    Ordering::Greater => {
-                        range = a;
-                    }
-                    Ordering::Less => {
-                        range = b_.tail();
-                    }
+                    Ordering::Greater => range = a,
+                    Ordering::Less => range = b_.tail(),
                 }
             } else {
                 break;
