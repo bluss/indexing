@@ -1,6 +1,6 @@
 [package]
 name = "indexing"
-version = "0.1.0-alpha2"
+version = "0.1.0-alpha3"
 authors = ["bluss"]
 
 license = "MIT/Apache-2.0"
