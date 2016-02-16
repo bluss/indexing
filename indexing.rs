@@ -4,6 +4,9 @@
 //!
 //! Includes an index API and an interval (`Range<'id, P>`) API developing its
 //! own “algebra” for transformations of in bounds ranges.
+//!
+//! ***This is an experiment.*** The API is all of inconsistent, incomplete
+//! and redundant, but it explores interesting concepts.
 
 // Modules
 #[doc(hidden)]

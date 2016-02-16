@@ -19,6 +19,11 @@ Main focus is on index ranges, not just single indices.
 Recent Changes
 --------------
 
+- 0.1.0
+
+  - Add some docs and tests
+  - Fix Range::join_cover_both to use ProofAdd
+
 - 0.1.0-alpha3
 
   - Add IndexingError and use it for all Results.
