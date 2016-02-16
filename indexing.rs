@@ -806,11 +806,14 @@ impl<'id, P> Range<'id, P> {
     }
 
     /// Extend the range to start and end of `other`, including any space in between
-    pub fn join_cover_both<Q>(&self, other: Range<'id, Q>) -> Range<'id, P> {
-        let mut next = *self;
-        next.start = cmp::min(self.start, other.start);
-        next.end = cmp::max(self.end, other.end);
-        next
+    pub fn join_cover_both<Q>(&self, other: Range<'id, Q>) -> Range<'id, <(P, Q) as ProofAdd>::Sum>
+        where (P, Q): ProofAdd,
+    {
+        let start = cmp::min(self.start, other.start);
+        let end = cmp::max(self.end, other.end);
+        unsafe {
+            Range::from_any(start, end)
+        }
     }
 
     #[inline]
