@@ -391,7 +391,7 @@ pub fn heapify<T: Data>(v: &mut [T]) {
                     child = right;
                 }
                 // sift down is done if we are already in order
-                if v[pos] < v[child] {
+                if v[pos] <= v[child] {
                     break;
                 }
                 //puts!("mov {:?} => {:?} (value={:?})", pos, child, &v[pos]);
