@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Container` struct in crate `indexing`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Container">
+
+    <title>indexing::Container - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>indexing</a></p><script>window.sidebarCurrent = {name: 'Container', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>indexing</a>::<wbr><a class='struct' href=''>Container</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-446' class='srclink' href='../src/indexing/indexing.rs.html#67-70' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Container&lt;'id,&nbsp;Array&gt; {
+    // some fields omitted
+}</pre><div class='docblock'><p>A branded container, that allows access only to indices and ranges with
+the exact same brand in the <code>&#39;id</code> parameter.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;Array,&nbsp;T&gt; <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.Buffer.html' title='indexing::Buffer'>Buffer</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-566' class='srclink' href='../src/indexing/indexing.rs.html#148-437' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.len' class='method'><span id='len.v' class='invisible'><code>fn <a href='#method.len' class='fnname'>len</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></span></h4>
+<h4 id='method.empty_range' class='method'><span id='empty_range.v' class='invisible'><code>fn <a href='#method.empty_range' class='fnname'>empty_range</a>(&amp;self) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Return the range [0, 0)</p>
+</div><h4 id='method.range' class='method'><span id='range.v' class='invisible'><code>fn <a href='#method.range' class='fnname'>range</a>(&amp;self) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Return the full range of the Container.</p>
+</div><h4 id='method.vet' class='method'><span id='vet.v' class='invisible'><code>fn <a href='#method.vet' class='fnname'>vet</a>(&amp;self, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;,&nbsp;<a class='struct' href='../indexing/struct.IndexingError.html' title='indexing::IndexingError'>IndexingError</a>&gt;</code></span></h4>
+<h4 id='method.vet_range' class='method'><span id='vet_range.v' class='invisible'><code>fn <a href='#method.vet_range' class='fnname'>vet_range</a>(&amp;self, r: <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.Range.html' title='core::ops::Range'>Range</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;,&nbsp;<a class='struct' href='../indexing/struct.IndexingError.html' title='indexing::IndexingError'>IndexingError</a>&gt;</code></span></h4>
+<h4 id='method.split_at' class='method'><span id='split_at.v' class='invisible'><code>fn <a href='#method.split_at' class='fnname'>split_at</a>(&amp;self, index: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;, <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a></code></span></h4>
+<h4 id='method.split_after' class='method'><span id='split_after.v' class='invisible'><code>fn <a href='#method.split_after' class='fnname'>split_after</a>(&amp;self, index: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt;, <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a></code></span></h4>
+<div class='docblock'><p>Split in two ranges, where the first includes the <code>index</code> and the second
+starts with the following index.</p>
+</div><h4 id='method.split_around' class='method'><span id='split_around.v' class='invisible'><code>fn <a href='#method.split_around' class='fnname'>split_around</a>&lt;P&gt;(&amp;self, r: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;, <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a></code></span></h4>
+<div class='docblock'><p>Split around the Range <code>r</code>: Return ranges corresponding to <code>0..r.start</code>
+and <code>r.end..</code>.</p>
+
+<p>So that input <code>r</code> and return values <code>(s, t)</code> cover the whole container
+in the order <code>s</code>, <code>r</code>, <code>t</code>.</p>
+</div><h4 id='method.before' class='method'><span id='before.v' class='invisible'><code>fn <a href='#method.before' class='fnname'>before</a>(&amp;self, index: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Return the range before (not including) the index itself</p>
+</div><h4 id='method.after' class='method'><span id='after.v' class='invisible'><code>fn <a href='#method.after' class='fnname'>after</a>(&amp;self, index: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Return the range after (not including) the index itself</p>
+</div><h4 id='method.forward' class='method'><span id='forward.v' class='invisible'><code>fn <a href='#method.forward' class='fnname'>forward</a>(&amp;self, index: &amp;mut <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
+<div class='docblock'><p>Increment <code>index</code>, if doing so would still be in bounds.</p>
+
+<p>Return <code>true</code> if the index was incremented.</p>
+</div><h4 id='method.forward_by' class='method'><span id='forward_by.v' class='invisible'><code>fn <a href='#method.forward_by' class='fnname'>forward_by</a>(&amp;self, index: &amp;mut <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;, offset: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
+<div class='docblock'><p>Increment <code>index</code>, if doing so would still be in bounds.</p>
+
+<p>Return <code>true</code> if the index was incremented.</p>
+</div><h4 id='method.forward_range_by' class='method'><span id='forward_range_by.v' class='invisible'><code>fn <a href='#method.forward_range_by' class='fnname'>forward_range_by</a>&lt;P&gt;(&amp;self, r: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;, offset: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Increment <code>r</code>, clamping to the end of the Container.</p>
+</div><h4 id='method.backward' class='method'><span id='backward.v' class='invisible'><code>fn <a href='#method.backward' class='fnname'>backward</a>(&amp;self, index: &amp;mut <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
+<div class='docblock'><p>Decrement <code>index</code>, if doing so would still be in bounds.</p>
+
+<p>Return <code>true</code> if the index was decremented.</p>
+</div><h4 id='method.scan_from' class='method'><span id='scan_from.v' class='invisible'><code>fn <a href='#method.scan_from' class='fnname'>scan_from</a>&lt;'b,&nbsp;F&gt;(&amp;'b self, index: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;, f: F) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt; <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;'b T) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>, T: 'b</span></code></span></h4>
+<div class='docblock'><p>Examine the elements after <code>index</code> in order from lower indices towards higher.
+While the closure returns <code>true</code>, continue scan and include the scanned
+element in the range.</p>
+
+<p>Result always includes <code>index</code> in the range</p>
+</div><h4 id='method.scan_from_rev' class='method'><span id='scan_from_rev.v' class='invisible'><code>fn <a href='#method.scan_from_rev' class='fnname'>scan_from_rev</a>&lt;'b,&nbsp;F&gt;(&amp;'b self, index: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;, f: F) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt; <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;'b T) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>, T: 'b</span></code></span></h4>
+<div class='docblock'><p>Examine the elements before <code>index</code> in order from higher indices towards lower.
+While the closure returns <code>true</code>, continue scan and include the scanned
+element in the range.</p>
+
+<p>Result always includes <code>index</code> in the range.</p>
+</div><h4 id='method.scan_range' class='method'><span id='scan_range.v' class='invisible'><code>fn <a href='#method.scan_range' class='fnname'>scan_range</a>&lt;'b,&nbsp;F,&nbsp;P&gt;(&amp;'b self, range: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;, f: F) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;, <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a> <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;'b T) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>, T: 'b</span></code></span></h4>
+<div class='docblock'><p>Examine the elements <code>range</code> in order from lower indices towards higher.
+While the closure returns <code>true</code>, continue scan and include the scanned
+element in the range.</p>
+</div><h4 id='method.swap' class='method'><span id='swap.v' class='invisible'><code>fn <a href='#method.swap' class='fnname'>swap</a>(&amp;mut self, i: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;, j: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;) <span class='where'>where Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span></h4>
+<div class='docblock'><p>Swap elements at <code>i</code> and <code>j</code> (they may be equal).</p>
+</div><h4 id='method.rotate1_up' class='method'><span id='rotate1_up.v' class='invisible'><code>fn <a href='#method.rotate1_up' class='fnname'>rotate1_up</a>&lt;R&gt;(&amp;mut self, r: R) <span class='where'>where Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;, R: <a class='trait' href='../indexing/trait.IntoCheckedRange.html' title='indexing::IntoCheckedRange'>IntoCheckedRange</a>&lt;'id&gt;</span></code></span></h4>
+<div class='docblock'><p>Rotate elements in the range <code>r</code> by one step to the right (towards higher indices)</p>
+</div><h4 id='method.rotate1_down' class='method'><span id='rotate1_down.v' class='invisible'><code>fn <a href='#method.rotate1_down' class='fnname'>rotate1_down</a>&lt;R&gt;(&amp;mut self, r: R) <span class='where'>where Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;, R: <a class='trait' href='../indexing/trait.IntoCheckedRange.html' title='indexing::IntoCheckedRange'>IntoCheckedRange</a>&lt;'id&gt;</span></code></span></h4>
+<div class='docblock'><p>Rotate elements in the range <code>r</code> by one step to the left (towards lower indices)</p>
+</div><h4 id='method.index_twice' class='method'><span id='index_twice.v' class='invisible'><code>fn <a href='#method.index_twice' class='fnname'>index_twice</a>&lt;P,&nbsp;Q&gt;(&amp;mut self, r: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;, s: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;Q&gt;) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>,&nbsp;<a class='struct' href='../indexing/struct.IndexingError.html' title='indexing::IndexingError'>IndexingError</a>&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span></h4>
+<div class='docblock'><p>Index by two nonoverlapping ranges, where <code>r</code> is before <code>s</code>.</p>
+</div><h4 id='method.zip_mut_raw' class='method'><span id='zip_mut_raw.v' class='invisible'><code>fn <a href='#method.zip_mut_raw' class='fnname'>zip_mut_raw</a>&lt;P,&nbsp;Q,&nbsp;F&gt;(&amp;mut self, r: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;, s: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;Q&gt;, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut T</a>, <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut T</a>), Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span></h4>
+<div class='docblock'><p>Zip by raw pointer (will be indentical if ranges have same starting point)</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-451' class='srclink' href='../src/indexing/indexing.rs.html#72-78' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-457' class='srclink' href='../src/indexing/indexing.rs.html#80-89' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; Self</code></span></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><span id='clone_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></span></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html' title='core::ops::Index'>Index</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.Buffer.html' title='indexing::Buffer'>Buffer</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-682' class='srclink' href='../src/indexing/indexing.rs.html#441-451' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;self[i]</code> where <code>i</code> is an <code>Index&lt;&#39;id&gt;</code>.</p>
+</div><div class='impl-items'><h4 id='associatedtype.Output' class='type'><span id='Output.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#associatedtype.Output' class='type'>Output</a> = T</code></span></h4>
+<div class='docblock'><p>The returned type after indexing</p>
+</div><h4 id='method.index' class='method'><span id='index.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#tymethod.index' class='fnname'>index</a>(&amp;self, index: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;) -&gt; &amp;T</code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html' title='core::ops::IndexMut'>IndexMut</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-690' class='srclink' href='../src/indexing/indexing.rs.html#454-463' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;mut self[i]</code> where <code>i</code> is an <code>Index&lt;&#39;id&gt;</code>.</p>
+</div><div class='impl-items'><h4 id='method.index_mut' class='method'><span id='index_mut.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html#tymethod.index_mut' class='fnname'>index_mut</a>(&amp;mut self, index: <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;) -&gt; &amp;mut T</code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html' title='core::ops::Index'>Index</a>&lt;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.Buffer.html' title='indexing::Buffer'>Buffer</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-697' class='srclink' href='../src/indexing/indexing.rs.html#466-478' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;self[r]</code> where <code>r</code> is a <code>Range&lt;&#39;id&gt;</code>.</p>
+</div><div class='impl-items'><h4 id='associatedtype.Output-1' class='type'><span id='Output.t-1' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#associatedtype.Output' class='type'>Output</a> = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The returned type after indexing</p>
+</div><h4 id='method.index-1' class='method'><span id='index.v-1' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#tymethod.index' class='fnname'>index</a>(&amp;self, r: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html' title='core::ops::IndexMut'>IndexMut</a>&lt;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-706' class='srclink' href='../src/indexing/indexing.rs.html#481-492' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;mut self[r]</code> where <code>r</code> is a <code>Range&lt;&#39;id&gt;</code>.</p>
+</div><div class='impl-items'><h4 id='method.index_mut-1' class='method'><span id='index_mut.v-1' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html#tymethod.index_mut' class='fnname'>index_mut</a>(&amp;mut self, r: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html' title='core::ops::Index'>Index</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFrom.html' title='core::ops::RangeFrom'>RangeFrom</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.Buffer.html' title='indexing::Buffer'>Buffer</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-714' class='srclink' href='../src/indexing/indexing.rs.html#495-508' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;self[i..]</code> where <code>i</code> is an <code>Index&lt;&#39;id&gt;</code>.</p>
+</div><div class='impl-items'><h4 id='associatedtype.Output-2' class='type'><span id='Output.t-2' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#associatedtype.Output' class='type'>Output</a> = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The returned type after indexing</p>
+</div><h4 id='method.index-2' class='method'><span id='index.v-2' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#tymethod.index' class='fnname'>index</a>(&amp;self, r: <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFrom.html' title='core::ops::RangeFrom'>RangeFrom</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html' title='core::ops::IndexMut'>IndexMut</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFrom.html' title='core::ops::RangeFrom'>RangeFrom</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-723' class='srclink' href='../src/indexing/indexing.rs.html#511-523' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;mut self[i..]</code> where <code>i</code> is an <code>Index&lt;&#39;id&gt;</code>.</p>
+</div><div class='impl-items'><h4 id='method.index_mut-2' class='method'><span id='index_mut.v-2' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html#tymethod.index_mut' class='fnname'>index_mut</a>(&amp;mut self, r: <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFrom.html' title='core::ops::RangeFrom'>RangeFrom</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html' title='core::ops::Index'>Index</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.Buffer.html' title='indexing::Buffer'>Buffer</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-731' class='srclink' href='../src/indexing/indexing.rs.html#526-537' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;self[..i]</code> where <code>i</code> is an <code>Index&lt;&#39;id&gt;</code>.</p>
+</div><div class='impl-items'><h4 id='associatedtype.Output-3' class='type'><span id='Output.t-3' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#associatedtype.Output' class='type'>Output</a> = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The returned type after indexing</p>
+</div><h4 id='method.index-3' class='method'><span id='index.v-3' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#tymethod.index' class='fnname'>index</a>(&amp;self, r: <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html' title='core::ops::IndexMut'>IndexMut</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-740' class='srclink' href='../src/indexing/indexing.rs.html#540-550' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;mut self[..i]</code> where <code>i</code> is an <code>Index&lt;&#39;id&gt;</code>.</p>
+</div><div class='impl-items'><h4 id='method.index_mut-3' class='method'><span id='index_mut.v-3' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html#tymethod.index_mut' class='fnname'>index_mut</a>(&amp;mut self, r: <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html' title='core::ops::Index'>Index</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFull.html' title='core::ops::RangeFull'>RangeFull</a>&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.Buffer.html' title='indexing::Buffer'>Buffer</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-748' class='srclink' href='../src/indexing/indexing.rs.html#553-561' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;self[..]</code></p>
+</div><div class='impl-items'><h4 id='associatedtype.Output-4' class='type'><span id='Output.t-4' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#associatedtype.Output' class='type'>Output</a> = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The returned type after indexing</p>
+</div><h4 id='method.index-4' class='method'><span id='index.v-4' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#tymethod.index' class='fnname'>index</a>(&amp;self, _: <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFull.html' title='core::ops::RangeFull'>RangeFull</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html' title='core::ops::IndexMut'>IndexMut</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFull.html' title='core::ops::RangeFull'>RangeFull</a>&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.BufferMut.html' title='indexing::BufferMut'>BufferMut</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-755' class='srclink' href='../src/indexing/indexing.rs.html#564-571' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p><code>&amp;mut self[..]</code></p>
+</div><div class='impl-items'><h4 id='method.index_mut-4' class='method'><span id='index_mut.v-4' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html#tymethod.index_mut' class='fnname'>index_mut</a>(&amp;mut self, _: <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFull.html' title='core::ops::RangeFull'>RangeFull</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;'a,&nbsp;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html' title='core::ops::Index'>Index</a>&lt;PIndex&lt;'id,&nbsp;T&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-771' class='srclink' href='../src/indexing/indexing.rs.html#636-645' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Output-5' class='type'><span id='Output.t-5' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#associatedtype.Output' class='type'>Output</a> = T</code></span></h4>
+<div class='docblock'><p>The returned type after indexing</p>
+</div><h4 id='method.index-5' class='method'><span id='index.v-5' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#tymethod.index' class='fnname'>index</a>(&amp;self, r: PIndex&lt;'id,&nbsp;T&gt;) -&gt; &amp;T</code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;T,&nbsp;Array&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html' title='core::ops::Index'>Index</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;PIndex&lt;'id,&nbsp;T&gt;&gt;&gt; for <a class='struct' href='../indexing/struct.Container.html' title='indexing::Container'>Container</a>&lt;'id,&nbsp;Array&gt; <span class='where'>where Array: <a class='trait' href='../indexing/trait.Buffer.html' title='indexing::Buffer'>Buffer</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-779' class='srclink' href='../src/indexing/indexing.rs.html#647-658' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Output-6' class='type'><span id='Output.t-6' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#associatedtype.Output' class='type'>Output</a> = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The returned type after indexing</p>
+</div><h4 id='method.index-6' class='method'><span id='index.v-6' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#tymethod.index' class='fnname'>index</a>(&amp;self, r: <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;PIndex&lt;'id,&nbsp;T&gt;&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>Foo[Bar]</code>) operation</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "indexing";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

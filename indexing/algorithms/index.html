@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `algorithms` mod in crate `indexing`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, algorithms">
+
+    <title>indexing::algorithms - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>indexing</a></p><script>window.sidebarCurrent = {name: 'algorithms', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>indexing</a>::<wbr><a class='mod' href=''>algorithms</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-163' class='srclink' href='../../src/indexing/algorithms.rs.html#1-465' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Respository of some indexing-implemented algorithms so we can dissect them
+and their codegen.</p>
+</div><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.Data.html'
+                                  title='indexing::algorithms::Data'>Data</a></td>
+                           <td class='docblock short'>
+                                <p>Convenience trait -- debugging</p>
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.binary_search.html'
+                                  title='indexing::algorithms::binary_search'>binary_search</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.heapify.html'
+                                  title='indexing::algorithms::heapify'>heapify</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.insertion_sort_indexes.html'
+                                  title='indexing::algorithms::insertion_sort_indexes'>insertion_sort_indexes</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.insertion_sort_pointerindex.html'
+                                  title='indexing::algorithms::insertion_sort_pointerindex'>insertion_sort_pointerindex</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.insertion_sort_ranges.html'
+                                  title='indexing::algorithms::insertion_sort_ranges'>insertion_sort_ranges</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.insertion_sort_rust.html'
+                                  title='indexing::algorithms::insertion_sort_rust'>insertion_sort_rust</a></td>
+                           <td class='docblock short'>
+                                <p>Copied from rust / libcollections/slice.rs, using raw pointers</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.merge_internal_indices.html'
+                                  title='indexing::algorithms::merge_internal_indices'>merge_internal_indices</a></td>
+                           <td class='docblock short'>
+                                <p>Merge internal: Merge inside data while using <code>buffer</code> as a swap space</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.merge_internal_ranges.html'
+                                  title='indexing::algorithms::merge_internal_ranges'>merge_internal_ranges</a></td>
+                           <td class='docblock short'>
+                                <p>Merge internal: Merge inside data while using <code>buffer</code> as a swap space</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.quicksort.html'
+                                  title='indexing::algorithms::quicksort'>quicksort</a></td>
+                           <td class='docblock short'>
+                                <p>Simple quicksort implemented using <code>indexing</code>,</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.quicksort_bounds.html'
+                                  title='indexing::algorithms::quicksort_bounds'>quicksort_bounds</a></td>
+                           <td class='docblock short'>
+                                <p>quicksort implemented using regular bounds checked indexing</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "indexing";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

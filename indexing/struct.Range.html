@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Range` struct in crate `indexing`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Range">
+
+    <title>indexing::Range - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>indexing</a></p><script>window.sidebarCurrent = {name: 'Range', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>indexing</a>::<wbr><a class='struct' href=''>Range</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-788' class='srclink' href='../src/indexing/indexing.rs.html#668-674' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Range&lt;'id,&nbsp;Proof&nbsp;=&nbsp;<a class='enum' href='../indexing/enum.Unknown.html' title='indexing::Unknown'>Unknown</a>&gt; {
+    // some fields omitted
+}</pre><div class='docblock'><p>A branded range.</p>
+
+<p><code>Range&lt;&#39;id&gt;</code> only indexes the container instantiated with the exact same
+particular lifetime for the parameter <code>&#39;id</code> at its inception from
+the <code>indices()</code> constructor.</p>
+
+<p>The <code>Range</code> may carry a proof of nonemptiness (type parameter <code>Proof</code>),
+which enables further methods.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;P&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-825' class='srclink' href='../src/indexing/indexing.rs.html#706-865' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.len' class='method'><span id='len.v' class='invisible'><code>fn <a href='#method.len' class='fnname'>len</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></span></h4>
+<div class='docblock'><p>Return the length of the range.</p>
+</div><h4 id='method.is_empty' class='method'><span id='is_empty.v' class='invisible'><code>fn <a href='#method.is_empty' class='fnname'>is_empty</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
+<div class='docblock'><p>Return <code>true</code> if the range is empty.</p>
+</div><h4 id='method.nonempty' class='method'><span id='nonempty.v' class='invisible'><code>fn <a href='#method.nonempty' class='fnname'>nonempty</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt;,&nbsp;<a class='struct' href='../indexing/struct.IndexingError.html' title='indexing::IndexingError'>IndexingError</a>&gt;</code></span></h4>
+<div class='docblock'><p>Try to create a proof that the Range is nonempty; return
+a <code>Result</code> where the <code>Ok</code> branch carries a non-empty Range.</p>
+</div><h4 id='method.start' class='method'><span id='start.v' class='invisible'><code>fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></span></h4>
+<div class='docblock'><p>Return the start index.</p>
+</div><h4 id='method.end' class='method'><span id='end.v' class='invisible'><code>fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></span></h4>
+<div class='docblock'><p>Return the end index.</p>
+</div><h4 id='method.split_in_half' class='method'><span id='split_in_half.v' class='invisible'><code>fn <a href='#method.split_in_half' class='fnname'>split_in_half</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;, <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a></code></span></h4>
+<div class='docblock'><p>Split the range in half, with the upper middle index landing in the
+latter half. Proof of length <code>P</code> transfers to the latter half.</p>
+</div><h4 id='method.split_at' class='method'><span id='split_at.v' class='invisible'><code>fn <a href='#method.split_at' class='fnname'>split_at</a>(&amp;self, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;, <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;, <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a></code></span></h4>
+<div class='docblock'><p>Split to length <code>index</code>; if past the end, return false and clamp to the end</p>
+
+<p><code>index</code> is a relative index.</p>
+</div><h4 id='method.contains' class='method'><span id='contains.v' class='invisible'><code>fn <a href='#method.contains' class='fnname'>contains</a>(&amp;self, abs_index: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;&gt;</code></span></h4>
+<div class='docblock'><p><code>abs_index</code> is an absolute index</p>
+</div><h4 id='method.subdivide' class='method'><span id='subdivide.v' class='invisible'><code>fn <a href='#method.subdivide' class='fnname'>subdivide</a>(&amp;self, n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../indexing/struct.Subdivide.html' title='indexing::Subdivide'>Subdivide</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Return an iterator that divides the range in <code>n</code> parts, in as
+even length chunks as possible.</p>
+</div><h4 id='method.join' class='method'><span id='join.v' class='invisible'><code>fn <a href='#method.join' class='fnname'>join</a>&lt;Q&gt;(&amp;self, other: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;Q&gt;) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a>P, Q<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>::Sum&gt;,&nbsp;<a class='struct' href='../indexing/struct.IndexingError.html' title='indexing::IndexingError'>IndexingError</a>&gt; <span class='where'>where <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a>P, Q<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>: <a class='trait' href='../indexing/trait.ProofAdd.html' title='indexing::ProofAdd'>ProofAdd</a></span></code></span></h4>
+<div class='docblock'><p>Join together two adjacent ranges (they must be exactly touching, and
+in left to right order).</p>
+</div><h4 id='method.join_cover' class='method'><span id='join_cover.v' class='invisible'><code>fn <a href='#method.join_cover' class='fnname'>join_cover</a>&lt;Q&gt;(&amp;self, other: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;Q&gt;) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a>P, Q<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>::Sum&gt; <span class='where'>where <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a>P, Q<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>: <a class='trait' href='../indexing/trait.ProofAdd.html' title='indexing::ProofAdd'>ProofAdd</a></span></code></span></h4>
+<div class='docblock'><p>Extend the range to the end of <code>other</code>, including any space in between</p>
+</div><h4 id='method.join_cover_both' class='method'><span id='join_cover_both.v' class='invisible'><code>fn <a href='#method.join_cover_both' class='fnname'>join_cover_both</a>&lt;Q&gt;(&amp;self, other: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;Q&gt;) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a>P, Q<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>::Sum&gt; <span class='where'>where <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a>P, Q<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>: <a class='trait' href='../indexing/trait.ProofAdd.html' title='indexing::ProofAdd'>ProofAdd</a></span></code></span></h4>
+<div class='docblock'><p>Extend the range to start and end of <code>other</code>, including any space in between</p>
+</div><h4 id='method.as_range' class='method'><span id='as_range.v' class='invisible'><code>fn <a href='#method.as_range' class='fnname'>as_range</a>(&amp;self) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.Range.html' title='core::ops::Range'>Range</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></span></h4>
+<h4 id='method.frontiers' class='method'><span id='frontiers.v' class='invisible'><code>fn <a href='#method.frontiers' class='fnname'>frontiers</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;, <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a></code></span></h4>
+<div class='docblock'><p>Return two empty ranges, at the front and the back of the range respectively</p>
+</div><h4 id='method.forward_by' class='method'><span id='forward_by.v' class='invisible'><code>fn <a href='#method.forward_by' class='fnname'>forward_by</a>(&amp;self, index: &amp;mut <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;, offset: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
+<div class='docblock'><p>Increment <code>index</code>, if doing so would still be before the end of the range</p>
+
+<p>Return <code>true</code> if the index was incremented.</p>
+</div><h4 id='method.forward_range_by' class='method'><span id='forward_range_by.v' class='invisible'><code>fn <a href='#method.forward_range_by' class='fnname'>forward_range_by</a>&lt;Q&gt;(&amp;self, r: <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;Q&gt;, offset: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Increment <code>r</code>, clamping to the end of <code>self</code>.</p>
+</div><h4 id='method.no_proof' class='method'><span id='no_proof.v' class='invisible'><code>fn <a href='#method.no_proof' class='fnname'>no_proof</a>(&amp;self) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span></h4>
+</div><h3 class='impl'><span class='in-band'><code>impl&lt;'id&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-912' class='srclink' href='../src/indexing/indexing.rs.html#891-996' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.first' class='method'><span id='first.v' class='invisible'><code>fn <a href='#method.first' class='fnname'>first</a>(&amp;self) -&gt; <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;</code></span></h4>
+<h4 id='method.lower_middle' class='method'><span id='lower_middle.v' class='invisible'><code>fn <a href='#method.lower_middle' class='fnname'>lower_middle</a>(&amp;self) -&gt; <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Return the middle index, rounding down.</p>
+
+<p>Produces <code>mid</code> where <code>mid = start + (len - 1)/ 2</code>.</p>
+</div><h4 id='method.upper_middle' class='method'><span id='upper_middle.v' class='invisible'><code>fn <a href='#method.upper_middle' class='fnname'>upper_middle</a>(&amp;self) -&gt; <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Return the middle index, rounding up.</p>
+
+<p>Produces <code>mid</code> where <code>mid = start + len / 2</code>.</p>
+</div><h4 id='method.last' class='method'><span id='last.v' class='invisible'><code>fn <a href='#method.last' class='fnname'>last</a>(&amp;self) -&gt; <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;</code></span></h4>
+<h4 id='method.tail' class='method'><span id='tail.v' class='invisible'><code>fn <a href='#method.tail' class='fnname'>tail</a>(&amp;self) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span></h4>
+<h4 id='method.init' class='method'><span id='init.v' class='invisible'><code>fn <a href='#method.init' class='fnname'>init</a>(&amp;self) -&gt; <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span></h4>
+<h4 id='method.advance_' class='method'><span id='advance_.v' class='invisible'><code>fn <a href='#method.advance_' class='fnname'>advance_</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt;,&nbsp;<a class='struct' href='../indexing/struct.IndexingError.html' title='indexing::IndexingError'>IndexingError</a>&gt;</code></span></h4>
+<h4 id='method.advance' class='method'><span id='advance.v' class='invisible'><code>fn <a href='#method.advance' class='fnname'>advance</a>(&amp;mut self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
+<div class='docblock'><p>Increase the range&#39;s start, if the result is still a non-empty range.</p>
+
+<p>Return <code>true</code> if stepped successfully, <code>false</code> if the range would be empty.</p>
+</div><h4 id='method.advance_by' class='method'><span id='advance_by.v' class='invisible'><code>fn <a href='#method.advance_by' class='fnname'>advance_by</a>(&amp;mut self, offset: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
+<div class='docblock'><p>Increase the range&#39;s start, if the result is still a non-empty range.</p>
+
+<p>Return <code>true</code> if stepped successfully, <code>false</code> if the range would be empty.</p>
+</div><h4 id='method.advance_back' class='method'><span id='advance_back.v' class='invisible'><code>fn <a href='#method.advance_back' class='fnname'>advance_back</a>(&amp;mut self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
+<div class='docblock'><p>Decrease the range&#39;s end, if the result is still a non-empty range.</p>
+
+<p>Return <code>true</code> if stepped successfully, <code>false</code> if the range would be empty.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-795' class='srclink' href='../src/indexing/indexing.rs.html#676' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-798' class='srclink' href='../src/indexing/indexing.rs.html#677-680' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; Self</code></span></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><span id='clone_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></span></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;P,&nbsp;Q&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a>&lt;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;Q&gt;&gt; for <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-803' class='srclink' href='../src/indexing/indexing.rs.html#682-686' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.eq' class='method'><span id='eq.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq' class='fnname'>eq</a>(&amp;self, other: &amp;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;Q&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></span></h4>
+<div class='docblock'><p>This method tests for <code>self</code> and <code>other</code> values to be equal, and is used by <code>==</code>. <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq">Read more</a></p>
+</div><h4 id='method.ne' class='method'><span id='ne.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, other: &amp;Rhs) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></span></h4>
+<div class='docblock'><p>This method tests for <code>!=</code>.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html' title='core::cmp::Eq'>Eq</a> for <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-810' class='srclink' href='../src/indexing/indexing.rs.html#688' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-891' class='srclink' href='../src/indexing/indexing.rs.html#867-871' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'id&gt; <a class='trait' href='../indexing/trait.IntoCheckedRange.html' title='indexing::IntoCheckedRange'>IntoCheckedRange</a>&lt;'id&gt; for <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-904' class='srclink' href='../src/indexing/indexing.rs.html#877-882' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.into' class='method'><span id='into.v' class='invisible'><code>fn <a href='../indexing/trait.IntoCheckedRange.html#tymethod.into' class='fnname'>into</a>(self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt;,&nbsp;<a class='struct' href='../indexing/struct.IndexingError.html' title='indexing::IndexingError'>IndexingError</a>&gt;</code></span></h4>
+</div><h3 class='impl'><span class='in-band'><code>impl&lt;'id&gt; <a class='trait' href='../indexing/trait.IntoCheckedRange.html' title='indexing::IntoCheckedRange'>IntoCheckedRange</a>&lt;'id&gt; for <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-908' class='srclink' href='../src/indexing/indexing.rs.html#884-889' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.into-1' class='method'><span id='into.v-1' class='invisible'><code>fn <a href='../indexing/trait.IntoCheckedRange.html#tymethod.into' class='fnname'>into</a>(self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;<a class='enum' href='../indexing/enum.NonEmpty.html' title='indexing::NonEmpty'>NonEmpty</a>&gt;,&nbsp;<a class='struct' href='../indexing/struct.IndexingError.html' title='indexing::IndexingError'>IndexingError</a>&gt;</code></span></h4>
+</div><h3 class='impl'><span class='in-band'><code>impl&lt;'id,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html' title='core::iter::traits::IntoIterator'>IntoIterator</a> for <a class='struct' href='../indexing/struct.Range.html' title='indexing::Range'>Range</a>&lt;'id,&nbsp;P&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-941' class='srclink' href='../src/indexing/indexing.rs.html#998-1009' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Item' class='type'><span id='Item.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html#associatedtype.Item' class='type'>Item</a> = <a class='struct' href='../indexing/struct.Index.html' title='indexing::Index'>Index</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>The type of the elements being iterated over.</p>
+</div><h4 id='associatedtype.IntoIter' class='type'><span id='IntoIter.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html#associatedtype.IntoIter' class='type'>IntoIter</a> = <a class='struct' href='../indexing/struct.RangeIter.html' title='indexing::RangeIter'>RangeIter</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Which kind of iterator are we turning this into?</p>
+</div><h4 id='method.into_iter' class='method'><span id='into_iter.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html#tymethod.into_iter' class='fnname'>into_iter</a>(self) -&gt; <a class='struct' href='../indexing/struct.RangeIter.html' title='indexing::RangeIter'>RangeIter</a>&lt;'id&gt;</code></span></h4>
+<div class='docblock'><p>Creates an iterator from a value. <a href="https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html#tymethod.into_iter">Read more</a></p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "indexing";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
