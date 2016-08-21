@@ -17,13 +17,13 @@ fn main() {
             r.join_cover(r).first();
 
             front.join_cover(back).first();
-            //~^ ERROR error: no method named
+            //~^ ERROR no method named
 
             let (a, b) = r.split_in_half();
             assert_eq!(a.join_cover(back), r);
 
             a.join_cover(back).first();
-            //~^ ERROR error: no method named
+            //~^ ERROR no method named
 
             b.join_cover(back).first();
         }

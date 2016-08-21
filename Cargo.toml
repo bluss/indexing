@@ -15,7 +15,7 @@ keywords = ["data-structure", "generativity"]
 path = "indexing.rs"
 
 [dev-dependencies]
-compiletest_rs = "0.1.1"
+compiletest_rs = "0.2"
 rand = "0.3"
 quickcheck = "0.2"
 
