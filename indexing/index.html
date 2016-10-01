@@ -1,228 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `indexing` crate.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, indexing">
+    <meta charset="UTF-8">
+    <title>indexing</title>
+    <style type="text/css">
 
-    <title>indexing - Rust</title>
+        body {
+            font-family: sans-serif;
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            margin-right: -50%;
+            transform: translate(-50%, -50%);
+            margin-left: auto;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
 
-    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../main.css">
-    
-
-    
-    
+    </style>
+    <meta http-equiv="refresh" content="0; url=https://docs.rs/indexing/*/indexing/index.html">
 </head>
-<body class="rustdoc">
-    <!--[if lte IE 8]>
-    <div class="warning">
-        This old browser is unsupported and will most likely display funky
-        things.
-    </div>
-    <![endif]-->
-
-    
-
-    <nav class="sidebar">
-        
-        <p class='location'></p><script>window.sidebarCurrent = {name: 'indexing', ty: 'mod', relpath: '../'};</script>
-    </nav>
-
-    <nav class="sub">
-        <form class="search-form js-only">
-            <div class="search-container">
-                <input class="search-input" name="search"
-                       autocomplete="off"
-                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
-                       type="search">
-            </div>
-        </form>
-    </nav>
-
-    <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>indexing</a></span><span class='out-of-band'><span id='render-detail'>
-                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                       [<span class='inner'>&#x2212;</span>]
-                   </a>
-               </span><a id='src-0' class='srclink' href='../src/indexing/indexing.rs.html#2-1289' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>Sound unchecked indexing in Rust using “generativity”; a type system
-approach to indices and ranges that are trusted to be in bounds.</p>
-
-<p>Includes an index API and an interval (<code>Range&lt;&#39;id, P&gt;</code>) API developing its
-own “algebra” for transformations of in bounds ranges.</p>
-
-<p><strong><em>This is an experiment.</em></strong> The API is all of inconsistent, incomplete
-and redundant, but it explores interesting concepts.</p>
-</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
-<table>
-                       <tr class=' module-item'>
-                           <td><a class='mod' href='algorithms/index.html'
-                                  title='indexing::algorithms'>algorithms</a></td>
-                           <td class='docblock short'>
-                                <p>Respository of some indexing-implemented algorithms so we can dissect them
-and their codegen.</p>
-                           </td>
-                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
-<table>
-                       <tr class=' module-item'>
-                           <td><a class='struct' href='struct.Container.html'
-                                  title='indexing::Container'>Container</a></td>
-                           <td class='docblock short'>
-                                <p>A branded container, that allows access only to indices and ranges with
-the exact same brand in the <code>&#39;id</code> parameter.</p>
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='struct' href='struct.Index.html'
-                                  title='indexing::Index'>Index</a></td>
-                           <td class='docblock short'>
-                                <p>A branded index.</p>
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='struct' href='struct.IndexingError.html'
-                                  title='indexing::IndexingError'>IndexingError</a></td>
-                           <td class='docblock short'>
-                                <p>Error produced when an indexing operation is out of bounds or otherwise
-inapplicable.</p>
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='struct' href='struct.Range.html'
-                                  title='indexing::Range'>Range</a></td>
-                           <td class='docblock short'>
-                                <p>A branded range.</p>
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='struct' href='struct.RangeIter.html'
-                                  title='indexing::RangeIter'>RangeIter</a></td>
-                           <td class='docblock short'>
-                                <p>An iterator over the indices in a range.</p>
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='struct' href='struct.Subdivide.html'
-                                  title='indexing::Subdivide'>Subdivide</a></td>
-                           <td class='docblock short'>
-                                <p><code>Subdivide</code> is an iterator of evenly sized nonempty, nonoverlapping ranges</p>
-                           </td>
-                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
-<table>
-                       <tr class=' module-item'>
-                           <td><a class='enum' href='enum.NonEmpty.html'
-                                  title='indexing::NonEmpty'>NonEmpty</a></td>
-                           <td class='docblock short'>
-                                <p>Length marker for range known to not be empty.</p>
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='enum' href='enum.Unknown.html'
-                                  title='indexing::Unknown'>Unknown</a></td>
-                           <td class='docblock short'>
-                                <p>Length marker for unknown length.</p>
-                           </td>
-                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
-<table>
-                       <tr class=' module-item'>
-                           <td><a class='trait' href='trait.Buffer.html'
-                                  title='indexing::Buffer'>Buffer</a></td>
-                           <td class='docblock short'>
-                                <p>A marker trait for collections where we can safely vet indices</p>
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='trait' href='trait.BufferMut.html'
-                                  title='indexing::BufferMut'>BufferMut</a></td>
-                           <td class='docblock short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='trait' href='trait.IntoCheckedRange.html'
-                                  title='indexing::IntoCheckedRange'>IntoCheckedRange</a></td>
-                           <td class='docblock short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class='trait' href='trait.ProofAdd.html'
-                                  title='indexing::ProofAdd'>ProofAdd</a></td>
-                           <td class='docblock short'>
-                                <p>Represents the combination of two proofs <code>P</code> and <code>Q</code> by a new type <code>Sum</code>.</p>
-                           </td>
-                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
-<table>
-                       <tr class=' module-item'>
-                           <td><a class='fn' href='fn.indices.html'
-                                  title='indexing::indices'>indices</a></td>
-                           <td class='docblock short'>
-                                <p>Create an indexing scope for a container.</p>
-                           </td>
-                       </tr></table></section>
-    <section id='search' class="content hidden"></section>
-
-    <section class="footer"></section>
-
-    <aside id="help" class="hidden">
-        <div>
-            <h1 class="hidden">Help</h1>
-
-            <div class="shortcuts">
-                <h2>Keyboard Shortcuts</h2>
-
-                <dl>
-                    <dt>?</dt>
-                    <dd>Show this help dialog</dd>
-                    <dt>S</dt>
-                    <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
-                    <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
-                    <dd>Move down in search results</dd>
-                    <dt>&#9166;</dt>
-                    <dd>Go to active search result</dd>
-                    <dt>+</dt>
-                    <dd>Collapse/expand all sections</dd>
-                </dl>
-            </div>
-
-            <div class="infos">
-                <h2>Search Tricks</h2>
-
-                <p>
-                    Prefix searches with a type followed by a colon (e.g.
-                    <code>fn:</code>) to restrict the search to a given type.
-                </p>
-
-                <p>
-                    Accepted types are: <code>fn</code>, <code>mod</code>,
-                    <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>type</code>, <code>macro</code>,
-                    and <code>const</code>.
-                </p>
-
-                <p>
-                    Search functions by type signature (e.g.
-                    <code>vec -> usize</code> or <code>* -> vec</code>)
-                </p>
-            </div>
-        </div>
-    </aside>
-
-    
-
-    <script>
-        window.rootPath = "../";
-        window.currentCrate = "indexing";
-        window.playgroundUrl = "";
-    </script>
-    <script src="../jquery.js"></script>
-    <script src="../main.js"></script>
-    
-    <script defer src="../search-index.js"></script>
+<body>
+    <h1><a href="https://docs.rs/indexing/*/indexing/index.html">Content Moved</a></h1>
+    <p>This documentation is now being hosted on <a href="https://docs.rs/">docs.rs</a>.  <a href="https://docs.rs/indexing/*/indexing/index.html">Follow the redirection</a> if it does not work automatically.</p>
 </body>
 </html>
