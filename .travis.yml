@@ -22,9 +22,6 @@ script:
       travis-cargo --only nightly test &&
       travis-cargo bench &&
       travis-cargo doc
-after_success:
-  # upload the documentation (GH_TOKEN from env)
-  - travis-cargo --only nightly doc-upload
 
 env:
   global:
