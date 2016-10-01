@@ -7,6 +7,7 @@
 //!
 //! ***This is an experiment.*** The API is all of inconsistent, incomplete
 //! and redundant, but it explores interesting concepts.
+#![doc(html_root_url="https://docs.rs/indexing/0.1/")]
 
 // Modules
 #[doc(hidden)]
