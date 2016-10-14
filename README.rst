@@ -19,6 +19,10 @@ Main focus is on index ranges, not just single indices.
 Recent Changes
 --------------
 
+- 0.1.1
+
+  - Point documentation to docs.rs
+
 - 0.1.0
 
   - Add some docs and tests
