@@ -5,6 +5,9 @@ extern crate rand;
 
 extern crate indexing;
 
+use std::cmp::Ordering;
+use std::iter::FromIterator;
+
 use rand::{StdRng, Rng, SeedableRng};
 
 use test::Bencher;
@@ -64,7 +67,7 @@ fn std_binary_search_is_ok(b: &mut Bencher) {
     data.sort();
     b.iter(|| {
         for elt in &elements {
-            black_box(data.binary_search(&elt).is_ok());
+            black_box(data.binary_search(elt).is_ok());
         }
     });
 }
@@ -76,7 +79,7 @@ fn indexing_binary_search_is_ok(b: &mut Bencher) {
     data.sort();
     b.iter(|| {
         for elt in &elements {
-            black_box(indexing::algorithms::binary_search(&data, &elt).is_ok());
+            black_box(indexing::algorithms::binary_search(&data, elt).is_ok());
         }
     });
 }
@@ -100,7 +103,76 @@ fn indexing_binary_search(b: &mut Bencher) {
     data.sort();
     b.iter(|| {
         for elt in &elements {
-            black_box(indexing::algorithms::binary_search(&data, &elt));
+            black_box(indexing::algorithms::binary_search(&data, elt));
+        }
+    });
+}
+
+#[bench]
+fn indexing_lower_bound_fake(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(indexing::algorithms::binary_search_by(&data,
+                move |x| if x >= elt {
+                    Ordering::Greater
+                } else {
+                    Ordering::Less
+                }));
+        }
+    });
+}
+
+#[bench]
+fn indexing_lower_bound_same(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(indexing::algorithms::lower_bound(&data, elt));
+        }
+    });
+}
+
+#[bench]
+fn indexing_lower_bound_many_duplicate(b: &mut Bencher) {
+    let max = N as i32 / 5;
+    let mut data = test_data_max(N, max);
+    let elements = [0, 1, 2, 7, 29, max/3, max/2, max];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(indexing::algorithms::lower_bound(&data, elt));
+        }
+    });
+}
+
+#[bench]
+fn indexing_lower_bound_few_duplicate(b: &mut Bencher) {
+    let max = N as i32 * 10;
+    let mut data = test_data_max(N, max);
+    let elements = [0, 1, 2, 7, 29, max/3, max/2, max];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(indexing::algorithms::lower_bound(&data, elt));
+        }
+    });
+}
+
+#[bench]
+fn indexing_lower_bound_few_duplicate_string(b: &mut Bencher) {
+    let max = N as i32 * 10;
+    let numeric_data = test_data_max(N, max);
+    let mut data = Vec::from_iter(numeric_data.iter().map(<_>::to_string));
+    let elements = Vec::from_iter([0, 1, 2, 7, 29, max/3, max/2, max].iter().map(<_>::to_string));
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(indexing::algorithms::lower_bound(&data, elt));
         }
     });
 }

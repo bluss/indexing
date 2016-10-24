@@ -475,14 +475,20 @@ fn test_binary_search() {
 pub fn lower_bound<T: Data>(v: &[T], elt: &T) -> usize {
     indices(v, move |v, mut range| {
         loop {
+            // linear scan the last part;
+            // looks like lower bound gains from this, unlike binary search
+            if range.len() < 24 {
+                let (first, _) = v.scan_range(range, |x| *x < *elt);
+                return first.end();
+            }
             let (a, b) = range.split_in_half();
             if let Ok(b_) = b.nonempty() {
                 let mid = b_.first();
-                if *elt <= v[mid] {
-                    range = a;
+                range = if *elt <= v[mid] {
+                    a
                 } else {
-                    range = b_.tail();
-                }
+                    b_.tail()
+                };
             } else {
                 break;
             }
