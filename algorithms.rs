@@ -443,6 +443,16 @@ pub fn binary_search_by<T: Data, F>(v: &[T], mut f: F) -> Result<usize, usize>
 {
     indices(v, move |v, mut range| {
         loop {
+            if range.len() < 4 {
+                for i in range {
+                    match f(&v[i]) {
+                        Ordering::Equal => return Ok(i.integer()),
+                        Ordering::Greater => return Err(i.integer()),
+                        Ordering::Less => { }
+                    }
+                }
+                return Err(range.end());
+            }
             let (a, b) = range.split_in_half();
             if let Ok(b_) = b.nonempty() {
                 let mid = b_.first();
