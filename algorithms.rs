@@ -433,12 +433,20 @@ fn test_heapify() {
     */
 
 pub fn binary_search<T: Data>(v: &[T], elt: &T) -> Result<usize, usize> {
+    binary_search_by(v, |x| x.cmp(elt))
+}
+
+/// `f` is a closure that is passed `x` from the slice and should return the
+/// result of `x` compared with *something*.
+pub fn binary_search_by<T: Data, F>(v: &[T], mut f: F) -> Result<usize, usize>
+    where F: FnMut(&T) -> Ordering,
+{
     indices(v, move |v, mut range| {
         loop {
             let (a, b) = range.split_in_half();
             if let Ok(b_) = b.nonempty() {
                 let mid = b_.first();
-                match v[mid].cmp(elt) {
+                match f(&v[mid]) {
                     Ordering::Equal => return Ok(mid.integer()),
                     Ordering::Greater => range = a,
                     Ordering::Less => range = b_.tail(),
@@ -461,5 +469,42 @@ fn test_binary_search() {
 
     for elt in &elts {
         assert_eq!(binary_search(&data, elt), data.binary_search(elt));
+    }
+}
+
+pub fn lower_bound<T: Data>(v: &[T], elt: &T) -> usize {
+    indices(v, move |v, mut range| {
+        loop {
+            let (a, b) = range.split_in_half();
+            if let Ok(b_) = b.nonempty() {
+                let mid = b_.first();
+                if *elt <= v[mid] {
+                    range = a;
+                } else {
+                    range = b_.tail();
+                }
+            } else {
+                break;
+            }
+        }
+        range.start()
+    })
+}
+
+#[test]
+fn test_lower_bound() {
+    let data = [3, 7, 8, 8, 8, 11, 11, 11, 15, 22, 22, 26];
+    assert_eq!(lower_bound(&data, &8), 2);
+    assert_eq!(lower_bound(&data, &7), 1);
+
+    let elts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 25, 26, 27, 28];
+
+    for elt in &elts {
+        assert_eq!(lower_bound(&data, elt),
+            data.binary_search_by(|x| if x >= elt {
+                Ordering::Greater
+            } else {
+                Ordering::Less
+            }).unwrap_err());
     }
 }
