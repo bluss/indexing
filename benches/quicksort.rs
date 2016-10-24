@@ -13,6 +13,8 @@ use rand::{StdRng, Rng, SeedableRng};
 use test::Bencher;
 use test::black_box;
 
+use indexing::algorithms::binary_search;
+
 
 fn test_data(n: usize) -> Vec<i32> {
     test_data_max(n, 1000000)
@@ -29,6 +31,8 @@ fn test_data_max(n: usize, max: i32) -> Vec<i32> {
 
 const N: usize = 10240;
 const MAX: i32 = 10240;
+const SHORT_LEN_MIN: usize = 2;
+const SHORT_LEN_MAX: usize = 32;
 
 #[bench]
 fn quicksort_branded(b: &mut Bencher) {
@@ -105,6 +109,49 @@ fn indexing_binary_search(b: &mut Bencher) {
         for elt in &elements {
             black_box(indexing::algorithms::binary_search(&data, elt));
         }
+    });
+}
+
+fn get(r: Result<usize, usize>) -> usize {
+    match r {
+        Ok(x) => x,
+        Err(x) => x,
+    }
+}
+
+#[bench]
+fn std_binary_search_short(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        let mut sum = 0;
+        for chunk_sz in SHORT_LEN_MIN..SHORT_LEN_MAX {
+            for elt in &elements {
+                for chunk in data.chunks(chunk_sz) {
+                    sum += get(chunk.binary_search(elt));
+                }
+            }
+        }
+        sum
+    });
+}
+
+#[bench]
+fn indexing_binary_search_short(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        let mut sum = 0;
+        for chunk_sz in SHORT_LEN_MIN..SHORT_LEN_MAX {
+            for elt in &elements {
+                for chunk in data.chunks(chunk_sz) {
+                    sum += get(binary_search(chunk, elt));
+                }
+            }
+        }
+        sum
     });
 }
 
