@@ -11,7 +11,11 @@ use std::mem::swap;
 use super::indices;
 
 /// Convenience trait -- debugging
+///
+/// NOTE: Not used anymore
+#[deprecated(note = "Unused item.")]
 pub trait Data : Ord + Debug { }
+#[allow(deprecated)]
 impl<T: Ord + Debug> Data for T { }
 
 
@@ -30,7 +34,7 @@ macro_rules! puts {
 }
 
 /// Simple quicksort implemented using `indexing`,
-pub fn quicksort<T: Data>(v: &mut [T]) {
+pub fn quicksort<T: Ord>(v: &mut [T]) {
     indices(v, |mut v, range| {
         if let Ok(range) = range.nonempty() {
             // Fall back to insertion sort for short sections
@@ -90,7 +94,7 @@ pub fn quicksort<T: Data>(v: &mut [T]) {
 }
 
 /// quicksort implemented using regular bounds checked indexing
-pub fn quicksort_bounds<T: Data>(v: &mut [T]) {
+pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
     // Fall back to insertion sort for short sections
     if v.len() <= 16 {
         insertion_sort_ranges(&mut v[..], |x, y| x < y);
@@ -376,7 +380,7 @@ fn test_merge_internal() {
     }
 }
 
-pub fn heapify<T: Data>(v: &mut [T]) {
+pub fn heapify<T: Ord>(v: &mut [T]) {
     indices(v, |mut v, range| {
         // for 0-indexed element k, children are:
         // 2k + 1, 2k + 2
@@ -432,17 +436,18 @@ fn test_heapify() {
     }
     */
 
-pub fn binary_search<T: Data>(v: &[T], elt: &T) -> Result<usize, usize> {
+pub fn binary_search<T: Ord>(v: &[T], elt: &T) -> Result<usize, usize> {
     binary_search_by(v, |x| x.cmp(elt))
 }
 
 /// `f` is a closure that is passed `x` from the slice and should return the
 /// result of `x` compared with *something*.
-pub fn binary_search_by<T: Data, F>(v: &[T], mut f: F) -> Result<usize, usize>
+pub fn binary_search_by<T, F>(v: &[T], mut f: F) -> Result<usize, usize>
     where F: FnMut(&T) -> Ordering,
 {
     indices(v, move |v, mut range| {
         loop {
+            /* NOTE: This is sometimes a benefit. But how do we do this cleanly?
             if range.len() < 4 {
                 for i in range {
                     match f(&v[i]) {
@@ -453,6 +458,7 @@ pub fn binary_search_by<T: Data, F>(v: &[T], mut f: F) -> Result<usize, usize>
                 }
                 return Err(range.end());
             }
+            */
             let (a, b) = range.split_in_half();
             if let Ok(b_) = b.nonempty() {
                 let mid = b_.first();
@@ -482,7 +488,7 @@ fn test_binary_search() {
     }
 }
 
-pub fn lower_bound<T: Data>(v: &[T], elt: &T) -> usize {
+pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     indices(v, move |v, mut range| {
         loop {
             // linear scan the last part;
