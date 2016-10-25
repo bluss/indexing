@@ -16,8 +16,23 @@ Main focus is on index ranges, not just single indices.
 .. |crates| image:: http://meritbadge.herokuapp.com/indexing
 .. _crates: https://crates.io/crates/indexing
 
+References
+----------
+
++ Inspired by Gankro’s exposition of `sound unchecked indexing`__.
+
+__ https://www.reddit.com/r/rust/comments/3oo0oe/sound_unchecked_indexing_with_lifetimebased_value/
+
+Also now described in: `You can't spell trust without Rust <https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf>`_. Chapter *6.3 hacking generativity onto rust*. Gankro's master's thesis.
+
+
 Recent Changes
 --------------
+
+- 0.1.2
+
+  - Add ``binary_search_by`` and ``lower_bound`` to algorithms. Algorithms
+    don't require ``T: Debug`` anymore.
 
 - 0.1.1
 
@@ -40,15 +55,6 @@ Recent Changes
 - 0.1.0-alpha1
 
   - First release
-
-References
-----------
-
-+ Inspired by Gankro’s exposition of `sound unchecked indexing`__.
-
-__ https://www.reddit.com/r/rust/comments/3oo0oe/sound_unchecked_indexing_with_lifetimebased_value/
-
-Also now described in: `You can't spell trust without Rust <https://raw.githubusercontent.com/Gankro/thesis/master/thesis.pdf>`_. Chapter *6.3 hacking generativity onto rust*. Gankro's master's thesis.
 
 
 License

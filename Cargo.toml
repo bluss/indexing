@@ -1,6 +1,6 @@
 [package]
 name = "indexing"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["bluss"]
 
 license = "MIT/Apache-2.0"
@@ -9,7 +9,7 @@ documentation = "https://docs.rs/indexing"
 
 description = "Sound unchecked indexing using “generativity”; a type system approach to indices and ranges that are trusted to be in bounds."
 
-keywords = ["data-structure", "generativity"]
+keywords = ["data-structure", "generativity", "lower-bound"]
 
 [lib]
 path = "indexing.rs"
