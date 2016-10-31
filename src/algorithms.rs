@@ -4,19 +4,10 @@
 //!
 //!
 
-use std::fmt::{Debug};
 use std::cmp::{self, Ordering};
 use std::mem::swap;
 
 use super::indices;
-
-/// Convenience trait -- debugging
-///
-/// NOTE: Not used anymore
-#[deprecated(note = "Unused item.")]
-pub trait Data : Ord + Debug { }
-#[allow(deprecated)]
-impl<T: Ord + Debug> Data for T { }
 
 
 // for debugging -- like println during debugging
