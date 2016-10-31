@@ -25,22 +25,22 @@ macro_rules! puts {
     }
 }
 
+// limit for switching to insertion sort
+const QS_INSERTION_SORT_THRESH: usize = 24;
+
 /// Simple quicksort implemented using `indexing`,
 pub fn quicksort<T: Ord>(v: &mut [T]) {
     scope(v, |mut v| {
         let range = v.range();
         if let Ok(range) = range.nonempty() {
             // Fall back to insertion sort for short sections
-            if range.len() <= 16 {
+            if range.len() <= QS_INSERTION_SORT_THRESH {
                 insertion_sort_ranges(&mut v[..], |x, y| x < y);
                 return;
             }
 
             let (l, m, r) = (range.first(), range.upper_middle(), range.last());
-            // return, if the range is too short to sort
-            if r == l {
-                return;
-            }
+
             // simple pivot
             // let pivot = m;
             //
@@ -89,16 +89,13 @@ pub fn quicksort_prange<T: Ord>(v: &mut [T]) {
         let range = v.pointer_range();
         if let Ok(range) = range.nonempty() {
             // Fall back to insertion sort for short sections
-            if range.len() <= 16 {
+            if range.len() <= QS_INSERTION_SORT_THRESH {
                 insertion_sort_ranges(&mut v[..], |x, y| x < y);
                 return;
             }
 
             let (l, m, r) = (range.first(), range.upper_middle(), range.last());
-            // return, if the range is too short to sort
-            if r == l {
-                return;
-            }
+
             // simple pivot
             // let pivot = m;
             //
@@ -145,7 +142,7 @@ pub fn quicksort_prange<T: Ord>(v: &mut [T]) {
 /// quicksort implemented using regular bounds checked indexing
 pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
     // Fall back to insertion sort for short sections
-    if v.len() <= 16 {
+    if v.len() <= QS_INSERTION_SORT_THRESH {
         insertion_sort_ranges(&mut v[..], |x, y| x < y);
         return;
     }
