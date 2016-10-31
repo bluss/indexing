@@ -360,6 +360,7 @@ pub fn zip<'id1, 'id2, C1, C2, R1, R2, F>(r1: R1, c1: C1, r2: R2, c2: C2, mut f:
 
 pub trait PointerRange<'id> : Copy {
     type Item;
+    type Proof;
     fn ptr(self) -> *const Self::Item;
     fn len(self) -> usize;
 }
@@ -367,6 +368,7 @@ pub trait PointerRange<'id> : Copy {
 impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
 {
     type Item = T;
+    type Proof = P;
     fn ptr(self) -> *const Self::Item { self.start }
     fn len(self) -> usize { self.len() }
 }
@@ -374,6 +376,7 @@ impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
 impl<'id, T, P> PointerRange<'id> for PSlice<'id, T, P>
 {
     type Item = T;
+    type Proof = P;
     fn ptr(self) -> *const Self::Item { self.start }
     fn len(self) -> usize { self.len() }
 }
