@@ -1,15 +1,18 @@
 
-pub unsafe trait Base {
+/// The base container trait: The container can have indices and
+/// ranges that are trusted to be in bounds.
+pub unsafe trait Trustworthy {
     type Item;
     fn base_len(&self) -> usize;
 }
 
-pub unsafe trait Contiguous : Base {
+/// The container has a contiguous addressable range.
+pub unsafe trait Contiguous : Trustworthy {
     fn begin(&self) -> *const Self::Item;
     fn end(&self) -> *const Self::Item;
 }
 
-pub unsafe trait GetUnchecked : Base {
+pub unsafe trait GetUnchecked : Trustworthy {
     unsafe fn xget_unchecked(&self, i: usize) -> &Self::Item;
 }
 
@@ -17,10 +20,10 @@ pub unsafe trait GetUncheckedMut : GetUnchecked {
     unsafe fn xget_unchecked_mut(&mut self, i: usize) -> &mut Self::Item;
 }
 
-pub unsafe trait Mutable : Base { }
+pub unsafe trait Mutable : Trustworthy { }
 
-unsafe impl<'a, C> Base for &'a C
-    where C: Base
+unsafe impl<'a, C> Trustworthy for &'a C
+    where C: Trustworthy
 {
     type Item = C::Item;
     fn base_len(&self) -> usize {
@@ -28,8 +31,8 @@ unsafe impl<'a, C> Base for &'a C
     }
 }
 
-unsafe impl<'a, C> Base for &'a mut C
-    where C: Base
+unsafe impl<'a, C> Trustworthy for &'a mut C
+    where C: Trustworthy
 {
     type Item = C::Item;
     fn base_len(&self) -> usize {
@@ -87,7 +90,7 @@ unsafe impl<'a, C> Contiguous for &'a mut C
     }
 }
 
-unsafe impl<T> Base for [T] {
+unsafe impl<T> Trustworthy for [T] {
     type Item = T;
     fn base_len(&self) -> usize { self.len() }
 }
@@ -117,7 +120,7 @@ unsafe impl<T> Contiguous for [T] {
     }
 }
 
-unsafe impl<T> Base for Vec<T> {
+unsafe impl<T> Trustworthy for Vec<T> {
     type Item = T;
     fn base_len(&self) -> usize { self.len() }
 }
@@ -146,7 +149,7 @@ unsafe impl<T> Contiguous for Vec<T> {
     }
 }
 
-pub unsafe trait Pushable : Base {
+pub unsafe trait Pushable : Trustworthy {
     fn push(&mut self, item: Self::Item) -> usize;
     unsafe fn insert_unchecked(&mut self, index: usize, item: Self::Item);
 }
