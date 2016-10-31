@@ -9,7 +9,7 @@ documentation = "https://docs.rs/indexing"
 
 description = "Sound unchecked indexing using “generativity”; a type system approach to indices and ranges that are trusted to be in bounds."
 
-keywords = ["data-structure", "generativity", "lower-bound"]
+keywords = ["data-structure", "generativity", "lower-bound", "no_std"]
 
 [lib]
 
