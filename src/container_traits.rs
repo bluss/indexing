@@ -148,6 +148,7 @@ unsafe impl<T> Contiguous for Vec<T> {
 
 pub unsafe trait Pushable : Base {
     fn push(&mut self, item: Self::Item) -> usize;
+    unsafe fn insert_unchecked(&mut self, index: usize, item: Self::Item);
 }
 
 unsafe impl<T> Pushable for Vec<T> {
@@ -155,6 +156,9 @@ unsafe impl<T> Pushable for Vec<T> {
         let i = self.len();
         self.push(item);
         i
+    }
+    unsafe fn insert_unchecked(&mut self, index: usize, item: Self::Item) {
+        self.insert(index, item)
     }
 }
 

@@ -444,6 +444,17 @@ impl<'id, Array, T> Container<'id, Array, OnlyIndex>
             Index::new(i)
         }
     }
+
+    /// Insert one element in the underlying storage at `index`.
+    ///
+    /// All outstanding indices remain valid (in bounds), but elements have
+    /// shifted.
+    pub fn insert<Q>(&mut self, index: Index<'id, Q>, element: T) {
+        debug_assert!(index.index <= self.arr.base_len());
+        unsafe {
+            self.arr.insert_unchecked(index.index, element);
+        }
+    }
 }
 
 /// `&self[i]` where `i` is an `Index<'id>`.
