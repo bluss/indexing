@@ -10,7 +10,7 @@ use std::marker::PhantomData;
 
 use index_error::IndexingError;
 use index_error::index_error;
-use base::*;
+use proof::*;
 use std;
 
 use container_traits::*;
@@ -50,8 +50,8 @@ impl<'id, Array, Mode> Clone for Container<'id, Array, Mode>
     }
 }
 
-impl<'id, Array, Mode> Container<'id, Array, Mode>
-    where Array: Trustworthy,
+impl<'id, Array, T, Mode> Container<'id, Array, Mode>
+    where Array: Trustworthy<Item=T>,
 {
     #[inline]
     pub fn len(&self) -> usize {
@@ -69,12 +69,7 @@ impl<'id, Array, Mode> Container<'id, Array, Mode>
             mode: PhantomData,
         }
     }
-}
 
-
-impl<'id, Array, T, Mode> Container<'id, Array, Mode>
-    where Array: Trustworthy<Item=T>,
-{
     #[inline]
     pub fn as_ptr(&self) -> *const T
         where Array: Contiguous<Item=T>,

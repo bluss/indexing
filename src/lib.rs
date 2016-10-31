@@ -14,7 +14,7 @@
 //!
 //! # Basic Parts
 //!
-//! - A scope is created using the [`scope`](fn.scope.html) function;
+//! - A scope is created using the [`scope`](container/fn.scope.html) function;
 //!   inside this scope, there is a [`Container`][c] object that has two roles:
 //!   (1) it gives out or vets trusted indices, pointers and ranges (2) it
 //!   provides access to the underlying data through these indices and ranges.
@@ -40,7 +40,7 @@
 //!   in the range, but it's only when the range is nonempty that the returned
 //!   particle is also `NonEmpty` and thus dereferenceable.
 //!
-//! [c]: Container.t.html
+//! [c]: container/struct.Container.html
 //!
 //! # Borrowing Rules
 //!
@@ -53,7 +53,7 @@
 //!
 //! # Example
 //!
-//! Find the lower bound index for element `elt` using ranges:
+//! Find the lower bound index for element `elt` using pointer ranges:
 //!
 //! ```rust
 //! use indexing::scope;
@@ -94,11 +94,11 @@ use std::fmt::{self, Debug};
 
 pub mod prelude;
 pub mod indexing;
-pub mod base;
-pub mod pointer;
+pub mod proof;
 pub mod algorithms;
 pub mod container_traits;
 pub mod container;
+pub mod pointer;
 mod index_error;
 mod pointer_ext;
 
@@ -106,7 +106,7 @@ pub use index_error::IndexingError;
 
 pub use container::{Container, scope};
 
-pub use base::{NonEmpty, Unknown};
+pub use proof::{NonEmpty, Unknown};
 
 
 // Common types //

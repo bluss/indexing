@@ -1,6 +1,6 @@
 
-/// The base container trait: The container can have indices and
-/// ranges that are trusted to be in bounds.
+/// The most basic container trait: it can have indices and ranges that are
+/// trusted to be in bounds.
 pub unsafe trait Trustworthy {
     type Item;
     fn base_len(&self) -> usize;

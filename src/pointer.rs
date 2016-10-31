@@ -26,7 +26,7 @@ use IndexingError;
 use index_error::index_error;
 
 use pointer_ext::PointerExt;
-use base::Provable;
+use proof::Provable;
 use container_traits::*;
 
 /// `PIndex` is a pointer to a location

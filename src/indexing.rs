@@ -10,8 +10,7 @@ use std::fmt::{self, Debug};
 use index_error::IndexingError;
 use index_error::index_error;
 use std;
-use prelude::*;
-use base::ProofAdd;
+use proof::*;
 
 use {Id, Index, Range};
 

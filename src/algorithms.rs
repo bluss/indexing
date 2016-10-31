@@ -635,7 +635,7 @@ use Container;
 use container_traits::Contiguous;
 use pointer::{PIndex, PRange, PSlice};
 use Unknown;
-use base::Provable;
+use proof::Provable;
 
 pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
                                                 v: &Container<'id, Array>,
