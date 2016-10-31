@@ -502,7 +502,7 @@ fn test_binary_search() {
     }
 }
 
-#[inline(never)]
+//#[inline(never)]
 pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     indices(v, move |v, mut range| {
         while let Ok(range_) = range.nonempty() {
@@ -518,7 +518,7 @@ pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 }
 
 /// Using PRange (pointer-based safe API)
-#[inline(never)]
+//#[inline(never)]
 pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     indices(v, move |v, _range| {
         let mut range = v.pointer_range();
@@ -536,7 +536,7 @@ pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 
 /// Raw pointer version, for comparison
 /// From http://en.cppreference.com/w/cpp/algorithm/lower_bound
-#[inline(never)]
+//#[inline(never)]
 pub fn lower_bound_raw_ptr<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     unsafe {
         let mut start = v.as_ptr();
