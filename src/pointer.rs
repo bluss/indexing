@@ -373,6 +373,22 @@ pub fn zip<'id1, 'id2, C1, C2, R1, R2, F>(r1: R1, c1: C1, r2: R2, c2: C2, mut f:
     }
 }
 
+trait Provable {
+    type WithoutProof;
+    fn no_proof(self) -> Self::WithoutProof;
+}
+
+impl<'id, T, P> Provable for PRange<'id, T, P> {
+    type WithoutProof = PRange<'id, T, Unknown>;
+
+    #[inline]
+    fn no_proof(self) -> Self::WithoutProof {
+        unsafe {
+            mem::transmute(self)
+        }
+    }
+}
+
 pub trait PointerRange<'id> : Copy {
     type Item;
     type Proof;
@@ -458,17 +474,26 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
 
 }
 
+pub struct PRangeIter<'id, T>(PRange<'id, T, Unknown>);
 
-impl<'id, T, P> Iterator for PRange<'id, T, P> {
+impl<'id, T, P> IntoIterator for PRange<'id, T, P> {
+    type Item = PIndex<'id, T>;
+    type IntoIter = PRangeIter<'id, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        PRangeIter(self.no_proof())
+    }
+}
+
+impl<'id, T> Iterator for PRangeIter<'id, T> {
     type Item = PIndex<'id, T>;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.start != self.end {
-            let index = self.start;
+        if self.0.start != self.0.end {
+            let index = self.0.start;
             unsafe {
                 //assume(!index.is_null());
-                self.start = self.start.offset(1);
+                self.0.start = self.0.start.offset(1);
                 Some(PIndex::inbounds(index))
             }
         } else {
@@ -477,14 +502,14 @@ impl<'id, T, P> Iterator for PRange<'id, T, P> {
     }
 }
 
-impl<'id, T, P> DoubleEndedIterator for PRange<'id, T, P> {
+impl<'id, T> DoubleEndedIterator for PRangeIter<'id, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.start != self.end {
+        if self.0.start != self.0.end {
             unsafe {
                 //assume(!self.end.is_null());
-                self.end  = self.end.offset(-1);
-                Some(PIndex::inbounds(self.end))
+                self.0.end  = self.0.end.offset(-1);
+                Some(PIndex::inbounds(self.0.end))
             }
         } else {
             None
