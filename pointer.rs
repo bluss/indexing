@@ -22,13 +22,13 @@ impl<'id, T> Clone for PIndex<'id, T> {
 }
 
 impl<'id, T> PIndex<'id, T> {
-    #[inline]
-    pub fn ptr(&self) -> *const T {
+    #[inline(always)]
+    pub fn ptr(self) -> *const T {
         self.idx
     }
 
-    #[inline]
-    pub fn ptr_mut(&self) -> *mut T {
+    #[inline(always)]
+    pub fn ptr_mut(self) -> *mut T {
         self.idx as *mut T
     }
 }
@@ -94,13 +94,13 @@ impl<'id, T, P> PRange<'id, T, P> {
 
 impl<'id, T> PRange<'id, T, NonEmpty> {
     #[inline]
-    pub fn first(&self) -> PIndex<'id, T> {
+    pub fn first(self) -> PIndex<'id, T> {
         PIndex { id: self.id, idx: self.start }
     }
 
     /// Return the middle index, rounding up on even
     #[inline]
-    pub fn upper_middle(&self) -> PIndex<'id, T> {
+    pub fn upper_middle(self) -> PIndex<'id, T> {
         unsafe {
             let mid = ptrdistance(self.end, self.start) / 2;
             PIndex { id: self.id, idx: self.start.offset(mid as isize)  }
@@ -108,7 +108,7 @@ impl<'id, T> PRange<'id, T, NonEmpty> {
     }
 
     #[inline]
-    pub fn tail(&self) -> PRange<'id, T> {
+    pub fn tail(self) -> PRange<'id, T> {
         // in bounds since it's nonempty
         unsafe {
             PRange::from(self.start.offset(1), self.end)
@@ -116,7 +116,7 @@ impl<'id, T> PRange<'id, T, NonEmpty> {
     }
 
     #[inline]
-    pub fn init(&self) -> PRange<'id, T> {
+    pub fn init(self) -> PRange<'id, T> {
         // in bounds since it's nonempty
         unsafe {
             PRange::from(self.start, self.end.offset(-1))
@@ -124,7 +124,7 @@ impl<'id, T> PRange<'id, T, NonEmpty> {
     }
 
     #[inline]
-    pub fn last(&self) -> PIndex<'id, T> {
+    pub fn last(self) -> PIndex<'id, T> {
         unsafe {
             PIndex { id: self.id, idx: self.end.offset(-1) }
         }
