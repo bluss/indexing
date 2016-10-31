@@ -83,10 +83,10 @@
 //! ***This is an experiment.*** The API is all of inconsistent, incomplete
 //! and redundant, but it explores interesting concepts.
 #![doc(html_root_url="https://docs.rs/indexing/0.1/")]
-#![cfg_attr(not(test), no_std)]
+//#![cfg_attr(not(test), no_std)]
 
-#[cfg(not(test))]
-extern crate core as std;
+//#[cfg(not(test))]
+//extern crate core as std;
 
 use std::marker::PhantomData;
 use std::fmt::{self, Debug};
@@ -96,6 +96,7 @@ mod indexing;
 pub mod base;
 pub mod pointer;
 pub mod algorithms;
+pub mod container_traits;
 mod index_error;
 mod pointer_ext;
 

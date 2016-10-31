@@ -20,6 +20,8 @@ use super::Id;
 use prelude::*;
 use base::ProofAdd;
 
+use container_traits::Pushable;
+
 /// A marker trait for collections where we can safely vet indices
 pub unsafe trait Buffer : Deref {
 }
@@ -427,6 +429,22 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     }
 }
 
+/// Methods specific to only index mode
+impl<'id, Array, T> Container<'id, Array, OnlyIndex>
+    where Array: Pushable<Item=T>,
+{
+    /// Add one element to the underlying storage, and return its index.
+    ///
+    /// All outstanding indices remain valid, only the length of the
+    /// container is now larger.
+    pub fn push(&mut self, element: T) -> Index<'id> {
+        let i = self.arr.push(element);
+        debug_assert!(i < self.arr.base_len());
+        unsafe {
+            Index::new(i)
+        }
+    }
+}
 
 /// `&self[i]` where `i` is an `Index<'id>`.
 impl<'id, T, Array, M> ops::Index<Index<'id>> for Container<'id, Array, M>
