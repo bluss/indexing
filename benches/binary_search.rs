@@ -274,6 +274,29 @@ fn short_lower_bound_indexing(b: &mut Bencher) {
 }
 
 #[bench]
+fn short_lower_bound_std(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        let mut sum = 0;
+        for chunk_sz in SHORT_LEN_MIN..SHORT_LEN_MAX {
+            for elt in &elements {
+                for chunk in data.chunks(chunk_sz) {
+                    sum += get(chunk.binary_search_by(
+                        move |x| if x >= elt {
+                            Ordering::Greater
+                        } else {
+                            Ordering::Less
+                        }));
+                }
+            }
+        }
+        sum
+    });
+}
+
+#[bench]
 fn short_lower_bound_prange(b: &mut Bencher) {
     let mut data = test_data_max(N, MAX);
     let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
