@@ -592,7 +592,7 @@ pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
                 range = a;
             }
         }
-        v.distance_to(range)
+        v.distance_to(range.first())
     })
 }
 

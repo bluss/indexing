@@ -12,18 +12,43 @@ use IndexingError;
 use index_error::index_error;
 
 /// `PIndex` wraps a valid, non-dangling index or pointer to a location
+///
+/// It carries a proof (type parameter `Proof`) which when `NonEmpty`, means
+/// it points to a valid element, `Unknown` is an unknown or edge pointer
+/// (it can be a one-past-the-end pointer).
 #[derive(Debug)]
-pub struct PIndex<'id, T> {
+pub struct PIndex<'id, T, Proof = NonEmpty> {
     id: Id<'id>,
     idx: *const T,
+    proof: PhantomData<Proof>,
 }
 
-impl<'id, T> Copy for PIndex<'id, T> { }
-impl<'id, T> Clone for PIndex<'id, T> {
+impl<'id, T, P> PIndex<'id, T, P> {
+    unsafe fn from(p: *const T) -> Self {
+        PIndex {
+            id: Id::default(),
+            idx: p,
+            proof: PhantomData,
+        }
+    }
+}
+
+impl<'id, T> PIndex<'id, T, NonEmpty> {
+    unsafe fn inbounds(p: *const T) -> Self {
+        PIndex {
+            id: Id::default(),
+            idx: p,
+            proof: PhantomData,
+        }
+    }
+}
+
+impl<'id, T, P> Copy for PIndex<'id, T, P> { }
+impl<'id, T, P> Clone for PIndex<'id, T, P> {
     fn clone(&self) -> Self { *self }
 }
 
-impl<'id, T> PIndex<'id, T> {
+impl<'id, T, P> PIndex<'id, T, P> {
     #[inline(always)]
     pub fn ptr(self) -> *const T {
         self.idx
@@ -35,12 +60,20 @@ impl<'id, T> PIndex<'id, T> {
     }
 }
 
-impl<'id, T> PartialEq for PIndex<'id, T> {
+impl<'id, T> PIndex<'id, T, NonEmpty> {
+    pub fn after(self) -> PIndex<'id, T, Unknown> {
+        unsafe {
+            PIndex::from(self.idx.offset(1))
+        }
+    }
+}
+
+impl<'id, T, P> PartialEq for PIndex<'id, T, P> {
     fn eq(&self, rhs: &Self) -> bool {
         self.idx == rhs.idx
     }
 }
-impl<'id, T> Eq for PIndex<'id, T> { }
+impl<'id, T, P> Eq for PIndex<'id, T, P> { }
 
 /// `PRange` wraps a valid range
 #[derive(Debug)]
@@ -108,18 +141,36 @@ impl<'id, T, P> PRange<'id, T, P> {
     }
 }
 
-impl<'id, T> PRange<'id, T, NonEmpty> {
+impl<'id, T, P> PRange<'id, T, P> {
     #[inline]
-    pub fn first(self) -> PIndex<'id, T> {
-        PIndex { id: self.id, idx: self.start }
+    pub fn first(self) -> PIndex<'id, T, P> {
+        unsafe {
+            PIndex::from(self.start)
+        }
     }
 
     /// Return the middle index, rounding up on even
     #[inline]
-    pub fn upper_middle(self) -> PIndex<'id, T> {
+    pub fn upper_middle(self) -> PIndex<'id, T, P> {
         unsafe {
             let mid = ptrdistance(self.end, self.start) / 2;
-            PIndex { id: self.id, idx: self.start.offset(mid as isize)  }
+            PIndex::from(self.start.offset(mid as isize))
+        }
+    }
+
+    #[inline]
+    pub fn past_the_end(self) -> PIndex<'id, T, Unknown> {
+        unsafe {
+            PIndex::from(self.end)
+        }
+    }
+}
+
+impl<'id, T> PRange<'id, T, NonEmpty> {
+    #[inline]
+    pub fn last(self) -> PIndex<'id, T> {
+        unsafe {
+            PIndex::inbounds(self.end.offset(-1))
         }
     }
 
@@ -136,13 +187,6 @@ impl<'id, T> PRange<'id, T, NonEmpty> {
         // in bounds since it's nonempty
         unsafe {
             PRange::from(self.start, self.end.offset(-1))
-        }
-    }
-
-    #[inline]
-    pub fn last(self) -> PIndex<'id, T> {
-        unsafe {
-            PIndex { id: self.id, idx: self.end.offset(-1) }
         }
     }
 
@@ -193,10 +237,14 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
+    fn start(&self) -> *const T {
+        self.arr.as_ptr()
+    }
+
     /// Return the distance (in number of elements) from the 
-    /// start of the container to the start of the range.
-    pub fn distance_to<P>(&self, r: PRange<'id, T, P>) -> usize {
-        ptrdistance(r.start, self.arr.as_ptr())
+    /// start of the container to the pointer.
+    pub fn distance_to<P>(&self, ptr: PIndex<'id, T, P>) -> usize {
+        ptrdistance(ptr.ptr(), self.start())
     }
 
     /// Examine the elements before `index` in order from higher indices towards lower.
@@ -205,7 +253,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
     ///
     /// Result always includes `index` in the range
     #[inline]
-    pub fn scan_tail_<F>(&self, index: PIndex<'id, T>, mut f: F) -> PRange<'id, T, NonEmpty>
+    pub fn scan_tail_<P, F>(&self, index: PIndex<'id, T, P>, mut f: F) -> PRange<'id, T, P>
         where F: FnMut(&T) -> bool
     {
         unsafe {
@@ -246,8 +294,8 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
     }
 
     #[inline]
-    pub fn split_at_pointer(&self, index: PIndex<'id, T>)
-        -> (PRange<'id, T>, PRange<'id, T, NonEmpty>) {
+    pub fn split_at_pointer<P>(&self, index: PIndex<'id, T, P>)
+        -> (PRange<'id, T>, PRange<'id, T, P>) {
         unsafe {
             let pr = self.pointer_range();
             (PRange::from(pr.start, index.idx),
@@ -321,7 +369,7 @@ impl<'id, T, P> Iterator for PRange<'id, T, P> {
             unsafe {
                 //assume(!index.is_null());
                 self.start = self.start.offset(1);
-                Some(PIndex { id: self.id, idx: index })
+                Some(PIndex::inbounds(index))
             }
         } else {
             None
@@ -336,7 +384,7 @@ impl<'id, T, P> DoubleEndedIterator for PRange<'id, T, P> {
             unsafe {
                 //assume(!self.end.is_null());
                 self.end  = self.end.offset(-1);
-                Some(PIndex { id: self.id, idx: self.end })
+                Some(PIndex::inbounds(self.end))
             }
         } else {
             None
