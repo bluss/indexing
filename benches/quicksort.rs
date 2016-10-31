@@ -248,3 +248,17 @@ fn indexing_lower_bound_few_duplicate_string(b: &mut Bencher) {
         }
     });
 }
+
+#[bench]
+fn indexing_lower_bound_few_duplicate_string_ptr(b: &mut Bencher) {
+    let max = N as i32 * 10;
+    let numeric_data = test_data_max(N, max);
+    let mut data = Vec::from_iter(numeric_data.iter().map(<_>::to_string));
+    let elements = Vec::from_iter([0, 1, 2, 7, 29, max/3, max/2, max].iter().map(<_>::to_string));
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(lower_bound_ptr(&data, elt));
+        }
+    });
+}
