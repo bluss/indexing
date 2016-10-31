@@ -361,6 +361,13 @@ fn block_swap2<T>(a: &mut [T], b: &mut [T]) {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct AlgorithmError(pub &'static str);
+
+impl From<&'static str> for AlgorithmError {
+    fn from(s: &'static str) -> Self { AlgorithmError(s) }
+}
+
 /// Merge internal: Merge inside data while using `buffer` as a swap space
 ///
 /// `data` is in two sections, each part in sorted order, divided by `left_end`.
@@ -369,10 +376,12 @@ fn block_swap2<T>(a: &mut [T], b: &mut [T]) {
 ///
 /// This is panic safe by ensuring all values are swapped and not duplicated,
 /// so it is all present in either `data` or `buffer` at all times.
-pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &mut [T]) {
+pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &mut [T])
+    -> Result<(), AlgorithmError>
+{
     debug_assert!(data.len() >= 1);
     if left_end > data.len() || left_end > buffer.len() {
-        panic!("merge_internal: data or buffer too short");
+        try!(Err("merge_internal: data or buffer too short"));
     }
     scope(data, move |mut data| {
         let r = data.range();
@@ -412,7 +421,8 @@ pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &
                 }
             }
         })
-    })
+    });
+    Ok(())
 }
 
 /// Merge internal: Merge inside data while using `buffer` as a swap space
@@ -423,10 +433,12 @@ pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &
 ///
 /// This is panic safe by ensuring all values are swapped and not duplicated,
 /// so it is all present in either `data` or `buffer` at all times.
-pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &mut [T]) {
+pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &mut [T])
+    -> Result<(), AlgorithmError>
+{
     debug_assert!(data.len() >= 1);
     if left_end > data.len() || left_end > buffer.len() {
-        panic!("merge_internal: data or buffer too short");
+        try!(Err("merge_internal: data or buffer too short"));
     }
     scope(data, |mut data| {
         let r = data.range();
@@ -462,7 +474,8 @@ pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &m
                 }
             }
         })
-    })
+    });
+    Ok(())
 }
 
 #[test]
