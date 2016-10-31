@@ -4,19 +4,11 @@
 //!
 //!
 
-use std::fmt::{Debug};
 use std::cmp::{self, Ordering};
 use std::mem::swap;
 
-use super::indices;
-
-/// Convenience trait -- debugging
-///
-/// NOTE: Not used anymore
-#[deprecated(note = "Unused item.")]
-pub trait Data : Ord + Debug { }
-#[allow(deprecated)]
-impl<T: Ord + Debug> Data for T { }
+use scope;
+use pointer::zip;
 
 
 // for debugging -- like println during debugging
@@ -35,7 +27,8 @@ macro_rules! puts {
 
 /// Simple quicksort implemented using `indexing`,
 pub fn quicksort<T: Ord>(v: &mut [T]) {
-    indices(v, |mut v, range| {
+    scope(v, |mut v| {
+        let range = v.range();
         if let Ok(range) = range.nonempty() {
             // Fall back to insertion sort for short sections
             if range.len() <= 16 {
@@ -61,16 +54,14 @@ pub fn quicksort<T: Ord>(v: &mut [T]) {
             };
 
             // partition
-            // I think this is similar to Hoare’s version, wikipedia
             let mut scan = range;
+            v.swap(scan.first(), pivot);
+            pivot = scan.first();
             'main: loop {
-                if v[scan.first()] > v[pivot] {
+                if v[scan.first()] >= v[pivot] {
                     loop {
                         if v[scan.last()] <= v[pivot] {
                             v.swap(scan.first(), scan.last());
-                            if scan.last() == pivot {
-                                pivot = scan.first();
-                            }
                             break;
                         }
                         if !scan.advance_back() {
@@ -79,7 +70,6 @@ pub fn quicksort<T: Ord>(v: &mut [T]) {
                     }
                 }
                 if !scan.advance() {
-                    v.swap(pivot, scan.first());
                     break;
                 }
             }
@@ -92,6 +82,65 @@ pub fn quicksort<T: Ord>(v: &mut [T]) {
         }
     });
 }
+
+/// Simple quicksort implemented using `indexing`’s PRange.
+pub fn quicksort_prange<T: Ord>(v: &mut [T]) {
+    scope(v, |mut v| {
+        let range = v.pointer_range();
+        if let Ok(range) = range.nonempty() {
+            // Fall back to insertion sort for short sections
+            if range.len() <= 16 {
+                insertion_sort_ranges(&mut v[..], |x, y| x < y);
+                return;
+            }
+
+            let (l, m, r) = (range.first(), range.upper_middle(), range.last());
+            // return, if the range is too short to sort
+            if r == l {
+                return;
+            }
+            // simple pivot
+            // let pivot = m;
+            //
+            // smart pivot -- use median of three
+            let mut pivot = if v[l] <= v[m] && v[m] <= v[r] {
+                m
+            } else if v[m] <= v[l] && v[l] <= v[r] {
+                l
+            } else {
+                r
+            };
+
+            // partition
+            let mut scan = range;
+            v.swap_ptr(scan.first(), pivot);
+            pivot = scan.first();
+            'main: loop {
+                if v[scan.first()] >= v[pivot] {
+                    loop {
+                        if v[scan.last()] <= v[pivot] {
+                            v.swap_ptr(scan.first(), scan.last());
+                            break;
+                        }
+                        if !scan.advance_back() {
+                            break 'main;
+                        }
+                    }
+                }
+                if !scan.advance() {
+                    break;
+                }
+            }
+
+            // ok split at pivot location and recurse
+            let (a, b) = v.split_at_pointer(scan.first());
+            //puts!("a={:?}, pivot={:?}, b={:?}", &v[a], &v[scan.first()], &v[b]);
+            quicksort_prange(&mut v[a]);
+            quicksort_prange(&mut v[b]);
+        }
+    });
+}
+
 
 /// quicksort implemented using regular bounds checked indexing
 pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
@@ -111,17 +160,15 @@ pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
     };
 
     // partition
-    // I think this is similar to Hoare’s version, wikipedia
+    v.swap(0, pivot);
+    pivot = 0;
     let mut i = 0;
     let mut j = v.len() - 1;
     'main: loop {
-        if v[i] > v[pivot] {
+        if v[i] >= v[pivot] {
             loop {
                 if v[j] <= v[pivot] {
                     v.swap(i, j);
-                    if j == pivot {
-                        pivot = i;
-                    }
                     break;
                 }
                 j -= 1;
@@ -129,7 +176,6 @@ pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
             }
         }
         if i >= j {
-            v.swap(pivot, i);
             break;
         }
         i += 1;
@@ -139,6 +185,38 @@ pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
     let (a, b) = v.split_at_mut(i);
     quicksort_bounds(a);
     quicksort_bounds(b);
+}
+
+pub fn zip_dot_i32(xs: &[i32], ys: &[i32]) -> i32 {
+    xs.iter().zip(ys).map(|(x, y)| x * y).sum()
+}
+
+pub fn zip_dot_i32_prange(xs: &[i32], ys: &[i32]) -> i32 {
+    scope(xs, move |v| {
+        scope(ys, move |u| {
+            let mut sum = 0;
+            zip(v.pointer_range(), &v,
+                u.pointer_range(), &u,
+                |&x, &y| sum += x * y);
+            sum
+        })
+    })
+}
+
+pub fn copy<T: Copy>(xs: &[T], ys: &mut [T]) {
+    for (&x, y) in xs.iter().zip(ys) {
+        *y = x;
+    }
+}
+
+pub fn copy_prange<T: Copy>(xs: &[T], ys: &mut [T]) {
+    scope(xs, move |v| {
+        scope(ys, move |mut u| {
+            zip(v.pointer_range(), &v,
+                u.pointer_range(), &mut u,
+                |&x, y| *y = x);
+        })
+    })
 }
 
 
@@ -174,8 +252,8 @@ fn test_quicksort() {
 }
 
 pub fn insertion_sort_indexes<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
-    indices(v, move |mut v, r| {
-        for i in r {
+    scope(v, move |mut v| {
+        for i in v.range() {
             let jtail = v.scan_from_rev(i, |j_elt| less_than(&v[i], j_elt));
             v.rotate1_up(jtail);
         }
@@ -183,8 +261,8 @@ pub fn insertion_sort_indexes<T, F>(v: &mut [T], mut less_than: F) where F: FnMu
 }
 
 pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
-    indices(v, move |mut v, r| {
-        if let Ok(mut i) = r.nonempty() {
+    scope(v, move |mut v| {
+        if let Ok(mut i) = v.range().nonempty() {
             while i.advance() {
                 let jtail = v.scan_from_rev(i.first(), |j_elt| less_than(&v[i.first()], j_elt));
                 v.rotate1_up(jtail);
@@ -193,11 +271,29 @@ pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut
     });
 }
 
+/// Insertion sort using lower_bound to find the place to insert; which
+/// makes it scale better (still restricted to just a smallish number of
+/// elements).
+pub fn insertion_sort_prange_lower<T, F>(v: &mut [T], mut less_than: F)
+    where F: FnMut(&T, &T) -> bool,
+{
+    scope(v, |mut v| {
+        for i in v.pointer_range() {
+            let up_to = v.pointer_range_of(..i);
+            let lb = lower_bound_prange_(up_to, &v, |x| less_than(x, &v[i]));
+            // FIXME: There's a less than check here (`lb < i.after()`).
+            if let Ok(lb_range) = v.nonempty_range(lb, i.after()) {
+                v.rotate1_prange(lb_range);
+            }
+        }
+    });
+}
+
 pub fn insertion_sort_pointerindex<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
-    indices(v, move |mut v, _r| {
+    scope(v, move |mut v| {
         for i in v.pointer_range() {
             let jtail = v.scan_tail_(i, |j_elt| less_than(&v[i], j_elt));
-            v.rotate1_(jtail);
+            v.rotate1_prange(jtail);
         }
     });
 }
@@ -256,6 +352,13 @@ fn block_swap2<T>(a: &mut [T], b: &mut [T]) {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct AlgorithmError(pub &'static str);
+
+impl From<&'static str> for AlgorithmError {
+    fn from(s: &'static str) -> Self { AlgorithmError(s) }
+}
+
 /// Merge internal: Merge inside data while using `buffer` as a swap space
 ///
 /// `data` is in two sections, each part in sorted order, divided by `left_end`.
@@ -264,13 +367,17 @@ fn block_swap2<T>(a: &mut [T], b: &mut [T]) {
 ///
 /// This is panic safe by ensuring all values are swapped and not duplicated,
 /// so it is all present in either `data` or `buffer` at all times.
-pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &mut [T]) {
+pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &mut [T])
+    -> Result<(), AlgorithmError>
+{
     debug_assert!(data.len() >= 1);
     if left_end > data.len() || left_end > buffer.len() {
-        panic!("merge_internal: data or buffer too short");
+        try!(Err("merge_internal: data or buffer too short"));
     }
-    indices(data, move |mut data, r| {
-        indices(&mut buffer[..left_end], |mut buffer, rb| {
+    scope(data, move |mut data| {
+        let r = data.range();
+        scope(&mut buffer[..left_end], |mut buffer| {
+            let rb = buffer.range();
             let right_end = data.len();
             if right_end - left_end == 0 {
                 return;
@@ -305,7 +412,8 @@ pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &
                 }
             }
         })
-    })
+    });
+    Ok(())
 }
 
 /// Merge internal: Merge inside data while using `buffer` as a swap space
@@ -316,13 +424,17 @@ pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &
 ///
 /// This is panic safe by ensuring all values are swapped and not duplicated,
 /// so it is all present in either `data` or `buffer` at all times.
-pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &mut [T]) {
+pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &mut [T])
+    -> Result<(), AlgorithmError>
+{
     debug_assert!(data.len() >= 1);
     if left_end > data.len() || left_end > buffer.len() {
-        panic!("merge_internal: data or buffer too short");
+        try!(Err("merge_internal: data or buffer too short"));
     }
-    indices(data, |mut data, r| {
-        indices(&mut buffer[..left_end], |mut buffer, rb| {
+    scope(data, |mut data| {
+        let r = data.range();
+        scope(&mut buffer[..left_end], |mut buffer| {
+            let rb = buffer.range();
             let mut i = match rb.nonempty() {
                 Ok(r) => r,
                 Err(_) => return,
@@ -353,7 +465,8 @@ pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &m
                 }
             }
         })
-    })
+    });
+    Ok(())
 }
 
 #[test]
@@ -381,10 +494,10 @@ fn test_merge_internal() {
 }
 
 pub fn heapify<T: Ord>(v: &mut [T]) {
-    indices(v, |mut v, range| {
+    scope(v, |mut v| {
         // for 0-indexed element k, children are:
         // 2k + 1, 2k + 2
-        let (left, _right) = range.split_in_half();
+        let (left, _right) = v.range().split_in_half();
         for i in left.into_iter().rev() {
             // Sift down element at `i`.
             let mut pos = i;
@@ -445,7 +558,8 @@ pub fn binary_search<T: Ord>(v: &[T], elt: &T) -> Result<usize, usize> {
 pub fn binary_search_by<T, F>(v: &[T], mut f: F) -> Result<usize, usize>
     where F: FnMut(&T) -> Ordering,
 {
-    indices(v, move |v, mut range| {
+    scope(v, move |v| {
+        let mut range = v.range();
         loop {
             /* NOTE: This is sometimes a benefit. But how do we do this cleanly?
             if range.len() < 4 {
@@ -488,30 +602,120 @@ fn test_binary_search() {
     }
 }
 
+//#[inline(never)]
 pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
-    indices(v, move |v, mut range| {
-        loop {
-            // linear scan the last part;
-            // looks like lower bound gains from this, unlike binary search
-            if range.len() < 24 {
-                let (first, _) = v.scan_range(range, |x| *x < *elt);
-                return first.end();
-            }
-            let (a, b) = range.split_in_half();
-            if let Ok(b_) = b.nonempty() {
-                let mid = b_.first();
-                range = if *elt <= v[mid] {
-                    a
-                } else {
-                    b_.tail()
-                };
+    scope(v, move |v| {
+        let mut range = v.range();
+        while let Ok(range_) = range.nonempty() {
+            let (a, b) = range_.split_in_half();
+            if v[b.first()] < *elt {
+                range = b.tail();
             } else {
-                break;
+                range = a;
             }
         }
         range.start()
     })
 }
+
+/// Using PRange (pointer-based safe API)
+pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
+    scope(v, move |v| {
+        let mut range = v.pointer_range();
+        while let Ok(range_) = range.nonempty() {
+            let (a, b) = range_.split_in_half();
+            if v[b.first()] < *elt {
+                range = b.tail();
+            } else {
+                range = a;
+            }
+        }
+        v.distance_to(range.first())
+    })
+}
+
+
+use Container;
+use container_traits::Contiguous;
+use pointer::{PIndex, PRange, PSlice};
+use Unknown;
+use proof::Provable;
+
+pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
+                                                v: &Container<'id, Array>,
+                                                mut less_than: F)
+    -> PIndex<'id, T, Unknown>
+    where Array: Contiguous<Item=T>,
+          F: FnMut(&T) -> bool,
+{
+    let mut range = range.no_proof();
+    while let Ok(range_) = range.nonempty() {
+        let (a, b) = range_.split_in_half();
+        if less_than(&v[b.first()]) {
+            range = b.tail();
+        } else {
+            range = a;
+        }
+    }
+    range.first()
+}
+
+pub fn lower_bound_pslice_<'id, T, P, Array, F>(range: PSlice<'id, T, P>,
+                                                v: &Container<'id, Array>,
+                                                mut less_than: F)
+    -> PIndex<'id, T, Unknown>
+    where Array: Contiguous<Item=T>,
+          F: FnMut(&T) -> bool,
+{
+    let mut range = range.no_proof();
+    while let Ok(range_) = range.nonempty() {
+        let (a, b) = range_.split_in_half();
+        if less_than(&v[b.first()]) {
+            range = b.tail();
+        } else {
+            range = a;
+        }
+    }
+    range.first()
+}
+
+/// Using PSlice (pointer-based safe API)
+pub fn lower_bound_pslice<T, F>(v: &[T], f: F) -> usize
+    where F: FnMut(&T) -> bool,
+{
+    scope(v, move |v| {
+        let range = v.pointer_slice();
+        v.distance_to(lower_bound_pslice_(range, &v, f))
+    })
+}
+
+/// Raw pointer version, for comparison
+/// From http://en.cppreference.com/w/cpp/algorithm/lower_bound
+pub fn lower_bound_raw_ptr<T: PartialOrd>(v: &[T], elt: &T) -> usize {
+    unsafe {
+        let mut start = v.as_ptr();
+        let end = start.offset(v.len() as isize);
+        let mut count = ptrdistance(start, end);
+        while count > 0 {
+            let step = count / 2;
+            let it = start.offset(step as isize);
+            if *it < *elt {
+                start = it.offset(1);
+                count -= step + 1;
+            } else {
+                count = step;
+            }
+        }
+        ptrdistance(v.as_ptr(), start)
+    }
+}
+
+/// return the number of steps between a and b
+fn ptrdistance<T>(from: *const T, to: *const T) -> usize {
+    use std::mem;
+    (to as usize - from as usize) / mem::size_of::<T>()
+}
+
 
 #[test]
 fn test_lower_bound() {
@@ -523,6 +727,42 @@ fn test_lower_bound() {
 
     for elt in &elts {
         assert_eq!(lower_bound(&data, elt),
+            data.binary_search_by(|x| if x >= elt {
+                Ordering::Greater
+            } else {
+                Ordering::Less
+            }).unwrap_err());
+    }
+}
+
+#[test]
+fn test_lower_bound_ptr() {
+    let data = [3, 7, 8, 8, 8, 11, 11, 11, 15, 22, 22, 26];
+    assert_eq!(lower_bound_raw_ptr(&data, &8), 2);
+    assert_eq!(lower_bound_raw_ptr(&data, &7), 1);
+
+    let elts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 25, 26, 27, 28];
+
+    for elt in &elts {
+        assert_eq!(lower_bound_raw_ptr(&data, elt),
+            data.binary_search_by(|x| if x >= elt {
+                Ordering::Greater
+            } else {
+                Ordering::Less
+            }).unwrap_err());
+    }
+}
+
+#[test]
+fn test_lower_bound_pointer() {
+    let data = [3, 7, 8, 8, 8, 11, 11, 11, 15, 22, 22, 26];
+    assert_eq!(lower_bound_prange(&data, &8), 2);
+    assert_eq!(lower_bound_prange(&data, &7), 1);
+
+    let elts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 25, 26, 27, 28];
+
+    for elt in &elts {
+        assert_eq!(lower_bound_prange(&data, elt),
             data.binary_search_by(|x| if x >= elt {
                 Ordering::Greater
             } else {

@@ -9,15 +9,14 @@ documentation = "https://docs.rs/indexing"
 
 description = "Sound unchecked indexing using “generativity”; a type system approach to indices and ranges that are trusted to be in bounds."
 
-keywords = ["data-structure", "generativity", "lower-bound"]
+keywords = ["data-structure", "generativity", "lower-bound", "no_std"]
 
 [lib]
-path = "indexing.rs"
 
 [dev-dependencies]
 compiletest_rs = "0.2"
 rand = "0.3"
-quickcheck = "0.2"
+quickcheck = { version = "0.4.0", default-features = false }
 
 [profile.bench]
-debug = true
+#debug = true

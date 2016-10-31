@@ -1,14 +1,18 @@
 extern crate indexing;
+#[macro_use]
 extern crate quickcheck;
 
-use indexing::indices;
+use indexing::scope;
 use indexing::algorithms::*;
+
+use std::cmp::Ordering;
 
 
 #[test]
 fn join_add_proof() {
     let data = [1, 2, 3];
-    indices(&data[..], move |_, r| {
+    scope(&data[..], move |v| {
+        let r = v.range();
         if let Ok(r) = r.nonempty() {
             let (front, back) = r.frontiers();
 
@@ -36,7 +40,7 @@ fn join_add_proof() {
 #[test]
 fn range_split_nonempty() {
     let data = [1, 2, 3, 4, 5];
-    indices(&data[..], move |v, _| {
+    scope(&data[..], move |v| {
         for i in 0..v.len() {
             let r = v.vet_range(0..i).unwrap();
             if let Ok(r) = r.nonempty() {
@@ -60,6 +64,11 @@ fn is_sorted<T: Clone + Ord>(v: &[T]) -> bool {
     vec.sort();
     vec == v
 }
+fn sorted<T: Clone + Ord>(v: &[T]) -> Vec<T> {
+    let mut v = v.to_vec();
+    v.sort();
+    v
+}
 
 #[test]
 fn qc_quicksort() {
@@ -79,6 +88,16 @@ fn qc_quicksort_bounds() {
     }
 
     quickcheck::quickcheck(prop as fn(_) -> bool);
+}
+
+quickcheck! {
+    fn test_quicksort_prange(v: Vec<i32>) -> bool {
+        let ans = sorted(&v);
+        let mut v = v;
+        quicksort_prange(&mut v);
+        assert_eq!(&v, &ans);
+        true
+    }
 }
 
 // check the heap property
@@ -133,4 +152,46 @@ fn test_insertion_sort() {
     insertion_sort_indexes(&mut data, |a, b| a < b);
     insertion_sort_rust(&mut data2, |a, b| a < b);
     assert_eq!(&data[..], &data2[..]);
+}
+
+quickcheck! {
+    fn test_lower_bound_1(data: Vec<u8>, find: u8) -> bool {
+        lower_bound(&data, &find) == lower_bound_raw_ptr(&data, &find)
+    }
+
+    fn test_lower_bound_2(data: Vec<u8>, find: u8) -> bool {
+        lower_bound(&data, &find) ==
+            data.binary_search_by(|x|
+                if *x >= find {
+                    Ordering::Greater
+                } else {
+                    Ordering::Less
+                }).unwrap_err()
+    }
+
+    fn test_lower_bound_3(data: Vec<u8>, find: u8) -> bool {
+        lower_bound(&data, &find) == lower_bound_prange(&data, &find)
+    }
+
+    fn test_lower_bound_4(data: Vec<u8>, find: u8) -> bool {
+        lower_bound_pslice(&data, |x| *x < find) == lower_bound_raw_ptr(&data, &find)
+    }
+
+    fn test_insertion_sort_prange(data: Vec<u8>) -> bool {
+        let mut data = data;
+        let mut ans = data.clone();
+        ans.sort();
+        insertion_sort_pointerindex(&mut data, |a, b| a < b);
+        assert_eq!(ans, data);
+        true
+    }
+
+    fn test_insertion_sort_prange_lower(data: Vec<u8>) -> bool {
+        let mut data = data;
+        let mut ans = data.clone();
+        ans.sort();
+        insertion_sort_prange_lower(&mut data, |a, b| a < b);
+        assert_eq!(ans, data);
+        true
+    }
 }

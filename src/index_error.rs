@@ -1,5 +1,4 @@
 use std::fmt;
-use std::error::Error;
 
 /// Error produced when an indexing operation is out of bounds or otherwise
 /// inapplicable.
@@ -17,8 +16,8 @@ impl Clone for IndexingError {
     fn clone(&self) -> Self { *self }
 }
 
-impl Error for IndexingError {
-    fn description(&self) -> &str {
+impl IndexingError {
+    pub fn description(&self) -> &str {
         "index error"
     }
 }

@@ -1,6 +1,15 @@
 extern crate indexing;
 
-use indexing::indices;
+use indexing::scope;
+use indexing::{Container, Range};
+use indexing::container_traits::Trustworthy;
+
+fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
+    where F: for<'id> FnOnce(Container<'id, Array>, Range<'id>) -> Out,
+          Array: Trustworthy<Item=T>,
+{
+    scope(arr, move |v| { let range = v.range(); f(v, range) })
+}
 
 fn main() {
     let arr1 = [1, 2, 3, 4, 5];
