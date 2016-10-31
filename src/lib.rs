@@ -102,8 +102,7 @@ mod pointer_ext;
 
 pub use index_error::IndexingError;
 
-pub use indexing::{Buffer, BufferMut, Container, indices,
-Range, Index};
+pub use indexing::{Container, indices, Range, Index};
 pub use indexing::scope;
 
 pub use base::{NonEmpty, Unknown};

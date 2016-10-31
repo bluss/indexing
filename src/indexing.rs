@@ -10,7 +10,6 @@ use std::mem;
 use std::fmt::{self, Debug};
 
 use std::marker::PhantomData;
-use std::ops::{Deref, DerefMut};
 
 use pointer::PIndex;
 use index_error::IndexingError;
@@ -21,16 +20,6 @@ use prelude::*;
 use base::ProofAdd;
 
 use container_traits::*;
-
-/// A marker trait for collections where we can safely vet indices
-pub unsafe trait Buffer : Deref {
-}
-
-unsafe impl<'a, T> Buffer for &'a [T] { }
-unsafe impl<'a, T> Buffer for &'a mut [T] { }
-
-pub unsafe trait BufferMut : Buffer + DerefMut { }
-unsafe impl<X: ?Sized> BufferMut for X where X: Buffer + DerefMut { }
 
 
 /// A branded container, that allows access only to indices and ranges with
@@ -664,12 +653,12 @@ fn ptr_iselement<T>(arr: &[T], ptr: *const T) {
 }
 
 impl<'id, 'a, T, Array> ops::Index<PIndex<'id, T>> for Container<'id, Array>
-    where Array: Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
 {
     type Output = T;
     #[inline(always)]
     fn index(&self, r: PIndex<'id, T>) -> &T {
-        ptr_iselement(&self.arr[..], r.ptr());
+        ptr_iselement(self.arr.as_slice(), r.ptr());
         unsafe {
             &*r.ptr()
         }
@@ -677,14 +666,14 @@ impl<'id, 'a, T, Array> ops::Index<PIndex<'id, T>> for Container<'id, Array>
 }
 
 impl<'id, T, P, Array> ops::Index<ops::RangeTo<PIndex<'id, T, P>>> for Container<'id, Array>
-    where Array: Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
 {
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeTo<PIndex<'id, T, P>>) -> &[T] {
-        let len = ptrdistance(r.end.ptr(), self.arr.as_ptr());
+        let len = ptrdistance(r.end.ptr(), self.arr.begin());
         unsafe {
-            std::slice::from_raw_parts(self.arr.as_ptr(), len)
+            std::slice::from_raw_parts(self.arr.begin(), len)
         }
     }
 }
@@ -1124,7 +1113,7 @@ impl<'id> DoubleEndedIterator for RangeIter<'id> {
 #[inline]
 pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     where F: for<'id> FnOnce(Container<'id, Array>, Range<'id>) -> Out,
-          Array: Trustworthy<Item=T> + Buffer<Target=[T]>,
+          Array: Trustworthy<Item=T>,
 {
     // This is where the magic happens. We bind the indexer and indices
     // to the same invariant lifetime (a constraint established by F's

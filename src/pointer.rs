@@ -20,7 +20,7 @@ use std::slice::{from_raw_parts, from_raw_parts_mut};
 
 use indices;
 use super::Id;
-use super::{NonEmpty, Buffer, BufferMut, Container};
+use super::{NonEmpty, Container};
 use {Unknown};
 use IndexingError;
 use index_error::index_error;
@@ -458,7 +458,7 @@ pub trait ContainerRef<'id> {
 }
 
 impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a Container<'id, Array>
-    where Array: Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
 {
     type Item = T;
     type Ref = &'a T;
@@ -469,7 +469,7 @@ impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a Container<'id, Array>
 }
 
 impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a mut Container<'id, Array>
-    where Array: BufferMut<Target=[T]>,
+    where Array: ContiguousMut<Item=T>,
 {
     type Item = T;
     type Ref = &'a mut T;
@@ -479,7 +479,7 @@ impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a mut Container<'id, Array>
     }
 }
 
-impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
+impl<'id, T, Array> Container<'id, Array> where Array: ContiguousMut<Item=T> {
 
     /// Rotate elements in the range by one step to the right (towards higher indices)
     #[inline]
@@ -501,9 +501,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
 
     /// Swap elements at `i` and `j` (they may be equal).
     #[inline(always)]
-    pub fn swap_ptr(&mut self, i: PIndex<'id, T>, j: PIndex<'id, T>)
-        where Array: BufferMut<Target=[T]>,
-    {
+    pub fn swap_ptr(&mut self, i: PIndex<'id, T>, j: PIndex<'id, T>) {
         // ptr::swap is ok with equal pointers
         unsafe {
             ptr::swap(i.ptr_mut(), j.ptr_mut())
@@ -715,7 +713,7 @@ impl<'id, T> PSlice<'id, T, NonEmpty> {
 
 /// `&self[r]` where `r` is a `PRange<'id>`.
 impl<'id, T, Array, P> ops::Index<PRange<'id, T, P>> for Container<'id, Array>
-    where Array: Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
 {
     type Output = [T];
     #[inline(always)]
@@ -728,7 +726,7 @@ impl<'id, T, Array, P> ops::Index<PRange<'id, T, P>> for Container<'id, Array>
 
 /// `&mut self[r]` where `r` is a `Range<'id>`.
 impl<'id, T, Array, P> ops::IndexMut<PRange<'id, T, P>> for Container<'id, Array>
-    where Array: BufferMut<Target=[T]>,
+    where Array: ContiguousMut<Item=T>,
 {
     #[inline(always)]
     fn index_mut(&mut self, r: PRange<'id, T, P>) -> &mut [T] {

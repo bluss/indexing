@@ -623,7 +623,7 @@ pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 
 
 use Container;
-use Buffer;
+use container_traits::Contiguous;
 use pointer::{PIndex, PRange, PSlice};
 use Unknown;
 use base::Provable;
@@ -632,7 +632,7 @@ pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
                                                 v: &Container<'id, Array>,
                                                 mut less_than: F)
     -> PIndex<'id, T, Unknown>
-    where Array: Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
           F: FnMut(&T) -> bool,
 {
     let mut range = range.no_proof();
@@ -651,7 +651,7 @@ pub fn lower_bound_pslice_<'id, T, P, Array, F>(range: PSlice<'id, T, P>,
                                                 v: &Container<'id, Array>,
                                                 mut less_than: F)
     -> PIndex<'id, T, Unknown>
-    where Array: Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
           F: FnMut(&T) -> bool,
 {
     let mut range = range.no_proof();
