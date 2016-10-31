@@ -4,7 +4,10 @@ use std::mem;
 use std::ops::Deref;
 use std::ptr;
 use super::Id;
-use super::{NonEmpty, BufferMut, Container};
+use super::{NonEmpty, Buffer, BufferMut, Container};
+use {Unknown};
+use IndexingError;
+use index_error::index_error;
 
 /// `PIndex` wraps a valid, non-dangling index or pointer to a location
 #[derive(Debug)]
@@ -32,14 +35,16 @@ impl<'id, T> PIndex<'id, T> {
 
 /// `PRange` wraps a valid range
 #[derive(Debug)]
-pub struct PRange<'id, T> {
+pub struct PRange<'id, T, Proof = Unknown> {
     id: Id<'id>,
     start: *const T,
     end: *const T,
+    /// NonEmpty or Unknown
+    proof: PhantomData<Proof>,
 }
 
-impl<'id, T> Copy for PRange<'id, T> { }
-impl<'id, T> Clone for PRange<'id, T> {
+impl<'id, T, P> Copy for PRange<'id, T, P> { }
+impl<'id, T, P> Clone for PRange<'id, T, P> {
     fn clone(&self) -> Self { *self }
 }
 
@@ -49,14 +54,16 @@ fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
     (a as usize - b as usize) / mem::size_of::<T>()
 }
 
-impl<'id, T> PRange<'id, T> {
+impl<'id, T, P> PRange<'id, T, P> {
     #[inline(always)]
     pub unsafe fn from(start: *const T, end: *const T) -> Self {
-        PRange { id: Id::default(), start: start, end: end }
+        debug_assert!(end as usize >= start as usize);
+        PRange { id: Id::default(), start: start, end: end, proof: PhantomData }
     }
 
     #[inline]
     pub fn len(&self) -> usize { ptrdistance(self.end, self.start) }
+
     #[inline]
     pub fn is_empty(&self) -> bool { self.start == self.end }
 
@@ -69,6 +76,68 @@ impl<'id, T> PRange<'id, T> {
             } else {
                 Err(*self)
             }
+        }
+    }
+    /// Check if the range is empty. `NonEmpty` ranges have extra methods.
+    #[inline]
+    pub fn nonempty_(&self) -> Result<PRange<'id, T, NonEmpty>, IndexingError>
+    {
+        unsafe {
+            if !self.is_empty() {
+                Ok(PRange::from(self.start, self.end))
+            } else {
+                Err(index_error())
+            }
+        }
+    }
+
+    /// Split the range in half, with the upper middle index landing in the
+    /// latter half. Proof of length `P` transfers to the latter half.
+    #[inline]
+    pub fn split_in_half(self) -> (PRange<'id, T>, PRange<'id, T, P>) {
+        unsafe {
+            let mid_offset = self.len() / 2;
+            let mid = self.start.offset(mid_offset as isize);
+            (PRange::from(self.start, mid), PRange::from(mid, self.end))
+        }
+    }
+}
+
+impl<'id, T> PRange<'id, T, NonEmpty> {
+    #[inline]
+    pub fn first(&self) -> PIndex<'id, T> {
+        PIndex { id: self.id, idx: self.start }
+    }
+
+    /// Return the middle index, rounding up on even
+    #[inline]
+    pub fn upper_middle(&self) -> PIndex<'id, T> {
+        unsafe {
+            let mid = ptrdistance(self.end, self.start) / 2;
+            PIndex { id: self.id, idx: self.start.offset(mid as isize)  }
+        }
+    }
+
+    #[inline]
+    pub fn tail(&self) -> PRange<'id, T> {
+        // in bounds since it's nonempty
+        unsafe {
+            PRange::from(self.start.offset(1), self.end)
+        }
+    }
+
+    #[inline]
+    pub fn init(&self) -> PRange<'id, T> {
+        // in bounds since it's nonempty
+        unsafe {
+            PRange::from(self.start, self.end.offset(-1))
+        }
+    }
+
+    #[inline]
+    pub fn last(&self) -> PIndex<'id, T> {
+        unsafe {
+            PIndex { id: self.id, idx: self.end.offset(-1) }
         }
     }
 }
@@ -135,8 +204,7 @@ impl<'id, T> Checked<PRange<'id, T>, NonEmpty> {
     }
 }
 
-impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
-    #[doc(hidden)]
+impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn pointer_range(&self) -> PRange<'id, T> {
         unsafe {
@@ -146,26 +214,12 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
         }
     }
 
-    #[doc(hidden)]
-    /// Rotate elements in the range by one step to the right (towards higher indices)
-    #[inline]
-    pub fn rotate1_(&mut self, r: Checked<PRange<'id, T>, NonEmpty>) {
-        unsafe {
-            let last_ptr = r.last().ptr();
-            let first_ptr = r.first().ptr_mut();
-            if first_ptr as *const _ == last_ptr {
-                return;
-            }
-            let tmp = ptr::read(last_ptr);
-            ptr::copy(first_ptr,
-                      first_ptr.offset(1),
-                      r.len() - 1);
-            ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
-            mem::forget(tmp);
-        }
+    /// Return the distance (in number of elements) from the 
+    /// start of the container to the start of the range.
+    pub fn distance_to<P>(&self, r: PRange<'id, T, P>) -> usize {
+        ptrdistance(r.start, self.arr.as_ptr())
     }
 
-    #[doc(hidden)]
     /// Examine the elements before `index` in order from higher indices towards lower.
     /// While the closure returns `true`, continue scan and include the scanned
     /// element in the range.
@@ -186,6 +240,28 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
             Checked::new(PRange::from(start, index.ptr().offset(1)))
         }
     }
+}
+
+impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
+
+    /// Rotate elements in the range by one step to the right (towards higher indices)
+    #[inline]
+    pub fn rotate1_(&mut self, r: Checked<PRange<'id, T>, NonEmpty>) {
+        unsafe {
+            let last_ptr = r.last().ptr();
+            let first_ptr = r.first().ptr_mut();
+            if first_ptr as *const _ == last_ptr {
+                return;
+            }
+            let tmp = ptr::read(last_ptr);
+            ptr::copy(first_ptr,
+                      first_ptr.offset(1),
+                      r.len() - 1);
+            ptr::copy_nonoverlapping(&tmp, first_ptr, 1);
+            mem::forget(tmp);
+        }
+    }
+
 }
 
 
@@ -221,3 +297,4 @@ impl<'id, T> DoubleEndedIterator for PRange<'id, T> {
         }
     }
 }
+
