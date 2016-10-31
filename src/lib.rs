@@ -15,6 +15,7 @@ mod indexing;
 pub mod pointer;
 pub mod algorithms;
 mod index_error;
+mod pointer_ext;
 
 pub use index_error::IndexingError;
 
