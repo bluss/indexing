@@ -93,6 +93,68 @@ pub fn quicksort<T: Ord>(v: &mut [T]) {
     });
 }
 
+/// Simple quicksort implemented using `indexing`’s PRange.
+pub fn quicksort_prange<T: Ord>(v: &mut [T]) {
+    indices(v, |mut v, _| {
+        let range = v.pointer_range();
+        if let Ok(range) = range.nonempty() {
+            // Fall back to insertion sort for short sections
+            if range.len() <= 16 {
+                insertion_sort_ranges(&mut v[..], |x, y| x < y);
+                return;
+            }
+
+            let (l, m, r) = (range.first(), range.upper_middle(), range.last());
+            // return, if the range is too short to sort
+            if r == l {
+                return;
+            }
+            // simple pivot
+            // let pivot = m;
+            //
+            // smart pivot -- use median of three
+            let mut pivot = if v[l] <= v[m] && v[m] <= v[r] {
+                m
+            } else if v[m] <= v[l] && v[l] <= v[r] {
+                l
+            } else {
+                r
+            };
+
+            // partition
+            // I think this is similar to Hoare’s version, wikipedia
+            let mut scan = range;
+            'main: loop {
+                if v[scan.first()] > v[pivot] {
+                    loop {
+                        if v[scan.last()] <= v[pivot] {
+                            v.swap_ptr(scan.first(), scan.last());
+                            if scan.last() == pivot {
+                                pivot = scan.first();
+                            }
+                            break;
+                        }
+                        if !scan.advance_back() {
+                            break 'main;
+                        }
+                    }
+                }
+                if !scan.advance() {
+                    v.swap_ptr(pivot, scan.first());
+                    break;
+                }
+            }
+
+            // ok split at pivot location and recurse
+            let (a, b) = v.split_at_pointer(scan.first());
+            //puts!("a={:?}, pivot={:?}, b={:?}", &v[a], &v[scan.first()], &v[b]);
+            quicksort_prange(&mut v[a]);
+            quicksort_prange(&mut v[b]);
+        }
+    });
+}
+
+
 /// quicksort implemented using regular bounds checked indexing
 pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
     // Fall back to insertion sort for short sections

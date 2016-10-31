@@ -24,7 +24,7 @@ const N: usize = 10240;
 const MAX: i32 = 10240;
 
 #[bench]
-fn quicksort_branded(b: &mut Bencher) {
+fn bench_quicksort_indexing(b: &mut Bencher) {
     let data = test_data_max(N, MAX);
     b.iter(|| {
         let mut v = data.clone();
@@ -34,7 +34,17 @@ fn quicksort_branded(b: &mut Bencher) {
 }
 
 #[bench]
-fn test_quicksort_bounds(b: &mut Bencher) {
+fn bench_quicksort_prange(b: &mut Bencher) {
+    let data = test_data_max(N, MAX);
+    b.iter(|| {
+        let mut v = data.clone();
+        quicksort_prange(&mut v);
+        v
+    });
+}
+
+#[bench]
+fn bench_quicksort_bounds(b: &mut Bencher) {
     let data = test_data_max(N, MAX);
     b.iter(|| {
         let mut v = data.clone();

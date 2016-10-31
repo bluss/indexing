@@ -84,6 +84,14 @@ fn qc_quicksort_bounds() {
     quickcheck::quickcheck(prop as fn(_) -> bool);
 }
 
+quickcheck! {
+    fn test_quicksort_prange(v: Vec<i32>) -> bool {
+        let mut v = v;
+        quicksort_prange(&mut v);
+        is_sorted(&v)
+    }
+}
+
 // check the heap property
 fn is_minheap<T: Ord>(v: &[T]) -> bool {
     // minheap:  parent is less or equal to child
