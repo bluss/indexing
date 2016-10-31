@@ -7,7 +7,8 @@
 use std::cmp::{self, Ordering};
 use std::mem::swap;
 
-use super::indices;
+use indices;
+use pointer::zip;
 
 
 // for debugging -- like println during debugging
@@ -192,6 +193,36 @@ pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
     let (a, b) = v.split_at_mut(i);
     quicksort_bounds(a);
     quicksort_bounds(b);
+}
+
+pub fn zip_dot_i32(xs: &[i32], ys: &[i32]) -> i32 {
+    xs.iter().zip(ys).map(|(x, y)| x * y).sum()
+}
+
+pub fn zip_dot_i32_prange(xs: &[i32], ys: &[i32]) -> i32 {
+    indices(xs, move |v, _| {
+        indices(ys, move |u, _| {
+            let mut sum = 0;
+            zip(v.pointer_range(), &v,
+                u.pointer_range(), &u,
+                |&x, &y| sum += x * y);
+            sum
+        })
+    })
+}
+
+pub fn copy<T: Copy>(xs: &[T], ys: &mut [T]) {
+    xs.iter().zip(ys).map(|(x, y)| *y = *x).count();
+}
+
+pub fn copy_prange<T: Copy>(xs: &[T], ys: &mut [T]) {
+    indices(xs, move |v, _| {
+        indices(ys, move |mut u, _| {
+            zip(v.pointer_range(), &v,
+                u.pointer_range(), &mut u,
+                |&x, y| *y = x);
+        })
+    })
 }
 
 

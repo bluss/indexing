@@ -1,4 +1,5 @@
 
+use std::cmp::min;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;
@@ -331,6 +332,72 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
             (PRange::from(range.start, ptr),
              PRange::from(ptr, range.end))
         }
+    }
+}
+
+/// Pointer-based zip (lock step iteration) of two ranges from
+/// two containers.
+pub fn zip<'id1, 'id2, C1, C2, R1, R2, F>(r1: R1, c1: C1, r2: R2, c2: C2, mut f: F)
+    where C1: ContainerRef<'id1>,
+          R1: PointerRange<'id1, Item=C1::Item>,
+          C2: ContainerRef<'id2>,
+          R2: PointerRange<'id2, Item=C2::Item>,
+          F: FnMut(C1::Ref, C2::Ref),
+{
+    let _ = c1;
+    let _ = c2;
+    let len = min(r1.len(), r2.len());
+    unsafe {
+        let end = r1.ptr().offset(len as isize);
+        let mut ptr1 = r1.ptr();
+        let mut ptr2 = r2.ptr();
+        while ptr1 != end {
+            f(C1::dereference(ptr1), C2::dereference(ptr2));
+            ptr1.inc();
+            ptr2.inc();
+        }
+    }
+}
+
+pub trait PointerRange<'id> : Copy {
+    type Item;
+    fn ptr(self) -> *const Self::Item;
+    fn len(self) -> usize;
+}
+
+impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
+{
+    type Item = T;
+    fn ptr(self) -> *const Self::Item { self.start }
+    fn len(self) -> usize { self.len() }
+}
+
+pub trait ContainerRef<'id> {
+    type Item;
+    type Ref;
+
+    unsafe fn dereference(ptr: *const Self::Item) -> Self::Ref;
+}
+
+impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a Container<'id, Array>
+    where Array: Buffer<Target=[T]>,
+{
+    type Item = T;
+    type Ref = &'a T;
+
+    unsafe fn dereference(ptr: *const Self::Item) -> Self::Ref {
+        &*ptr
+    }
+}
+
+impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a mut Container<'id, Array>
+    where Array: BufferMut<Target=[T]>,
+{
+    type Item = T;
+    type Ref = &'a mut T;
+
+    unsafe fn dereference(ptr: *const Self::Item) -> Self::Ref {
+        &mut *(ptr as *mut T)
     }
 }
 
