@@ -213,7 +213,9 @@ pub fn zip_dot_i32_prange(xs: &[i32], ys: &[i32]) -> i32 {
 }
 
 pub fn copy<T: Copy>(xs: &[T], ys: &mut [T]) {
-    xs.iter().zip(ys).map(|(x, y)| *y = *x).count();
+    for (&x, y) in xs.iter().zip(ys) {
+        *y = x;
+    }
 }
 
 pub fn copy_prange<T: Copy>(xs: &[T], ys: &mut [T]) {
