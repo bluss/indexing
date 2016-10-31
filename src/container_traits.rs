@@ -22,7 +22,7 @@ pub unsafe trait GetUncheckedMut : GetUnchecked {
 
 pub unsafe trait Mutable : Trustworthy { }
 
-unsafe impl<'a, C> Trustworthy for &'a C
+unsafe impl<'a, C: ?Sized> Trustworthy for &'a C
     where C: Trustworthy
 {
     type Item = C::Item;
@@ -31,7 +31,7 @@ unsafe impl<'a, C> Trustworthy for &'a C
     }
 }
 
-unsafe impl<'a, C> Trustworthy for &'a mut C
+unsafe impl<'a, C: ?Sized> Trustworthy for &'a mut C
     where C: Trustworthy
 {
     type Item = C::Item;
@@ -40,11 +40,11 @@ unsafe impl<'a, C> Trustworthy for &'a mut C
     }
 }
 
-unsafe impl<'a, C> Mutable for &'a mut C
+unsafe impl<'a, C: ?Sized> Mutable for &'a mut C
     where C: Mutable
 { }
 
-unsafe impl<'a, C> GetUnchecked for &'a C
+unsafe impl<'a, C: ?Sized> GetUnchecked for &'a C
     where C: GetUnchecked
 {
     unsafe fn xget_unchecked(&self, i: usize) -> &Self::Item {
@@ -52,7 +52,7 @@ unsafe impl<'a, C> GetUnchecked for &'a C
     }
 }
 
-unsafe impl<'a, C> GetUnchecked for &'a mut C
+unsafe impl<'a, C: ?Sized> GetUnchecked for &'a mut C
     where C: GetUnchecked
 {
     unsafe fn xget_unchecked(&self, i: usize) -> &Self::Item {
@@ -60,7 +60,7 @@ unsafe impl<'a, C> GetUnchecked for &'a mut C
     }
 }
 
-unsafe impl<'a, C> GetUncheckedMut for &'a mut C
+unsafe impl<'a, C: ?Sized> GetUncheckedMut for &'a mut C
     where C: GetUncheckedMut
 {
     unsafe fn xget_unchecked_mut(&mut self, i: usize) -> &mut Self::Item {
@@ -68,7 +68,7 @@ unsafe impl<'a, C> GetUncheckedMut for &'a mut C
     }
 }
 
-unsafe impl<'a, C> Contiguous for &'a C
+unsafe impl<'a, C: ?Sized> Contiguous for &'a C
     where C: Contiguous,
 {
     fn begin(&self) -> *const Self::Item {
@@ -79,7 +79,7 @@ unsafe impl<'a, C> Contiguous for &'a C
     }
 }
 
-unsafe impl<'a, C> Contiguous for &'a mut C
+unsafe impl<'a, C: ?Sized> Contiguous for &'a mut C
     where C: Contiguous,
 {
     fn begin(&self) -> *const Self::Item {
