@@ -3,6 +3,8 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;
 use std::ptr;
+use std::ops;
+use std::slice::{from_raw_parts, from_raw_parts_mut};
 use super::Id;
 use super::{NonEmpty, Buffer, BufferMut, Container};
 use {Unknown};
@@ -143,6 +145,42 @@ impl<'id, T> PRange<'id, T, NonEmpty> {
             PIndex { id: self.id, idx: self.end.offset(-1) }
         }
     }
+
+    /// Increase the range's start, if the result is still a non-empty range.
+    ///
+    /// Return `true` if stepped successfully, `false` if the range would be empty.
+    #[inline]
+    pub fn advance(&mut self) -> bool
+    {
+        unsafe {
+            // always in bounds because the range is nonempty
+            let next_ptr = self.start.offset(1);
+            if next_ptr != self.end {
+                self.start = next_ptr;
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    /// Decrease the range's end, if the result is still a non-empty range.
+    ///
+    /// Return `true` if stepped successfully, `false` if the range would be empty.
+    #[inline]
+    pub fn advance_back(&mut self) -> bool
+    {
+        unsafe {
+            // always in bounds because the range is nonempty
+            let next_end = self.end.offset(-1);
+            if self.start != next_end {
+                self.end = next_end;
+                true
+            } else {
+                false
+            }
+        }
+    }
 }
 
 impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
@@ -259,6 +297,17 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
         }
     }
 
+    /// Swap elements at `i` and `j` (they may be equal).
+    #[inline(always)]
+    pub fn swap_ptr(&mut self, i: PIndex<'id, T>, j: PIndex<'id, T>)
+        where Array: BufferMut<Target=[T]>,
+    {
+        // ptr::swap is ok with equal pointers
+        unsafe {
+            ptr::swap(i.ptr_mut(), j.ptr_mut())
+        }
+    }
+
 }
 
 
@@ -337,5 +386,30 @@ impl<T> PointerExt for *mut T {
     #[inline(always)]
     unsafe fn offset(self, i: isize) -> Self {
         self.offset(i)
+    }
+}
+
+/// `&self[r]` where `r` is a `PRange<'id>`.
+impl<'id, T, Array, P> ops::Index<PRange<'id, T, P>> for Container<'id, Array>
+    where Array: Buffer<Target=[T]>,
+{
+    type Output = [T];
+    #[inline(always)]
+    fn index(&self, r: PRange<'id, T, P>) -> &[T] {
+        unsafe {
+            from_raw_parts(r.start, r.len())
+        }
+    }
+}
+
+/// `&mut self[r]` where `r` is a `Range<'id>`.
+impl<'id, T, Array, P> ops::IndexMut<PRange<'id, T, P>> for Container<'id, Array>
+    where Array: BufferMut<Target=[T]>,
+{
+    #[inline(always)]
+    fn index_mut(&mut self, r: PRange<'id, T, P>) -> &mut [T] {
+        unsafe {
+            from_raw_parts_mut(r.start as *mut T, r.len())
+        }
     }
 }
