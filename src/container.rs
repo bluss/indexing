@@ -20,6 +20,17 @@ use ContainerPrivate;
 
 /// A branded container, that allows access only to indices and ranges with
 /// the exact same brand in the `'id` parameter.
+///
+/// The elements in the underlying data structure are accessible partly
+/// through special purpose methods, and through indexing/slicing.
+///
+/// The `Container` can be indexed like `self[i]` where `i` is a trusted
+/// dereferenceable index
+/// or range, and equivalently using `&self[i..]` or `&self[..i]` where
+/// `i` is a trusted index. Indexing like this uses no runtime bounds checking
+/// at all, and it statically guaranteed to be in bounds.
+///
+/// The container can also be sliced for its complete range: `&self[..]`.
 pub struct Container<'id, Array, Mode = ()> {
     id: Id<'id>,
     arr: Array,
