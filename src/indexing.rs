@@ -33,12 +33,16 @@ unsafe impl<X: ?Sized> BufferMut for X where X: Buffer + DerefMut { }
 
 /// A branded container, that allows access only to indices and ranges with
 /// the exact same brand in the `'id` parameter.
-pub struct Container<'id, Array> {
+pub struct Container<'id, Array, Mode = ()> {
     id: Id<'id>,
     arr: Array,
+    mode: PhantomData<Mode>,
 }
 
-impl<'id, Array> Debug for Container<'id, Array>
+#[derive(Debug, Copy, Clone)]
+pub enum OnlyIndex { }
+
+impl<'id, Array, Mode> Debug for Container<'id, Array, Mode>
     where Array: Debug
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -46,13 +50,14 @@ impl<'id, Array> Debug for Container<'id, Array>
     }
 }
 
-impl<'id, Array> Clone for Container<'id, Array>
+impl<'id, Array, Mode> Clone for Container<'id, Array, Mode>
     where Array: Clone
 {
     fn clone(&self) -> Self {
         Container {
             id: self.id,
             arr: self.arr.clone(),
+            mode: self.mode,
         }
     }
 }
@@ -112,7 +117,9 @@ impl<'id, P, Q> PartialEq<Index<'id, Q>> for Index<'id, P> {
 }
 
 
-impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
+impl<'id, Array, T, Mode> Container<'id, Array, Mode>
+    where Array: Buffer<Target=[T]>
+{
     #[inline]
     pub fn len(&self) -> usize {
         self.arr.len()
@@ -121,6 +128,18 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn as_ptr(&self) -> *const T {
         self.arr.as_ptr()
+    }
+
+    /// Convert the container into an only-indexing container.
+    ///
+    /// The container no longer allows pointer access. This unlocks
+    /// some features.
+    pub fn only_index(self) -> Container<'id, Array, OnlyIndex> {
+        Container {
+            id: self.id,
+            arr: self.arr,
+            mode: PhantomData,
+        }
     }
 
     // Is this a good idea?
@@ -410,7 +429,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
 
 
 /// `&self[i]` where `i` is an `Index<'id>`.
-impl<'id, T, Array> ops::Index<Index<'id>> for Container<'id, Array>
+impl<'id, T, Array, M> ops::Index<Index<'id>> for Container<'id, Array, M>
     where Array: Buffer<Target=[T]>
 {
     type Output = T;
@@ -423,7 +442,7 @@ impl<'id, T, Array> ops::Index<Index<'id>> for Container<'id, Array>
 }
 
 /// `&mut self[i]` where `i` is an `Index<'id>`.
-impl<'id, T, Array> ops::IndexMut<Index<'id>> for Container<'id, Array>
+impl<'id, T, Array, M> ops::IndexMut<Index<'id>> for Container<'id, Array, M>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline(always)]
@@ -435,7 +454,7 @@ impl<'id, T, Array> ops::IndexMut<Index<'id>> for Container<'id, Array>
 }
 
 /// `&self[r]` where `r` is a `Range<'id>`.
-impl<'id, T, Array, P> ops::Index<Range<'id, P>> for Container<'id, Array>
+impl<'id, T, Array, P, M> ops::Index<Range<'id, P>> for Container<'id, Array, M>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
@@ -450,7 +469,7 @@ impl<'id, T, Array, P> ops::Index<Range<'id, P>> for Container<'id, Array>
 }
 
 /// `&mut self[r]` where `r` is a `Range<'id>`.
-impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Container<'id, Array>
+impl<'id, T, Array, P, M> ops::IndexMut<Range<'id, P>> for Container<'id, Array, M>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline(always)]
@@ -464,7 +483,7 @@ impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Container<'id, Array>
 }
 
 /// `&self[i..]` where `i` is an `Index<'id, P>` which may be an edge index.
-impl<'id, T, P, Array> ops::Index<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array>
+impl<'id, T, P, Array, M> ops::Index<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array, M>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
@@ -480,7 +499,7 @@ impl<'id, T, P, Array> ops::Index<ops::RangeFrom<Index<'id, P>>> for Container<'
 }
 
 /// `&mut self[i..]` where `i` is an `Index<'id, P>` which may be an edge index.
-impl<'id, T, P, Array> ops::IndexMut<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array>
+impl<'id, T, P, Array, M> ops::IndexMut<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array, M>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline(always)]
@@ -495,7 +514,7 @@ impl<'id, T, P, Array> ops::IndexMut<ops::RangeFrom<Index<'id, P>>> for Containe
 }
 
 /// `&self[..i]` where `i` is an `Index<'id, P>`, which may be an edge index.
-impl<'id, T, P, Array> ops::Index<ops::RangeTo<Index<'id, P>>> for Container<'id, Array>
+impl<'id, T, P, Array, M> ops::Index<ops::RangeTo<Index<'id, P>>> for Container<'id, Array, M>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
@@ -509,7 +528,7 @@ impl<'id, T, P, Array> ops::Index<ops::RangeTo<Index<'id, P>>> for Container<'id
 }
 
 /// `&mut self[..i]` where `i` is an `Index<'id, P>`, which may be an edge index.
-impl<'id, T, P, Array> ops::IndexMut<ops::RangeTo<Index<'id, P>>> for Container<'id, Array>
+impl<'id, T, P, Array, M> ops::IndexMut<ops::RangeTo<Index<'id, P>>> for Container<'id, Array, M>
     where Array: BufferMut<Target=[T]>
 {
     #[inline(always)]
@@ -522,7 +541,7 @@ impl<'id, T, P, Array> ops::IndexMut<ops::RangeTo<Index<'id, P>>> for Container<
 }
 
 /// `&self[..]`
-impl<'id, T, Array> ops::Index<ops::RangeFull> for Container<'id, Array>
+impl<'id, T, Array, M> ops::Index<ops::RangeFull> for Container<'id, Array, M>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
@@ -1085,7 +1104,7 @@ pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     // to somehow bind the lifetime to the inside of this function, making
     // it sound again. Borrowck will never do such analysis, so we don't
     // care.
-    let indexer = Container { id: Id::default(), arr: arr };
+    let indexer = Container { id: Id::default(), arr: arr, mode: PhantomData };
     let indices = indexer.range();
     f(indexer, indices)
 }
