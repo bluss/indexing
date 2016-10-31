@@ -33,6 +33,13 @@ impl<'id, T> PIndex<'id, T> {
     }
 }
 
+impl<'id, T> PartialEq for PIndex<'id, T> {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.idx == rhs.idx
+    }
+}
+impl<'id, T> Eq for PIndex<'id, T> { }
+
 /// `PRange` wraps a valid range
 #[derive(Debug)]
 pub struct PRange<'id, T, Proof = Unknown> {
@@ -47,6 +54,13 @@ impl<'id, T, P> Copy for PRange<'id, T, P> { }
 impl<'id, T, P> Clone for PRange<'id, T, P> {
     fn clone(&self) -> Self { *self }
 }
+
+impl<'id, T, P, Q> PartialEq<PRange<'id, T, Q>> for PRange<'id, T, P> {
+    fn eq(&self, rhs: &PRange<'id, T, Q>) -> bool {
+        self.start == rhs.start && self.end == rhs.end
+    }
+}
+impl<'id, T, P> Eq for PRange<'id, T, P> { }
 
 
 /// return the number of steps between a and b
