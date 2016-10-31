@@ -606,7 +606,6 @@ pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 }
 
 /// Using PRange (pointer-based safe API)
-#[inline(never)]
 pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     indices(v, move |v, _range| {
         let mut range = v.pointer_range();
@@ -649,10 +648,9 @@ pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
 }
 
 /// Using PSlice (pointer-based safe API)
-#[inline(never)]
 pub fn lower_bound_pslice<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     indices(v, move |v, _range| {
-        let mut range = v.pointer_range();
+        let mut range = v.pointer_slice();
         while let Ok(range_) = range.nonempty() {
             let (a, b) = range_.split_in_half();
             if v[b.first()] < *elt {
@@ -667,7 +665,6 @@ pub fn lower_bound_pslice<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 
 /// Raw pointer version, for comparison
 /// From http://en.cppreference.com/w/cpp/algorithm/lower_bound
-#[inline(never)]
 pub fn lower_bound_raw_ptr<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     unsafe {
         let mut start = v.as_ptr();
