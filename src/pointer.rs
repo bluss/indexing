@@ -372,6 +372,13 @@ impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
     fn len(self) -> usize { self.len() }
 }
 
+impl<'id, T, P> PointerRange<'id> for PSlice<'id, T, P>
+{
+    type Item = T;
+    fn ptr(self) -> *const Self::Item { self.start }
+    fn len(self) -> usize { self.len() }
+}
+
 pub trait ContainerRef<'id> {
     type Item;
     type Ref;
