@@ -193,6 +193,20 @@ pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut
     });
 }
 
+pub fn insertion_sort_ranges_lower<T>(v: &mut [T])
+    where T: PartialOrd
+{
+    indices(v, move |mut v, r| {
+        if let Ok(mut i) = r.nonempty() {
+            while i.advance() {
+                let x = lower_bound_prange(&v[..i.first()], &v[i.first()]);
+                let r = v.vet_range(0..x).unwrap();
+                v.rotate1_up(r);
+            }
+        }
+    });
+}
+
 pub fn insertion_sort_pointerindex<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
     indices(v, move |mut v, _r| {
         for i in v.pointer_range() {

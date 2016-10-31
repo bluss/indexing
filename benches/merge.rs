@@ -66,6 +66,30 @@ fn bench_range_insertion_sort_100(b: &mut Bencher) {
 }
 
 #[bench]
+fn bench_range_lower_insertion_sort_1024(b: &mut Bencher) {
+    let mut data = [0; 1024];
+    bench_data(&mut data);
+
+    b.iter(|| {
+        let mut d = data;
+        insertion_sort_ranges_lower(&mut d);
+    });
+    b.bytes = mem::size_of_val(&data) as u64;
+}
+
+#[bench]
+fn bench_range_lower_insertion_sort_100(b: &mut Bencher) {
+    let mut data = [0; 100];
+    bench_data(&mut data);
+
+    b.iter(|| {
+        let mut d = data;
+        insertion_sort_ranges_lower(&mut d);
+    });
+    b.bytes = mem::size_of_val(&data) as u64;
+}
+
+#[bench]
 fn bench_pointer_insertion_sort_1024(b: &mut Bencher) {
     let mut data = [0; 1024];
     bench_data(&mut data);
