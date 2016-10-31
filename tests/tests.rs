@@ -1,8 +1,11 @@
 extern crate indexing;
+#[macro_use]
 extern crate quickcheck;
 
 use indexing::indices;
 use indexing::algorithms::*;
+
+use std::cmp::Ordering;
 
 
 #[test]
@@ -133,4 +136,20 @@ fn test_insertion_sort() {
     insertion_sort_indexes(&mut data, |a, b| a < b);
     insertion_sort_rust(&mut data2, |a, b| a < b);
     assert_eq!(&data[..], &data2[..]);
+}
+
+quickcheck! {
+    fn test_lower_bound_1(data: Vec<u8>, find: u8) -> bool {
+        lower_bound(&data, &find) == lower_bound_ptr(&data, &find)
+    }
+
+    fn test_lower_bound_2(data: Vec<u8>, find: u8) -> bool {
+        lower_bound(&data, &find) ==
+            data.binary_search_by(|x|
+                if *x >= find {
+                    Ordering::Greater
+                } else {
+                    Ordering::Less
+                }).unwrap_err()
+    }
 }

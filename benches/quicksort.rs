@@ -13,8 +13,7 @@ use rand::{StdRng, Rng, SeedableRng};
 use test::Bencher;
 use test::black_box;
 
-use indexing::algorithms::binary_search;
-
+use indexing::algorithms::*;
 
 fn test_data(n: usize) -> Vec<i32> {
     test_data_max(n, 1000000)
@@ -45,11 +44,11 @@ fn quicksort_branded(b: &mut Bencher) {
 }
 
 #[bench]
-fn quicksort_bounds(b: &mut Bencher) {
+fn test_quicksort_bounds(b: &mut Bencher) {
     let data = test_data_max(N, MAX);
     b.iter(|| {
         let mut v = data.clone();
-        indexing::algorithms::quicksort_bounds(&mut v);
+        quicksort_bounds(&mut v);
         v
     });
 }
@@ -206,6 +205,32 @@ fn indexing_lower_bound_few_duplicate(b: &mut Bencher) {
     b.iter(|| {
         for elt in &elements {
             black_box(indexing::algorithms::lower_bound(&data, elt));
+        }
+    });
+}
+
+#[bench]
+fn indexing_lower_bound_many_duplicate_ptr(b: &mut Bencher) {
+    let max = N as i32 / 5;
+    let mut data = test_data_max(N, max);
+    let elements = [0, 1, 2, 7, 29, max/3, max/2, max];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(lower_bound_ptr(&data, elt));
+        }
+    });
+}
+
+#[bench]
+fn indexing_lower_bound_few_duplicate_ptr(b: &mut Bencher) {
+    let max = N as i32 * 10;
+    let mut data = test_data_max(N, max);
+    let elements = [0, 1, 2, 7, 29, max/3, max/2, max];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(lower_bound_ptr(&data, elt));
         }
     });
 }
