@@ -28,6 +28,7 @@ use index_error::index_error;
 use pointer_ext::PointerExt;
 use proof::Provable;
 use container_traits::*;
+use ContainerPrivate;
 
 /// `PIndex` is a pointer to a location
 ///
@@ -251,15 +252,15 @@ impl<'id, T, Array> Container<'id, Array> where Array: Contiguous<Item=T> {
     #[inline]
     pub fn pointer_range(&self) -> PRange<'id, T> {
         unsafe {
-            let start = self.as_ptr();
-            let end = start.offset(self.len() as isize);
+            let start = self.begin();
+            let end = self.end();
             PRange::new(start, end)
         }
     }
 
     pub fn pointer_slice(&self) -> PSlice<'id, T> {
         unsafe {
-            let start = self.as_ptr();
+            let start = self.begin();
             PSlice::new(start, self.len())
         }
     }
@@ -267,7 +268,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: Contiguous<Item=T> {
     #[inline]
     pub fn pointer_range_to<P>(&self, ptr: PIndex<'id, T, P>) -> PRange<'id, T> {
         unsafe {
-            let start = self.as_ptr();
+            let start = self.begin();
             let end = ptr.idx;
             PRange::new(start, end)
         }
@@ -286,14 +287,17 @@ impl<'id, T, Array> Container<'id, Array> where Array: Contiguous<Item=T> {
         }
     }
 
-    fn start(&self) -> *const T {
-        self.as_ptr()
+    fn begin(&self) -> *const T {
+        self.array().begin()
+    }
+    fn end(&self) -> *const T {
+        self.array().end()
     }
 
     /// Return the distance (in number of elements) from the 
     /// start of the container to the pointer.
     pub fn distance_to<P>(&self, ptr: PIndex<'id, T, P>) -> usize {
-        ptrdistance(ptr.ptr(), self.start())
+        ptrdistance(ptr.ptr(), self.begin())
     }
 
     /// Examine the elements before `index` in order from higher indices towards lower.

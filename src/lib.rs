@@ -205,3 +205,10 @@ impl<'id, P> Range<'id, P> {
         Range { id: Id::default(), start: start, end: end, proof: PhantomData }
     }
 }
+
+// Access the internals of Container in the whole crate (but not outside)
+trait ContainerPrivate {
+    type Array;
+    fn array(&self) -> &Self::Array;
+    fn array_mut(&mut self) -> &mut Self::Array;
+}

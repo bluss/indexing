@@ -17,6 +17,7 @@ use container_traits::*;
 use indexing::{IntoCheckedRange};
 use pointer::{PIndex};
 use {Id, Index, Range};
+use ContainerPrivate;
 
 /// A branded container, that allows access only to indices and ranges with
 /// the exact same brand in the `'id` parameter.
@@ -50,6 +51,18 @@ impl<'id, Array, Mode> Clone for Container<'id, Array, Mode>
     }
 }
 
+impl<'id, Array, Mode> ContainerPrivate for Container<'id, Array, Mode> {
+    type Array = Array;
+    #[inline(always)]
+    fn array(&self) -> &Self::Array {
+        &self.arr
+    }
+    #[inline(always)]
+    fn array_mut(&mut self) -> &mut Self::Array {
+        &mut self.arr
+    }
+}
+
 impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     where Array: Trustworthy<Item=T>,
 {
@@ -70,14 +83,6 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
         }
     }
 
-    #[inline]
-    pub fn as_ptr(&self) -> *const T
-        where Array: Contiguous<Item=T>,
-    {
-        self.arr.begin()
-    }
-
-    // Is this a good idea?
     /// Return the range [0, 0)
     #[inline]
     pub fn empty_range(&self) -> Range<'id> {
@@ -94,6 +99,7 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
         }
     }
 
+    /// Vet the absolute `index`.
     #[inline]
     pub fn vet(&self, index: usize) -> Result<Index<'id>, IndexingError> {
         if index < self.len() {
@@ -105,6 +111,7 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
         }
     }
 
+    /// Vet the range `r`.
     #[inline]
     pub fn vet_range(&self, r: ops::Range<usize>) -> Result<Range<'id>, IndexingError> {
         if r.start <= r.end && r.end <= self.len() {
