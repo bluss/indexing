@@ -40,7 +40,7 @@ pub struct PIndex<'id, T, Proof = NonEmpty> {
 }
 
 impl<'id, T, P> PIndex<'id, T, P> {
-    unsafe fn from(p: *const T) -> Self {
+    unsafe fn new(p: *const T) -> Self {
         PIndex {
             id: Id::default(),
             idx: p,
@@ -79,7 +79,7 @@ impl<'id, T, P> PIndex<'id, T, P> {
 impl<'id, T> PIndex<'id, T, NonEmpty> {
     pub fn after(self) -> PIndex<'id, T, Unknown> {
         unsafe {
-            PIndex::from(self.idx.offset(1))
+            PIndex::new(self.idx.offset(1))
         }
     }
 }
@@ -123,7 +123,7 @@ fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
 
 impl<'id, T, P> PRange<'id, T, P> {
     #[inline(always)]
-    pub unsafe fn from(start: *const T, end: *const T) -> Self {
+    pub unsafe fn new(start: *const T, end: *const T) -> Self {
         debug_assert!(end as usize >= start as usize);
         PRange { id: Id::default(), start: start, end: end, proof: PhantomData }
     }
@@ -140,7 +140,7 @@ impl<'id, T, P> PRange<'id, T, P> {
     {
         unsafe {
             if !self.is_empty() {
-                Ok(PRange::from(self.start, self.end))
+                Ok(PRange::new(self.start, self.end))
             } else {
                 Err(index_error())
             }
@@ -154,7 +154,7 @@ impl<'id, T, P> PRange<'id, T, P> {
         unsafe {
             let mid_offset = self.len() / 2;
             let mid = self.start.offset(mid_offset as isize);
-            (PRange::from(self.start, mid), PRange::from(mid, self.end))
+            (PRange::new(self.start, mid), PRange::new(mid, self.end))
         }
     }
 }
@@ -163,7 +163,7 @@ impl<'id, T, P> PRange<'id, T, P> {
     #[inline]
     pub fn first(self) -> PIndex<'id, T, P> {
         unsafe {
-            PIndex::from(self.start)
+            PIndex::new(self.start)
         }
     }
 
@@ -172,14 +172,14 @@ impl<'id, T, P> PRange<'id, T, P> {
     pub fn upper_middle(self) -> PIndex<'id, T, P> {
         unsafe {
             let mid = ptrdistance(self.end, self.start) / 2;
-            PIndex::from(self.start.offset(mid as isize))
+            PIndex::new(self.start.offset(mid as isize))
         }
     }
 
     #[inline]
     pub fn past_the_end(self) -> PIndex<'id, T, Unknown> {
         unsafe {
-            PIndex::from(self.end)
+            PIndex::new(self.end)
         }
     }
 }
@@ -196,7 +196,7 @@ impl<'id, T> PRange<'id, T, NonEmpty> {
     pub fn tail(self) -> PRange<'id, T> {
         // in bounds since it's nonempty
         unsafe {
-            PRange::from(self.start.offset(1), self.end)
+            PRange::new(self.start.offset(1), self.end)
         }
     }
 
@@ -204,7 +204,7 @@ impl<'id, T> PRange<'id, T, NonEmpty> {
     pub fn init(self) -> PRange<'id, T> {
         // in bounds since it's nonempty
         unsafe {
-            PRange::from(self.start, self.end.offset(-1))
+            PRange::new(self.start, self.end.offset(-1))
         }
     }
 
@@ -251,14 +251,14 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
         unsafe {
             let start = self.as_ptr();
             let end = start.offset(self.len() as isize);
-            PRange::from(start, end)
+            PRange::new(start, end)
         }
     }
 
     pub fn pointer_slice(&self) -> PSlice<'id, T> {
         unsafe {
             let start = self.as_ptr();
-            PSlice::from(start, self.len())
+            PSlice::new(start, self.len())
         }
     }
 
@@ -267,7 +267,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
         unsafe {
             let start = self.as_ptr();
             let end = ptr.idx;
-            PRange::from(start, end)
+            PRange::new(start, end)
         }
     }
 
@@ -277,7 +277,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
     {
         if (a.idx as usize) < b.idx as usize {
             unsafe {
-                Ok(PRange::from(a.idx, b.idx))
+                Ok(PRange::new(a.idx, b.idx))
             }
         } else {
             Err(index_error())
@@ -315,7 +315,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
                 }
                 end.dec();
             }
-            PRange::from(end, index.ptr().offset(1))
+            PRange::new(end, index.ptr().offset(1))
         }
     }
 
@@ -335,8 +335,8 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
                 }
                 ptr.inc();
             }
-            (PRange::from(range.start, ptr),
-             PRange::from(ptr, range.end))
+            (PRange::new(range.start, ptr),
+             PRange::new(ptr, range.end))
         }
     }
 
@@ -345,8 +345,8 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
         -> (PRange<'id, T>, PRange<'id, T, P>) {
         unsafe {
             let pr = self.pointer_range();
-            (PRange::from(pr.start, index.idx),
-             PRange::from(index.idx, pr.end))
+            (PRange::new(pr.start, index.idx),
+             PRange::new(index.idx, pr.end))
         }
     }
 
@@ -366,8 +366,8 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
                 }
                 ptr.dec();
             }
-            (PRange::from(range.start, ptr),
-             PRange::from(ptr, range.end))
+            (PRange::new(range.start, ptr),
+             PRange::new(ptr, range.end))
         }
     }
 }
@@ -387,8 +387,8 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
             let s2 = from_raw_parts_mut(ptr2, pr.len() - mid);
             indices(s1, move |i1, _| {
                 indices(s2, move |i2, _| {
-                    let r1 = PRange::from(pr.start, index.idx);
-                    let r2 = PRange::from(index.idx, pr.end);
+                    let r1 = PRange::new(pr.start, index.idx);
+                    let r2 = PRange::new(index.idx, pr.end);
                     f(i1, r1, i2, r2)
                 })
             })
@@ -612,20 +612,20 @@ impl<'id, T, P> Eq for PSlice<'id, T, P> { }
 impl<'id, T, P> From<PSlice<'id, T, P>> for PRange<'id, T, P> {
     fn from(range: PSlice<'id, T, P>) -> Self {
         unsafe {
-            PRange::from(range.start, range.start.offset(range.len as isize))
+            PRange::new(range.start, range.start.offset(range.len as isize))
         }
     }
 }
 impl<'id, T, P> From<PRange<'id, T, P>> for PSlice<'id, T, P> {
     fn from(range: PRange<'id, T, P>) -> Self {
         unsafe {
-            PSlice::from(range.start, ptrdistance(range.end, range.start))
+            PSlice::new(range.start, ptrdistance(range.end, range.start))
         }
     }
 }
 
 impl<'id, T, P> PSlice<'id, T, P> {
-    pub unsafe fn from(start: *const T, len: usize) -> Self {
+    pub unsafe fn new(start: *const T, len: usize) -> Self {
         debug_assert!(len as isize >= 0);
         PSlice { id: Id::default(), start: start, len: len, proof: PhantomData }
     }
@@ -642,7 +642,7 @@ impl<'id, T, P> PSlice<'id, T, P> {
     {
         unsafe {
             if !self.is_empty() {
-                Ok(PSlice::from(self.start, self.len))
+                Ok(PSlice::new(self.start, self.len))
             } else {
                 Err(index_error())
             }
@@ -656,7 +656,7 @@ impl<'id, T, P> PSlice<'id, T, P> {
         unsafe {
             let mid_offset = self.len() / 2;
             let mid = self.start.offset(mid_offset as isize);
-            (PSlice::from(self.start, mid_offset), PSlice::from(mid, self.len() - mid_offset))
+            (PSlice::new(self.start, mid_offset), PSlice::new(mid, self.len() - mid_offset))
         }
     }
 }
@@ -665,7 +665,7 @@ impl<'id, T, P> PSlice<'id, T, P> {
     #[inline]
     pub fn first(self) -> PIndex<'id, T, P> {
         unsafe {
-            PIndex::from(self.start)
+            PIndex::new(self.start)
         }
     }
 
@@ -674,14 +674,14 @@ impl<'id, T, P> PSlice<'id, T, P> {
     pub fn upper_middle(self) -> PIndex<'id, T, P> {
         unsafe {
             let mid = self.len() / 2;
-            PIndex::from(self.start.offset(mid as isize))
+            PIndex::new(self.start.offset(mid as isize))
         }
     }
 
     #[inline]
     pub fn past_the_end(self) -> PIndex<'id, T, Unknown> {
         unsafe {
-            PIndex::from(self.start.offset(self.len as isize))
+            PIndex::new(self.start.offset(self.len as isize))
         }
     }
 }
@@ -698,7 +698,7 @@ impl<'id, T> PSlice<'id, T, NonEmpty> {
     pub fn tail(self) -> PSlice<'id, T> {
         // in bounds since it's nonempty
         unsafe {
-            PSlice::from(self.start.offset(1), self.len - 1)
+            PSlice::new(self.start.offset(1), self.len - 1)
         }
     }
 
@@ -706,7 +706,7 @@ impl<'id, T> PSlice<'id, T, NonEmpty> {
     pub fn init(self) -> PSlice<'id, T> {
         // in bounds since it's nonempty
         unsafe {
-            PSlice::from(self.start, self.len - 1)
+            PSlice::new(self.start, self.len - 1)
         }
     }
 
