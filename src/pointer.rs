@@ -232,21 +232,21 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn pointer_range(&self) -> PRange<'id, T> {
         unsafe {
-            let start = self.arr.as_ptr();
-            let end = start.offset(self.arr.len() as isize);
+            let start = self.as_ptr();
+            let end = start.offset(self.len() as isize);
             PRange::from(start, end)
         }
     }
 
     pub fn pointer_slice(&self) -> PSlice<'id, T> {
         unsafe {
-            let start = self.arr.as_ptr();
-            PSlice::from_len(start, self.arr.len())
+            let start = self.as_ptr();
+            PSlice::from_len(start, self.len())
         }
     }
 
     fn start(&self) -> *const T {
-        self.arr.as_ptr()
+        self.as_ptr()
     }
 
     /// Return the distance (in number of elements) from the 

@@ -1,21 +1,6 @@
 
-//! Sound unchecked indexing in Rust using “generativity”; a type system
-//! approach to indices and ranges that are trusted to be in bounds.
-//!
-//! Includes an index API and an interval (`Range<'id, P>`) API developing its
-//! own “algebra” for transformations of in bounds ranges.
-//!
-//! ***This is an experiment.*** The API is all of inconsistent, incomplete
-//! and redundant, but it explores interesting concepts.
-#![doc(html_root_url="https://docs.rs/indexing/0.1/")]
 
 // Modules
-pub mod pointer;
-pub mod algorithms;
-mod index_error;
-
-pub use index_error::IndexingError;
-use index_error::index_error;
 
 use std::cmp;
 use std::ops;
@@ -28,6 +13,10 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
 use pointer::PIndex;
+use index_error::IndexingError;
+use index_error::index_error;
+use std;
+use super::Id;
 
 /// A marker trait for collections where we can safely vet indices
 pub unsafe trait Buffer : Deref {
@@ -39,28 +28,6 @@ unsafe impl<'a, T> Buffer for &'a mut [T] { }
 pub unsafe trait BufferMut : Buffer + DerefMut { }
 unsafe impl<X: ?Sized> BufferMut for X where X: Buffer + DerefMut { }
 
-/// `Id<'id>` is invariant w.r.t `'id`
-///
-/// This means that the inference engine is not allowed to shrink or
-/// grow 'id to solve the borrow system.
-#[derive(Copy, Clone, PartialEq, PartialOrd, Eq)]
-struct Id<'id> { id: PhantomData<*mut &'id ()>, }
-
-unsafe impl<'id> Sync for Id<'id> { }
-unsafe impl<'id> Send for Id<'id> { }
-
-impl<'id> Default for Id<'id> {
-    #[inline]
-    fn default() -> Self {
-        Id { id: PhantomData }
-    }
-}
-
-impl<'id> Debug for Id<'id> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str("Id<'id>")
-    }
-}
 
 /// A branded container, that allows access only to indices and ranges with
 /// the exact same brand in the `'id` parameter.
@@ -149,6 +116,11 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]
     pub fn len(&self) -> usize {
         self.arr.len()
+    }
+
+    #[inline]
+    pub fn as_ptr(&self) -> *const T {
+        self.arr.as_ptr()
     }
 
     // Is this a good idea?
