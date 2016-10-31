@@ -425,14 +425,14 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     /// Zip by raw pointer (will be indentical if ranges have same starting point)
     pub fn zip_mut_raw<P, Q, F>(&mut self, r: Range<'id, P>, s: Range<'id, Q>, mut f: F)
         where F: FnMut(*mut T, *mut T),
-              Array: BufferMut<Target=[T]>,
+              Array: GetUncheckedMut,
     {
         let len = cmp::min(r.len(), s.len());
         for i in 0..len {
             unsafe {
                 f(
-                    self.arr.get_unchecked_mut(r.start + i),
-                    self.arr.get_unchecked_mut(s.start + i)
+                    self.arr.xget_unchecked_mut(r.start + i),
+                    self.arr.xget_unchecked_mut(s.start + i)
                 )
             }
         }
@@ -523,7 +523,7 @@ impl<'id, Array, P, M> ops::IndexMut<Range<'id, P>> for Container<'id, Array, M>
 
 /// `&self[i..]` where `i` is an `Index<'id, P>` which may be an edge index.
 impl<'id, T, P, Array, M> ops::Index<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array, M>
-    where Array: Trustworthy + Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
 {
     type Output = [T];
     #[inline(always)]
@@ -531,7 +531,7 @@ impl<'id, T, P, Array, M> ops::Index<ops::RangeFrom<Index<'id, P>>> for Containe
         let i = r.start.index;
         unsafe {
             std::slice::from_raw_parts(
-                self.arr.as_ptr().offset(i as isize),
+                self.arr.begin().offset(i as isize),
                 self.len() - i)
         }
     }
@@ -539,14 +539,14 @@ impl<'id, T, P, Array, M> ops::Index<ops::RangeFrom<Index<'id, P>>> for Containe
 
 /// `&mut self[i..]` where `i` is an `Index<'id, P>` which may be an edge index.
 impl<'id, T, P, Array, M> ops::IndexMut<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array, M>
-    where Array: Trustworthy + BufferMut<Target=[T]>,
+    where Array: ContiguousMut<Item=T>,
 {
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeFrom<Index<'id, P>>) -> &mut [T] {
         let i = r.start.index;
         unsafe {
             std::slice::from_raw_parts_mut(
-                self.arr.as_mut_ptr().offset(i as isize),
+                self.arr.begin_mut().offset(i as isize),
                 self.len() - i)
         }
     }
@@ -581,22 +581,22 @@ impl<'id, T, P, Array, M> ops::IndexMut<ops::RangeTo<Index<'id, P>>> for Contain
 
 /// `&self[..]`
 impl<'id, T, Array, M> ops::Index<ops::RangeFull> for Container<'id, Array, M>
-    where Array: Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
 {
     type Output = [T];
     #[inline(always)]
     fn index(&self, _: ops::RangeFull) -> &[T] {
-        &self.arr[..]
+        self.arr.as_slice()
     }
 }
 
 /// `&mut self[..]`
 impl<'id, T, Array> ops::IndexMut<ops::RangeFull> for Container<'id, Array>
-    where Array: BufferMut<Target=[T]>,
+    where Array: ContiguousMut<Item=T>,
 {
     #[inline(always)]
     fn index_mut(&mut self, _: ops::RangeFull) -> &mut [T] {
-        &mut self.arr[..]
+        self.arr.as_mut_slice()
     }
 }
 
