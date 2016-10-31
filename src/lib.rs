@@ -93,21 +93,23 @@ use std::marker::PhantomData;
 use std::fmt::{self, Debug};
 
 pub mod prelude;
-mod indexing;
+pub mod indexing;
 pub mod base;
 pub mod pointer;
 pub mod algorithms;
 pub mod container_traits;
+pub mod container;
 mod index_error;
 mod pointer_ext;
 
 pub use index_error::IndexingError;
 
-pub use indexing::{Container, Range, Index};
-pub use indexing::scope;
+pub use container::{Container, scope};
 
 pub use base::{NonEmpty, Unknown};
 
+
+// Common types //
 
 /// `Id<'id>` is invariant w.r.t `'id`
 ///
@@ -129,5 +131,72 @@ impl<'id> Default for Id<'id> {
 impl<'id> Debug for Id<'id> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("Id<'id>")
+    }
+}
+
+/// A branded index.
+///
+/// `Index<'id>` only indexes the container instantiated with the exact same
+/// particular lifetime for the parameter `'id` at its inception from
+/// the `indices()` constructor.
+///
+/// The type parameter `Proof` determines if the index is dereferenceable.
+///
+/// A `NonEmpty` index points to a valid element. An `Unknown` index is unknown,
+/// or it points to an edge index (just past the end).
+#[derive(Copy, Clone, Eq, PartialOrd)]
+pub struct Index<'id, Proof = NonEmpty> {
+    id: Id<'id>,
+    index: usize,
+    /// NonEmpty or Unknown
+    proof: PhantomData<Proof>,
+}
+
+impl<'id, P> Index<'id, P> {
+    #[inline(always)]
+    unsafe fn new(index: usize) -> Index<'id, P> {
+        debug_assert!(index as isize >= 0);
+        Index { id: Id::default(), index: index, proof: PhantomData }
+    }
+}
+
+
+/// A branded range.
+///
+/// `Range<'id>` only indexes the container instantiated with the exact same
+/// particular lifetime for the parameter `'id` at its inception from
+/// the `indices()` constructor.
+///
+/// The `Range` may carry a proof of nonemptiness (type parameter `Proof`),
+/// which enables further methods.
+pub struct Range<'id, Proof=Unknown> {
+    id: Id<'id>,
+    start: usize,
+    end: usize,
+    /// NonEmpty or Unknown
+    proof: PhantomData<Proof>,
+}
+
+impl<'id> Range<'id> {
+    #[inline(always)]
+    unsafe fn from(start: usize, end: usize) -> Range<'id> {
+        debug_assert!(start <= end);
+        Range { id: Id::default(), start: start, end: end, proof: PhantomData }
+    }
+}
+
+impl<'id> Range<'id, NonEmpty> {
+    #[inline(always)]
+    unsafe fn from_ne(start: usize, end: usize) -> Range<'id, NonEmpty> {
+        debug_assert!(start < end);
+        Range { id: Id::default(), start: start, end: end, proof: PhantomData }
+    }
+}
+
+impl<'id, P> Range<'id, P> {
+    #[inline(always)]
+    unsafe fn from_any(start: usize, end: usize) -> Range<'id, P> {
+        debug_assert!(start <= end);
+        Range { id: Id::default(), start: start, end: end, proof: PhantomData }
     }
 }

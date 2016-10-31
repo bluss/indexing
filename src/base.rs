@@ -1,7 +1,7 @@
 
 use std::mem;
 
-use indexing::{Index, Range};
+use {Index, Range};
 use pointer::{PIndex, PRange, PSlice};
 
 /// Length marker for range known to not be empty.
