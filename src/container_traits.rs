@@ -208,3 +208,37 @@ unsafe impl<'a, C: ?Sized> Pushable for &'a mut C
         (**self).insert_unchecked(index, item)
     }
 }
+
+
+/// A range being `..`, `a..`, `..b`, or `a..b`.
+pub trait IndexRange<I> : Sized {
+    fn start(&self) -> Option<I> { None }
+    fn end(&self) -> Option<I> { None }
+}
+
+use std::ops::{RangeFull, RangeTo, RangeFrom, Range};
+
+impl<I: Copy> IndexRange<I> for RangeFull { }
+impl<I: Copy> IndexRange<I> for RangeFrom<I> {
+    fn start(&self) -> Option<I> { Some(self.start) }
+}
+impl<I: Copy> IndexRange<I> for RangeTo<I> {
+    fn end(&self) -> Option<I> { Some(self.end) }
+}
+impl<I: Copy> IndexRange<I> for Range<I> {
+    fn start(&self) -> Option<I> { Some(self.start) }
+    fn end(&self) -> Option<I> { Some(self.end) }
+}
+
+/// A range being `a..` or `..b`
+// unsafe because: trusted to have at one endpoint
+pub unsafe trait OnePointRange : IndexRange<<Self as OnePointRange>::Index> {
+    type Index: Copy;
+}
+
+unsafe impl<I: Copy> OnePointRange for RangeFrom<I> {
+    type Index = I;
+}
+unsafe impl<I: Copy> OnePointRange for RangeTo<I> {
+    type Index = I;
+}

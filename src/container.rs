@@ -15,7 +15,6 @@ use std;
 
 use container_traits::*;
 use indexing::{IntoCheckedRange};
-use pointer::{PIndex};
 use {Id, Index, Range};
 use ContainerPrivate;
 
@@ -582,45 +581,6 @@ impl<'id, 'a, T> ops::IndexMut<ops::RangeTo<usize>> for Container<'id, &'a mut [
 }
 // ####
 */
-
-/// return the number of steps between a and b
-fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
-    (a as usize - b as usize) / mem::size_of::<T>()
-}
-
-#[inline(always)]
-fn ptr_iselement<T>(arr: &[T], ptr: *const T) {
-    unsafe {
-        let end = arr.as_ptr().offset(arr.len() as isize);
-        debug_assert!(ptr >= arr.as_ptr() && ptr < end);
-    }
-}
-
-impl<'id, 'a, T, Array> ops::Index<PIndex<'id, T>> for Container<'id, Array>
-    where Array: Contiguous<Item=T>,
-{
-    type Output = T;
-    #[inline(always)]
-    fn index(&self, r: PIndex<'id, T>) -> &T {
-        ptr_iselement(self.arr.as_slice(), r.ptr());
-        unsafe {
-            &*r.ptr()
-        }
-    }
-}
-
-impl<'id, T, P, Array> ops::Index<ops::RangeTo<PIndex<'id, T, P>>> for Container<'id, Array>
-    where Array: Contiguous<Item=T>,
-{
-    type Output = [T];
-    #[inline(always)]
-    fn index(&self, r: ops::RangeTo<PIndex<'id, T, P>>) -> &[T] {
-        let len = ptrdistance(r.end.ptr(), self.arr.begin());
-        unsafe {
-            std::slice::from_raw_parts(self.arr.begin(), len)
-        }
-    }
-}
 
 /// Create an indexing scope for a container.
 ///

@@ -266,10 +266,13 @@ impl<'id, T, Array> Container<'id, Array> where Array: Contiguous<Item=T> {
     }
 
     #[inline]
-    pub fn pointer_range_to<P>(&self, ptr: PIndex<'id, T, P>) -> PRange<'id, T> {
+    pub fn pointer_range_of<P, R>(&self, r: R) -> PRange<'id, T>
+        where R: OnePointRange<Index=PIndex<'id, T, P>>,
+    {
+        debug_assert!(!(r.start().is_some() && r.end().is_some()));
         unsafe {
-            let start = self.begin();
-            let end = ptr.idx;
+            let start = r.start().map_or(self.begin(), PIndex::ptr);
+            let end = r.end().map_or(self.end(), PIndex::ptr);
             PRange::new(start, end)
         }
     }
@@ -739,3 +742,64 @@ impl<'id, T, Array, P> ops::IndexMut<PRange<'id, T, P>> for Container<'id, Array
         }
     }
 }
+
+#[inline(always)]
+fn ptr_iselement<T>(arr: &[T], ptr: *const T) {
+    unsafe {
+        let end = arr.as_ptr().offset(arr.len() as isize);
+        debug_assert!(ptr >= arr.as_ptr() && ptr < end);
+    }
+}
+
+impl<'id, 'a, T, Array> ops::Index<PIndex<'id, T>> for Container<'id, Array>
+    where Array: Contiguous<Item=T>,
+{
+    type Output = T;
+    #[inline(always)]
+    fn index(&self, r: PIndex<'id, T>) -> &T {
+        ptr_iselement(self.array().as_slice(), r.ptr());
+        unsafe {
+            &*r.ptr()
+        }
+    }
+}
+
+use std::ops::{RangeTo, RangeFrom};
+
+macro_rules! pindex_range {
+    ($index_type:ty) => {
+impl<'id, T, P, Array> ops::Index<$index_type> for Container<'id, Array>
+    where Array: Contiguous<Item=T>,
+{
+    type Output = [T];
+    #[inline(always)]
+    fn index(&self, r: $index_type) -> &[T] {
+        let start = r.start().map_or(self.begin(), PIndex::ptr);
+        let end = r.end().map_or(self.end(), PIndex::ptr);
+        let len = ptrdistance(end, start);
+        unsafe {
+            ::std::slice::from_raw_parts(start, len)
+        }
+    }
+}
+
+impl<'id, T, P, Array> ops::IndexMut<$index_type> for Container<'id, Array>
+    where Array: ContiguousMut<Item=T>,
+{
+    #[inline(always)]
+    fn index_mut(&mut self, r: $index_type) -> &mut [T] {
+        let start = r.start().map_or(self.begin(), PIndex::ptr);
+        let end = r.end().map_or(self.end(), PIndex::ptr);
+        let len = ptrdistance(end, start);
+        unsafe {
+            ::std::slice::from_raw_parts_mut(start as *mut _, len)
+        }
+    }
+}
+
+    }
+}
+
+pindex_range!{RangeTo<PIndex<'id, T, P>>}
+pindex_range!{RangeFrom<PIndex<'id, T, P>>}
+

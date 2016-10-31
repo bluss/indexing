@@ -288,7 +288,7 @@ pub fn insertion_sort_prange_lower<T, F>(v: &mut [T], mut less_than: F)
 {
     scope(v, |mut v| {
         for i in v.pointer_range() {
-            let up_to = v.pointer_range_to(i);
+            let up_to = v.pointer_range_of(..i);
             let lb = lower_bound_prange_(up_to, &v, |x| less_than(x, &v[i]));
             // FIXME: There's a less than check here (`lb < i.after()`).
             if let Ok(lb_range) = v.nonempty_range(lb, i.after()) {
