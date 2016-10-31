@@ -73,7 +73,7 @@ fn sorted<T: Clone + Ord>(v: &[T]) -> Vec<T> {
 #[test]
 fn qc_quicksort() {
     fn prop(mut v: Vec<i32>) -> bool {
-        indexing::algorithms::quicksort(&mut v);
+        quicksort_range(&mut v);
         is_sorted(&v)
     }
 

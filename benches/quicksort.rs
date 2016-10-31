@@ -24,11 +24,11 @@ const N: usize = 10240;
 const MAX: i32 = 10240;
 
 #[bench]
-fn bench_quicksort_indexing(b: &mut Bencher) {
+fn bench_quicksort_range(b: &mut Bencher) {
     let data = test_data_max(N, MAX);
     b.iter(|| {
         let mut v = data.clone();
-        quicksort(&mut v);
+        quicksort_range(&mut v);
         v
     });
 }

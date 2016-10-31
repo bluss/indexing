@@ -28,8 +28,8 @@ macro_rules! puts {
 // limit for switching to insertion sort
 const QS_INSERTION_SORT_THRESH: usize = 24;
 
-/// Simple quicksort implemented using `indexing`,
-pub fn quicksort<T: Ord>(v: &mut [T]) {
+/// Simple quicksort implemented using `Range`,
+pub fn quicksort_range<T: Ord>(v: &mut [T]) {
     scope(v, |mut v| {
         let range = v.range();
         if let Ok(range) = range.nonempty() {
@@ -77,8 +77,8 @@ pub fn quicksort<T: Ord>(v: &mut [T]) {
             // ok split at pivot location and recurse
             let (a, b) = v.split_at(scan.first());
             //puts!("a={:?}, pivot={:?}, b={:?}", &v[a], &v[scan.first()], &v[b]);
-            quicksort(&mut v[a]);
-            quicksort(&mut v[b]);
+            quicksort_range(&mut v[a]);
+            quicksort_range(&mut v[b]);
         }
     });
 }
@@ -220,31 +220,31 @@ pub fn copy_prange<T: Copy>(xs: &[T], ys: &mut [T]) {
 #[test]
 fn test_quicksort() {
     let mut data = [1, 0];
-    quicksort(&mut data);
+    quicksort_range(&mut data);
     assert_eq!(&data, &[0, 1]);
 
     let mut data = [1, 2, 2, 1, 3, 3, 2, 3];
-    quicksort(&mut data);
+    quicksort_range(&mut data);
     assert_eq!(&data, &[1, 1, 2, 2, 2, 3, 3, 3]);
 
     let mut data = [1, 4, 2, 0, 3];
-    quicksort(&mut data);
+    quicksort_range(&mut data);
     assert_eq!(&data, &[0, 1, 2, 3, 4]);
 
     let mut data = [4, 3, 2, 1, 0];
-    quicksort(&mut data);
+    quicksort_range(&mut data);
     assert_eq!(&data, &[0, 1, 2, 3, 4]);
 
     let mut data = [0, 1, 2, 3, 4];
-    quicksort(&mut data);
+    quicksort_range(&mut data);
     assert_eq!(&data, &[0, 1, 2, 3, 4]);
 
     let mut data = [0, 1, 5, 2, 3, 4];
-    quicksort(&mut data);
+    quicksort_range(&mut data);
     assert_eq!(&data, &[0, 1, 2, 3, 4, 5]);
 
     let mut data = [0, 1, 1, -1, 0, -1];
-    quicksort(&mut data);
+    quicksort_range(&mut data);
     assert_eq!(&data, &[-1, -1, 0, 0, 1, 1]);
 }
 
