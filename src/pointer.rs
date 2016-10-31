@@ -1,3 +1,15 @@
+//! Pointer-based inbounds intervals and element references.
+//!
+//! These are safe abstractions built upon raw pointers instead of indices.
+//! Which choice of Range, PRange or PSlice generates best code depends on
+//! the algorithm.
+//!
+//! All element read/write access still goes through a nominal borrow of the
+//! container with the correct brand; this ensures the usual & vs &mut borrowing
+//! rules apply.
+//!
+//! The pointer type `PIndex` has a proof parameter just like the range;
+//! this allows us to represent the one-past-the-end pointer.
 
 use std::cmp::min;
 use std::marker::PhantomData;
@@ -135,7 +147,7 @@ impl<'id, T, P> PRange<'id, T, P> {
     }
 
     /// Split the range in half, with the upper middle index landing in the
-    /// latter half. Proof of length `P` transfers to the latter half.
+    /// latter half. Proof of nonemptiness `P` transfers to the latter half.
     #[inline]
     pub fn split_in_half(self) -> (PRange<'id, T>, PRange<'id, T, P>) {
         unsafe {
