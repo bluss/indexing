@@ -165,6 +165,10 @@ quickcheck! {
         lower_bound(&data, &find) == lower_bound_prange(&data, &find)
     }
 
+    fn test_lower_bound_4(data: Vec<u8>, find: u8) -> bool {
+        lower_bound_pslice(&data, |x| *x < find) == lower_bound_raw_ptr(&data, &find)
+    }
+
     fn test_insertion_sort_prange(data: Vec<u8>) -> bool {
         let mut data = data;
         let mut ans = data.clone();

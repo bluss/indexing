@@ -448,6 +448,17 @@ impl<'id, T, P> Provable for PRange<'id, T, P> {
     }
 }
 
+impl<'id, T, P> Provable for PSlice<'id, T, P> {
+    type WithoutProof = PSlice<'id, T, Unknown>;
+
+    #[inline]
+    fn no_proof(self) -> Self::WithoutProof {
+        unsafe {
+            mem::transmute(self)
+        }
+    }
+}
+
 pub trait PointerRange<'id> : Copy {
     type Item;
     fn ptr(self) -> *const Self::Item;

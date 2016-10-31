@@ -624,7 +624,7 @@ pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 
 use Container;
 use Buffer;
-use pointer::{PIndex, PRange};
+use pointer::{PIndex, PRange, PSlice};
 use Unknown;
 use pointer::Provable;
 
@@ -647,19 +647,32 @@ pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
     range.first()
 }
 
-/// Using PSlice (pointer-based safe API)
-pub fn lower_bound_pslice<T: PartialOrd>(v: &[T], elt: &T) -> usize {
-    indices(v, move |v, _range| {
-        let mut range = v.pointer_slice();
-        while let Ok(range_) = range.nonempty() {
-            let (a, b) = range_.split_in_half();
-            if v[b.first()] < *elt {
-                range = b.tail();
-            } else {
-                range = a;
-            }
+pub fn lower_bound_pslice_<'id, T, P, Array, F>(range: PSlice<'id, T, P>,
+                                                v: &Container<'id, Array>,
+                                                mut less_than: F)
+    -> PIndex<'id, T, Unknown>
+    where Array: Buffer<Target=[T]>,
+          F: FnMut(&T) -> bool,
+{
+    let mut range = range.no_proof();
+    while let Ok(range_) = range.nonempty() {
+        let (a, b) = range_.split_in_half();
+        if less_than(&v[b.first()]) {
+            range = b.tail();
+        } else {
+            range = a;
         }
-        v.distance_to(range.first())
+    }
+    range.first()
+}
+
+/// Using PSlice (pointer-based safe API)
+pub fn lower_bound_pslice<T, F>(v: &[T], f: F) -> usize
+    where F: FnMut(&T) -> bool,
+{
+    indices(v, move |v, _range| {
+        let range = v.pointer_slice();
+        v.distance_to(lower_bound_pslice_(range, &v, f))
     })
 }
 

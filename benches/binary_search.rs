@@ -324,7 +324,7 @@ fn short_lower_bound_pslice(b: &mut Bencher) {
         for chunk_sz in SHORT_LEN_MIN..SHORT_LEN_MAX {
             for elt in &elements {
                 for chunk in data.chunks(chunk_sz) {
-                    sum += lower_bound_pslice(chunk, elt);
+                    sum += lower_bound_pslice(chunk, |x| *x < *elt);
                 }
             }
         }
