@@ -156,4 +156,13 @@ quickcheck! {
     fn test_lower_bound_3(data: Vec<u8>, find: u8) -> bool {
         lower_bound(&data, &find) == lower_bound_prange(&data, &find)
     }
+
+    fn test_insertion_sort_prange(data: Vec<u8>) -> bool {
+        let mut data = data;
+        let mut ans = data.clone();
+        ans.sort();
+        insertion_sort_pointerindex(&mut data, |a, b| a < b);
+        assert_eq!(ans, data);
+        true
+    }
 }

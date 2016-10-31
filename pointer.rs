@@ -174,15 +174,67 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
             let container_start = self.pointer_range().start;
             let mut end = index.ptr();
             loop {
-                if !f(&*end.offset(-1)) {
+                if container_start == end {
                     break;
                 }
-                if container_start == end {
+                if !f(&*end.offset(-1)) {
                     break;
                 }
                 end.dec();
             }
             PRange::from(end, index.ptr().offset(1))
+        }
+    }
+
+    /// Examine the elements `range` in order from lower towards higher.
+    /// While the closure returns `true`, continue scan and include the scanned
+    /// element in the range.
+    #[inline]
+    pub fn scan_pointer_range<'b, F, P>(&'b self, range: PRange<'id, T, P>, mut f: F)
+        -> (PRange<'id, T>, PRange<'id, T>)
+        where F: FnMut(&'b T) -> bool, T: 'b,
+    {
+        unsafe {
+            let mut ptr = range.start;
+            while ptr != range.end {
+                if !f(&*ptr) {
+                    break;
+                }
+                ptr = ptr.offset(1);
+            }
+            (PRange::from(range.start, ptr),
+             PRange::from(ptr, range.end))
+        }
+    }
+
+    #[inline]
+    pub fn split_at_pointer(&self, index: PIndex<'id, T>)
+        -> (PRange<'id, T>, PRange<'id, T, NonEmpty>) {
+        unsafe {
+            let pr = self.pointer_range();
+            (PRange::from(pr.start, index.idx),
+             PRange::from(index.idx, pr.end))
+        }
+    }
+
+    /// Examine the elements `range` in order from higher towards lower
+    /// While the closure returns `true`, continue scan and include the scanned
+    /// element in the range.
+    #[inline]
+    pub fn scan_pointer_range_rev<'b, F, P>(&'b self, range: PRange<'id, T, P>, mut f: F)
+        -> (PRange<'id, T>, PRange<'id, T>)
+        where F: FnMut(&'b T) -> bool, T: 'b,
+    {
+        unsafe {
+            let mut ptr = range.end;
+            while ptr != range.start {
+                if !f(&*ptr.offset(-1)) {
+                    break;
+                }
+                ptr.dec();
+            }
+            (PRange::from(range.start, ptr),
+             PRange::from(ptr, range.end))
         }
     }
 }
@@ -210,7 +262,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
 }
 
 
-impl<'id, T> Iterator for PRange<'id, T> {
+impl<'id, T, P> Iterator for PRange<'id, T, P> {
     type Item = PIndex<'id, T>;
 
     #[inline]
@@ -228,7 +280,7 @@ impl<'id, T> Iterator for PRange<'id, T> {
     }
 }
 
-impl<'id, T> DoubleEndedIterator for PRange<'id, T> {
+impl<'id, T, P> DoubleEndedIterator for PRange<'id, T, P> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.start != self.end {
