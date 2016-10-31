@@ -89,10 +89,10 @@
 //! ```
 //!
 #![doc(html_root_url="https://docs.rs/indexing/0.2/")]
-//#![cfg_attr(not(test), no_std)]
+#![cfg_attr(not(feature = "use_std"), no_std)]
 
-//#[cfg(not(test))]
-//extern crate core as std;
+#[cfg(not(feature = "use_std"))]
+extern crate core as std;
 
 use std::marker::PhantomData;
 use std::fmt::{self, Debug};

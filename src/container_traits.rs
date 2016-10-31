@@ -146,39 +146,53 @@ unsafe impl<T> Contiguous for [T] {
     }
 }
 
-unsafe impl<T> Trustworthy for Vec<T> {
-    type Item = T;
-    fn base_len(&self) -> usize { self.len() }
-}
-
-unsafe impl<T> ContiguousMut for Vec<T> {
-    fn as_mut_slice(&mut self) -> &mut [Self::Item] {
-        self
-    }
-}
-
-unsafe impl<T> GetUnchecked for Vec<T> {
-    unsafe fn xget_unchecked(&self, i: usize) -> &Self::Item {
-        self.get_unchecked(i)
-    }
-}
-
-unsafe impl<T> GetUncheckedMut for Vec<T> {
-    unsafe fn xget_unchecked_mut(&mut self, i: usize) -> &mut Self::Item {
-        self.get_unchecked_mut(i)
-    }
-}
-
-unsafe impl<T> Contiguous for Vec<T> {
-    fn begin(&self) -> *const Self::Item {
-        (**self).begin()
+#[cfg(feature = "use_std")]
+mod vec_impls {
+    use super::*;
+    unsafe impl<T> Trustworthy for Vec<T> {
+        type Item = T;
+        fn base_len(&self) -> usize { self.len() }
     }
 
-    fn end(&self) -> *const Self::Item {
-        (**self).end()
+    unsafe impl<T> ContiguousMut for Vec<T> {
+        fn as_mut_slice(&mut self) -> &mut [Self::Item] {
+            self
+        }
     }
-    fn as_slice(&self) -> &[Self::Item] {
-        self
+
+    unsafe impl<T> GetUnchecked for Vec<T> {
+        unsafe fn xget_unchecked(&self, i: usize) -> &Self::Item {
+            self.get_unchecked(i)
+        }
+    }
+
+    unsafe impl<T> GetUncheckedMut for Vec<T> {
+        unsafe fn xget_unchecked_mut(&mut self, i: usize) -> &mut Self::Item {
+            self.get_unchecked_mut(i)
+        }
+    }
+
+    unsafe impl<T> Contiguous for Vec<T> {
+        fn begin(&self) -> *const Self::Item {
+            (**self).begin()
+        }
+
+        fn end(&self) -> *const Self::Item {
+            (**self).end()
+        }
+        fn as_slice(&self) -> &[Self::Item] {
+            self
+        }
+    }
+    unsafe impl<T> Pushable for Vec<T> {
+        fn push(&mut self, item: T) -> usize {
+            let i = self.len();
+            self.push(item);
+            i
+        }
+        unsafe fn insert_unchecked(&mut self, index: usize, item: Self::Item) {
+            self.insert(index, item)
+        }
     }
 }
 
@@ -187,16 +201,6 @@ pub unsafe trait Pushable : Trustworthy {
     unsafe fn insert_unchecked(&mut self, index: usize, item: Self::Item);
 }
 
-unsafe impl<T> Pushable for Vec<T> {
-    fn push(&mut self, item: T) -> usize {
-        let i = self.len();
-        self.push(item);
-        i
-    }
-    unsafe fn insert_unchecked(&mut self, index: usize, item: Self::Item) {
-        self.insert(index, item)
-    }
-}
 
 unsafe impl<'a, C: ?Sized> Pushable for &'a mut C
     where C: Pushable,

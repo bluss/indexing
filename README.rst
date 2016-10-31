@@ -16,6 +16,10 @@ Main focus is on index ranges, not just single indices.
 .. |crates| image:: http://meritbadge.herokuapp.com/indexing
 .. _crates: https://crates.io/crates/indexing
 
+**Crate Features:**
+
+- ``use_std`` Enabled by default, disable to be ``no_std``-compatible.
+
 References
 ----------
 
