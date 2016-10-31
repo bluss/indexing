@@ -123,7 +123,7 @@ fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
 
 impl<'id, T, P> PRange<'id, T, P> {
     #[inline(always)]
-    pub unsafe fn new(start: *const T, end: *const T) -> Self {
+    unsafe fn new(start: *const T, end: *const T) -> Self {
         debug_assert!(end as usize >= start as usize);
         PRange { id: Id::default(), start: start, end: end, proof: PhantomData }
     }
@@ -625,7 +625,7 @@ impl<'id, T, P> From<PRange<'id, T, P>> for PSlice<'id, T, P> {
 }
 
 impl<'id, T, P> PSlice<'id, T, P> {
-    pub unsafe fn new(start: *const T, len: usize) -> Self {
+    unsafe fn new(start: *const T, len: usize) -> Self {
         debug_assert!(len as isize >= 0);
         PSlice { id: Id::default(), start: start, len: len, proof: PhantomData }
     }
