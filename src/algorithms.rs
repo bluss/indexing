@@ -54,16 +54,14 @@ pub fn quicksort<T: Ord>(v: &mut [T]) {
             };
 
             // partition
-            // I think this is similar to Hoare’s version, wikipedia
             let mut scan = range;
+            v.swap(scan.first(), pivot);
+            pivot = scan.first();
             'main: loop {
-                if v[scan.first()] > v[pivot] {
+                if v[scan.first()] >= v[pivot] {
                     loop {
                         if v[scan.last()] <= v[pivot] {
                             v.swap(scan.first(), scan.last());
-                            if scan.last() == pivot {
-                                pivot = scan.first();
-                            }
                             break;
                         }
                         if !scan.advance_back() {
@@ -72,7 +70,6 @@ pub fn quicksort<T: Ord>(v: &mut [T]) {
                     }
                 }
                 if !scan.advance() {
-                    v.swap(pivot, scan.first());
                     break;
                 }
             }
@@ -115,16 +112,14 @@ pub fn quicksort_prange<T: Ord>(v: &mut [T]) {
             };
 
             // partition
-            // I think this is similar to Hoare’s version, wikipedia
             let mut scan = range;
+            v.swap_ptr(scan.first(), pivot);
+            pivot = scan.first();
             'main: loop {
-                if v[scan.first()] > v[pivot] {
+                if v[scan.first()] >= v[pivot] {
                     loop {
                         if v[scan.last()] <= v[pivot] {
                             v.swap_ptr(scan.first(), scan.last());
-                            if scan.last() == pivot {
-                                pivot = scan.first();
-                            }
                             break;
                         }
                         if !scan.advance_back() {
@@ -133,7 +128,6 @@ pub fn quicksort_prange<T: Ord>(v: &mut [T]) {
                     }
                 }
                 if !scan.advance() {
-                    v.swap_ptr(pivot, scan.first());
                     break;
                 }
             }
@@ -166,17 +160,15 @@ pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
     };
 
     // partition
-    // I think this is similar to Hoare’s version, wikipedia
+    v.swap(0, pivot);
+    pivot = 0;
     let mut i = 0;
     let mut j = v.len() - 1;
     'main: loop {
-        if v[i] > v[pivot] {
+        if v[i] >= v[pivot] {
             loop {
                 if v[j] <= v[pivot] {
                     v.swap(i, j);
-                    if j == pivot {
-                        pivot = i;
-                    }
                     break;
                 }
                 j -= 1;
@@ -184,7 +176,6 @@ pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
             }
         }
         if i >= j {
-            v.swap(pivot, i);
             break;
         }
         i += 1;

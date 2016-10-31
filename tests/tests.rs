@@ -64,6 +64,11 @@ fn is_sorted<T: Clone + Ord>(v: &[T]) -> bool {
     vec.sort();
     vec == v
 }
+fn sorted<T: Clone + Ord>(v: &[T]) -> Vec<T> {
+    let mut v = v.to_vec();
+    v.sort();
+    v
+}
 
 #[test]
 fn qc_quicksort() {
@@ -87,9 +92,11 @@ fn qc_quicksort_bounds() {
 
 quickcheck! {
     fn test_quicksort_prange(v: Vec<i32>) -> bool {
+        let ans = sorted(&v);
         let mut v = v;
         quicksort_prange(&mut v);
-        is_sorted(&v)
+        assert_eq!(&v, &ans);
+        true
     }
 }
 
