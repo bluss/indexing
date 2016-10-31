@@ -29,6 +29,16 @@ Also now described in: `You can't spell trust without Rust <https://raw.githubus
 Recent Changes
 --------------
 
+- 0.2.0
+
+  - Docs are better
+  - Refactor most of the crate, prepare for other backends than slices
+  - Expose ``PIndex, PRange, PSlice`` which are the pointer-based equivalents
+    of safe trusted indices and ranges. Some algos are better when using
+    a raw pointer representation (for example: lower bound). Since we don't
+    have HKT, traitifying all of this is not so pleasant and is not yet complete.
+  - New feature: can combine trusted indices with push/insert on Vec.
+
 - 0.1.2
 
   - Add ``binary_search_by`` and ``lower_bound`` to algorithms. Algorithms

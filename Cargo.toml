@@ -7,7 +7,7 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/bluss/indexing"
 documentation = "https://docs.rs/indexing"
 
-description = "Sound unchecked indexing using “generativity”; a type system approach to indices and ranges that are trusted to be in bounds."
+description = "Sound unchecked indexing using “generativity”; a type system approach to indices, pointers and ranges that are trusted to be in bounds."
 
 keywords = ["data-structure", "generativity", "lower-bound", "no_std"]
 

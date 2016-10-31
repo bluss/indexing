@@ -88,7 +88,7 @@
 //! assert_eq!(lower_bound(&data, &2), 3);
 //! ```
 //!
-#![doc(html_root_url="https://docs.rs/indexing/0.1/")]
+#![doc(html_root_url="https://docs.rs/indexing/0.2/")]
 //#![cfg_attr(not(test), no_std)]
 
 //#[cfg(not(test))]
