@@ -76,10 +76,10 @@ impl<'id, T, P> PRange<'id, T, P> {
     }
 
     #[inline]
-    pub fn len(&self) -> usize { ptrdistance(self.end, self.start) }
+    pub fn len(self) -> usize { ptrdistance(self.end, self.start) }
 
     #[inline]
-    pub fn is_empty(&self) -> bool { self.start == self.end }
+    pub fn is_empty(self) -> bool { self.start == self.end }
 
     /// Check if the range is empty. `NonEmpty` ranges have extra methods.
     #[inline]
