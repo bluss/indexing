@@ -62,16 +62,24 @@ impl<'id, Array> Clone for Container<'id, Array>
 /// `Index<'id>` only indexes the container instantiated with the exact same
 /// particular lifetime for the parameter `'id` at its inception from
 /// the `indices()` constructor.
+///
+/// The type parameter `Proof` determines if the index is dereferenceable.
+///
+/// A `NonEmpty` index points to a valid element. An `Unknown` index is unknown,
+/// or it points to an edge index (just past the end).
 #[derive(Copy, Clone, Eq, PartialOrd)]
-pub struct Index<'id> {
+pub struct Index<'id, Proof = NonEmpty> {
     id: Id<'id>,
     index: usize,
+    /// NonEmpty or Unknown
+    proof: PhantomData<Proof>,
 }
 
-impl<'id> Index<'id> {
+impl<'id, P> Index<'id, P> {
     #[inline(always)]
-    unsafe fn from(index: usize) -> Index<'id> {
-        Index { id: Id::default(), index: index }
+    unsafe fn new(index: usize) -> Index<'id, P> {
+        debug_assert!(index as isize >= 0);
+        Index { id: Id::default(), index: index, proof: PhantomData }
     }
 
     // FIXME: Is this a good idea? Incompatible with pointer representation.
@@ -79,16 +87,16 @@ impl<'id> Index<'id> {
     pub fn integer(&self) -> usize { self.index }
 }
 
-impl<'id> Debug for Index<'id> {
+impl<'id, P> Debug for Index<'id, P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Index({})", self.index)
     }
 }
 
 /// Index can only be compared with other indices of the same branding
-impl<'id> PartialEq for Index<'id> {
+impl<'id, P, Q> PartialEq<Index<'id, Q>> for Index<'id, P> {
     #[inline(always)]
-    fn eq(&self, other: &Index<'id>) -> bool {
+    fn eq(&self, other: &Index<'id, Q>) -> bool {
         self.index == other.index
     }
 }
@@ -126,7 +134,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     pub fn vet(&self, index: usize) -> Result<Index<'id>, IndexingError> {
         if index < self.len() {
             unsafe {
-                Ok(Index::from(index))
+                Ok(Index::new(index))
             }
         } else {
             Err(index_error())
@@ -145,9 +153,9 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     }
 
     #[inline]
-    pub fn split_at(&self, index: Index<'id>) -> (Range<'id>, Range<'id, NonEmpty>) {
+    pub fn split_at<P>(&self, index: Index<'id, P>) -> (Range<'id>, Range<'id, P>) {
         unsafe {
-            (Range::from(0, index.index), Range::from_ne(index.index, self.len()))
+            (Range::from(0, index.index), Range::from_any(index.index, self.len()))
         }
     }
 
@@ -176,7 +184,7 @@ impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
 
     /// Return the range before (not including) the index itself
     #[inline]
-    pub fn before(&self, index: Index<'id>) -> Range<'id> {
+    pub fn before<P>(&self, index: Index<'id, P>) -> Range<'id> {
         unsafe {
             Range::from(0, index.index)
         }
@@ -445,13 +453,13 @@ impl<'id, T, Array, P> ops::IndexMut<Range<'id, P>> for Container<'id, Array>
     }
 }
 
-/// `&self[i..]` where `i` is an `Index<'id>`.
-impl<'id, T, Array> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, Array>
+/// `&self[i..]` where `i` is an `Index<'id, P>` which may be an edge index.
+impl<'id, T, P, Array> ops::Index<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
     #[inline(always)]
-    fn index(&self, r: ops::RangeFrom<Index<'id>>) -> &[T] {
+    fn index(&self, r: ops::RangeFrom<Index<'id, P>>) -> &[T] {
         let i = r.start.index;
         unsafe {
             std::slice::from_raw_parts(
@@ -461,12 +469,12 @@ impl<'id, T, Array> ops::Index<ops::RangeFrom<Index<'id>>> for Container<'id, Ar
     }
 }
 
-/// `&mut self[i..]` where `i` is an `Index<'id>`.
-impl<'id, T, Array> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Container<'id, Array>
+/// `&mut self[i..]` where `i` is an `Index<'id, P>` which may be an edge index.
+impl<'id, T, P, Array> ops::IndexMut<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>,
 {
     #[inline(always)]
-    fn index_mut(&mut self, r: ops::RangeFrom<Index<'id>>) -> &mut [T] {
+    fn index_mut(&mut self, r: ops::RangeFrom<Index<'id, P>>) -> &mut [T] {
         let i = r.start.index;
         unsafe {
             std::slice::from_raw_parts_mut(
@@ -476,13 +484,13 @@ impl<'id, T, Array> ops::IndexMut<ops::RangeFrom<Index<'id>>> for Container<'id,
     }
 }
 
-/// `&self[..i]` where `i` is an `Index<'id>`.
-impl<'id, T, Array> ops::Index<ops::RangeTo<Index<'id>>> for Container<'id, Array>
+/// `&self[..i]` where `i` is an `Index<'id, P>`, which may be an edge index.
+impl<'id, T, P, Array> ops::Index<ops::RangeTo<Index<'id, P>>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
     #[inline(always)]
-    fn index(&self, r: ops::RangeTo<Index<'id>>) -> &[T] {
+    fn index(&self, r: ops::RangeTo<Index<'id, P>>) -> &[T] {
         let i = r.end.index;
         unsafe {
             std::slice::from_raw_parts(self.arr.as_ptr(), i)
@@ -490,12 +498,12 @@ impl<'id, T, Array> ops::Index<ops::RangeTo<Index<'id>>> for Container<'id, Arra
     }
 }
 
-/// `&mut self[..i]` where `i` is an `Index<'id>`.
-impl<'id, T, Array> ops::IndexMut<ops::RangeTo<Index<'id>>> for Container<'id, Array>
+/// `&mut self[..i]` where `i` is an `Index<'id, P>`, which may be an edge index.
+impl<'id, T, P, Array> ops::IndexMut<ops::RangeTo<Index<'id, P>>> for Container<'id, Array>
     where Array: BufferMut<Target=[T]>
 {
     #[inline(always)]
-    fn index_mut(&mut self, r: ops::RangeTo<Index<'id>>) -> &mut [T] {
+    fn index_mut(&mut self, r: ops::RangeTo<Index<'id, P>>) -> &mut [T] {
         let i = r.end.index;
         unsafe {
             std::slice::from_raw_parts_mut(self.arr.as_mut_ptr(), i)
@@ -600,12 +608,12 @@ impl<'id, 'a, T, Array> ops::Index<PIndex<'id, T>> for Container<'id, Array>
     }
 }
 
-impl<'id, T, Array> ops::Index<ops::RangeTo<PIndex<'id, T>>> for Container<'id, Array>
+impl<'id, T, P, Array> ops::Index<ops::RangeTo<PIndex<'id, T, P>>> for Container<'id, Array>
     where Array: Buffer<Target=[T]>,
 {
     type Output = [T];
     #[inline(always)]
-    fn index(&self, r: ops::RangeTo<PIndex<'id, T>>) -> &[T] {
+    fn index(&self, r: ops::RangeTo<PIndex<'id, T, P>>) -> &[T] {
         let len = ptrdistance(r.end.ptr(), self.arr.as_ptr());
         unsafe {
             std::slice::from_raw_parts(self.arr.as_ptr(), len)
@@ -722,9 +730,11 @@ impl<'id, P> Range<'id, P> {
     /// `abs_index` is an absolute index
     #[inline]
     pub fn contains(&self, abs_index: usize) -> Option<Index<'id>> {
-        if abs_index >= self.start && abs_index < self.end {
-            Some(Index { id: self.id, index: abs_index })
-        } else { None }
+        unsafe {
+            if abs_index >= self.start && abs_index < self.end {
+                Some(Index::new(abs_index))
+            } else { None }
+        }
     }
 
     /// Return an iterator that divides the range in `n` parts, in as
@@ -844,12 +854,37 @@ impl<'id> IntoCheckedRange<'id> for Range<'id, NonEmpty> {
     }
 }
 
-impl<'id> Range<'id, NonEmpty> {
+impl<'id, P> Range<'id, P> {
+    /// Return the first index in the range (The index is accessible if the range
+    /// is `NonEmpty`).
     #[inline(always)]
-    pub fn first(&self) -> Index<'id> {
-        Index { id: self.id, index: self.start }
+    pub fn first(&self) -> Index<'id, P> {
+        unsafe {
+            Index::new(self.start)
+        }
     }
 
+    /// Return the middle index, rounding up.
+    ///
+    /// Produces `mid` where `mid = start + len / 2`.
+    #[inline]
+    pub fn upper_middle(&self) -> Index<'id, P> {
+        let mid = self.len() / 2 + self.start;
+        unsafe {
+            Index::new(mid)
+        }
+    }
+
+    /// Return the index past the end of the range.
+    #[inline]
+    pub fn past_the_end(self) -> Index<'id, Unknown> {
+        unsafe {
+            Index::new(self.end)
+        }
+    }
+}
+
+impl<'id> Range<'id, NonEmpty> {
     /// Return the middle index, rounding down.
     ///
     /// Produces `mid` where `mid = start + (len - 1)/ 2`.
@@ -857,21 +892,17 @@ impl<'id> Range<'id, NonEmpty> {
     pub fn lower_middle(&self) -> Index<'id> {
         // nonempty, so len - 1 >= 0
         let mid = (self.len() - 1) / 2 + self.start;
-        Index { id: self.id, index: mid }
+        unsafe {
+            Index::new(mid)
+        }
     }
 
-    /// Return the middle index, rounding up.
-    ///
-    /// Produces `mid` where `mid = start + len / 2`.
-    #[inline]
-    pub fn upper_middle(&self) -> Index<'id> {
-        let mid = self.len() / 2 + self.start;
-        Index { id: self.id, index: mid }
-    }
 
     #[inline]
     pub fn last(&self) -> Index<'id> {
-        Index { id: self.id, index: self.end - 1 }
+        unsafe {
+            Index::new(self.end - 1)
+        }
     }
 
     #[inline]
@@ -990,7 +1021,9 @@ impl<'id> Iterator for RangeIter<'id> {
         if self.start < self.end {
             let index = self.start;
             self.start += 1;
-            Some(Index { id: self.id, index: index })
+            unsafe {
+                Some(Index::new(index))
+            }
         } else {
             None
         }
@@ -1002,7 +1035,9 @@ impl<'id> DoubleEndedIterator for RangeIter<'id> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.start < self.end {
             self.end -= 1;
-            Some(Index { id: self.id, index: self.end })
+            unsafe {
+                Some(Index::new(self.end))
+            }
         } else {
             None
         }

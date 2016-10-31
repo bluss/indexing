@@ -1,7 +1,7 @@
 
 use std::mem;
 
-use indexing::{Range};
+use indexing::{Index, Range};
 use pointer::{PIndex, PRange, PSlice};
 
 /// Length marker for range known to not be empty.
@@ -24,6 +24,18 @@ pub trait Provable {
     type Proof;
     type WithoutProof;
     fn no_proof(self) -> Self::WithoutProof;
+}
+
+impl<'id, P> Provable for Index<'id, P> {
+    type Proof = P;
+    type WithoutProof = Index<'id, Unknown>;
+
+    #[inline]
+    fn no_proof(self) -> Self::WithoutProof {
+        unsafe {
+            mem::transmute(self)
+        }
+    }
 }
 
 impl<'id, P> Provable for Range<'id, P> {
