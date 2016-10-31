@@ -53,7 +53,7 @@
 //!
 //! # Example
 //!
-//! Find the lower bound index for element `elt` using pointer ranges:
+//! Find the lower bound index for element `elt` with a binary search using pointer ranges:
 //!
 //! ```rust
 //! use indexing::scope;
@@ -65,6 +65,11 @@
 //!             // The upper half of the split range still carries the proof
 //!             // that it is non-empty, so we can access the element at `b.first()`
 //!             let (a, b) = range_.split_in_half();
+//!
+//!             // THIS is the only access to the data in the underlying slice;
+//!             // accessing the first element after the range's split point.
+//!             // Access uses indexing syntax `v[index]` but note that the access
+//!             // uses no runtime bounds checking and is guaranteed to be in bounds.
 //!             if v[b.first()] < *elt {
 //!                 // A nonempty range has a tail (everything but the first element)
 //!                 range = b.tail();
