@@ -27,6 +27,7 @@ use index_error::index_error;
 
 use pointer_ext::PointerExt;
 use base::Provable;
+use container_traits::*;
 
 /// `PIndex` is a pointer to a location
 ///
@@ -246,7 +247,7 @@ impl<'id, T> PRange<'id, T, NonEmpty> {
     }
 }
 
-impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
+impl<'id, T, Array> Container<'id, Array> where Array: Contiguous + Buffer<Target=[T]> {
     #[inline]
     pub fn pointer_range(&self) -> PRange<'id, T> {
         unsafe {
@@ -372,7 +373,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 }
-impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
+impl<'id, T, Array> Container<'id, Array> where Array: Contiguous + BufferMut<Target=[T]> {
     #[inline]
     pub fn split_container_at_pointer<P, F, Out>(&mut self, index: PIndex<'id, T, P>, f: F) -> Out
         //-> (PRange<'id, T>, PRange<'id, T, P>)

@@ -20,7 +20,7 @@ use super::Id;
 use prelude::*;
 use base::ProofAdd;
 
-use container_traits::Pushable;
+use container_traits::*;
 
 /// A marker trait for collections where we can safely vet indices
 pub unsafe trait Buffer : Deref {
@@ -119,17 +119,12 @@ impl<'id, P, Q> PartialEq<Index<'id, Q>> for Index<'id, P> {
 }
 
 
-impl<'id, Array, T, Mode> Container<'id, Array, Mode>
-    where Array: Buffer<Target=[T]>
+impl<'id, Array, Mode> Container<'id, Array, Mode>
+    where Array: Trustworthy,
 {
     #[inline]
     pub fn len(&self) -> usize {
-        self.arr.len()
-    }
-
-    #[inline]
-    pub fn as_ptr(&self) -> *const T {
-        self.arr.as_ptr()
+        self.arr.base_len()
     }
 
     /// Convert the container into an only-indexing container.
@@ -142,6 +137,16 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
             arr: self.arr,
             mode: PhantomData,
         }
+    }
+}
+
+
+impl<'id, Array, T, Mode> Container<'id, Array, Mode>
+    where Array: Trustworthy + Buffer<Target=[T]>
+{
+    #[inline]
+    pub fn as_ptr(&self) -> *const T {
+        self.arr.as_ptr()
     }
 
     // Is this a good idea?
@@ -344,7 +349,7 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     /// Swap elements at `i` and `j` (they may be equal).
     #[inline]
     pub fn swap(&mut self, i: Index<'id>, j: Index<'id>)
-        where Array: BufferMut<Target=[T]>,
+        where Array: GetUncheckedMut
     {
         // ptr::swap is ok with equal pointers
         unsafe {
@@ -355,7 +360,7 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     /// Rotate elements in the range `r` by one step to the right (towards higher indices)
     #[inline]
     pub fn rotate1_up<R>(&mut self, r: R)
-        where Array: BufferMut<Target=[T]>,
+        where Array: Contiguous + GetUncheckedMut,
               R: IntoCheckedRange<'id>
     {
         if let Ok(r) = r.into() {
@@ -377,7 +382,7 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     /// Rotate elements in the range `r` by one step to the left (towards lower indices)
     #[inline]
     pub fn rotate1_down<R>(&mut self, r: R)
-        where Array: BufferMut<Target=[T]>,
+        where Array: Contiguous + GetUncheckedMut,
               R: IntoCheckedRange<'id>
     {
         if let Ok(r) = r.into() {
@@ -458,26 +463,26 @@ impl<'id, Array, T> Container<'id, Array, OnlyIndex>
 }
 
 /// `&self[i]` where `i` is an `Index<'id>`.
-impl<'id, T, Array, M> ops::Index<Index<'id>> for Container<'id, Array, M>
-    where Array: Buffer<Target=[T]>
+impl<'id, Array, M> ops::Index<Index<'id>> for Container<'id, Array, M>
+    where Array: GetUnchecked
 {
-    type Output = T;
+    type Output = Array::Item;
     #[inline(always)]
-    fn index(&self, index: Index<'id>) -> &T {
+    fn index(&self, index: Index<'id>) -> &Self::Output {
         unsafe {
-            self.arr.get_unchecked(index.index)
+            self.arr.xget_unchecked(index.index)
         }
     }
 }
 
 /// `&mut self[i]` where `i` is an `Index<'id>`.
-impl<'id, T, Array, M> ops::IndexMut<Index<'id>> for Container<'id, Array, M>
-    where Array: BufferMut<Target=[T]>,
+impl<'id, Array, M> ops::IndexMut<Index<'id>> for Container<'id, Array, M>
+    where Array: GetUncheckedMut
 {
     #[inline(always)]
-    fn index_mut(&mut self, index: Index<'id>) -> &mut T {
+    fn index_mut(&mut self, index: Index<'id>) -> &mut Self::Output {
         unsafe {
-            self.arr.get_unchecked_mut(index.index)
+            self.arr.xget_unchecked_mut(index.index)
         }
     }
 }
@@ -513,7 +518,7 @@ impl<'id, T, Array, P, M> ops::IndexMut<Range<'id, P>> for Container<'id, Array,
 
 /// `&self[i..]` where `i` is an `Index<'id, P>` which may be an edge index.
 impl<'id, T, P, Array, M> ops::Index<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array, M>
-    where Array: Buffer<Target=[T]>,
+    where Array: Trustworthy + Buffer<Target=[T]>,
 {
     type Output = [T];
     #[inline(always)]
@@ -529,7 +534,7 @@ impl<'id, T, P, Array, M> ops::Index<ops::RangeFrom<Index<'id, P>>> for Containe
 
 /// `&mut self[i..]` where `i` is an `Index<'id, P>` which may be an edge index.
 impl<'id, T, P, Array, M> ops::IndexMut<ops::RangeFrom<Index<'id, P>>> for Container<'id, Array, M>
-    where Array: BufferMut<Target=[T]>,
+    where Array: Trustworthy + BufferMut<Target=[T]>,
 {
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeFrom<Index<'id, P>>) -> &mut [T] {
@@ -1114,7 +1119,7 @@ impl<'id> DoubleEndedIterator for RangeIter<'id> {
 #[inline]
 pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     where F: for<'id> FnOnce(Container<'id, Array>, Range<'id>) -> Out,
-          Array: Buffer<Target=[T]>,
+          Array: Trustworthy + Buffer<Target=[T]>,
 {
     // This is where the magic happens. We bind the indexer and indices
     // to the same invariant lifetime (a constraint established by F's
@@ -1136,6 +1141,30 @@ pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     let indexer = Container { id: Id::default(), arr: arr, mode: PhantomData };
     let indices = indexer.range();
     f(indexer, indices)
+}
+
+pub fn scope<Array, F, Out>(arr: Array, f: F) -> Out
+    where F: for<'id> FnOnce(Container<'id, Array>) -> Out,
+          Array: Trustworthy,
+{
+    // This is where the magic happens. We bind the indexer and indices
+    // to the same invariant lifetime (a constraint established by F's
+    // definition). As such, each call to `indices` produces a unique
+    // signature that only these two values can share.
+    //
+    // Within this function, the borrow solver can choose literally any lifetime,
+    // including `'static`, but we don't care what the borrow solver does in
+    // *this* function. We only need to trick the solver in the caller's
+    // scope. Since borrowck doesn't do interprocedural analysis, it
+    // sees every call to this function produces values with some opaque
+    // fresh lifetime and can't unify any of them.
+    //
+    // In principle a "super borrowchecker" that does interprocedural
+    // analysis would break this design, but we could go out of our way
+    // to somehow bind the lifetime to the inside of this function, making
+    // it sound again. Borrowck will never do such analysis, so we don't
+    // care.
+    f(Container { id: Id::default(), arr: arr, mode: PhantomData })
 }
 
 #[derive(Copy, Clone, Debug, PartialOrd, PartialEq)]

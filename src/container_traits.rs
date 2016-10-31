@@ -165,3 +165,13 @@ unsafe impl<T> Pushable for Vec<T> {
     }
 }
 
+unsafe impl<'a, C: ?Sized> Pushable for &'a mut C
+    where C: Pushable,
+{
+    fn push(&mut self, item: Self::Item) -> usize {
+        (**self).push(item)
+    }
+    unsafe fn insert_unchecked(&mut self, index: usize, item: Self::Item) {
+        (**self).insert_unchecked(index, item)
+    }
+}
