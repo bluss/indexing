@@ -60,7 +60,7 @@
 //!
 //! fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 //!     scope(v, move |v| {
-//!         let mut range = v.range();
+//!         let mut range = v.pointer_range();
 //!         while let Ok(range_) = range.nonempty() {
 //!             // The upper half of the split range still carries the proof
 //!             // that it is non-empty, so we can access the element at `b.first()`
@@ -73,7 +73,7 @@
 //!             }
 //!         }
 //!         // return the start index of the range
-//!         range.start()
+//!         v.distance_to(range.first())
 //!     })
 //! }
 //!
