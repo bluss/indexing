@@ -629,6 +629,7 @@ pub fn binary_search_by_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
     Err(range.first())
 }
 
+#[inline(never)]
 pub fn binary_search_by_pslice<'id, T, F>(v: &[T], compare: F)
     -> Result<usize, usize>
     where F: FnMut(&T) -> Ordering,

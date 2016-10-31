@@ -72,7 +72,7 @@ fn bench_binary_search_std_unchecked(b: &mut Bencher) {
     data.sort();
     b.iter(|| {
         for elt in &elements {
-            let _ = black_box(core_binary_search_by(&data, |x| x.cmp(elt)));
+            let _ = black_box(core_binary_search_by(&data, move |x| x.cmp(elt)));
         }
     });
 }
@@ -108,7 +108,7 @@ fn bench_binary_search_pslice(b: &mut Bencher) {
     data.sort();
     b.iter(|| {
         for elt in &elements {
-            let _ = black_box(binary_search_by_pslice(&data, |x| x.cmp(elt)));
+            let _ = black_box(binary_search_by_pslice(&data, move |x| x.cmp(elt)));
         }
     });
 }
@@ -395,27 +395,37 @@ unsafe fn split_at_unchecked<T>(data: &[T], i: usize) -> (&[T], &[T])
     (from_raw_parts(ptr, i), from_raw_parts(ptr.offset(i as isize), data.len() - i))
 }
 
+unsafe fn split_in_half<T>(data: &[T]) -> (&[T], &[T]) {
+    use std::slice::from_raw_parts;
+    let mid_offset = data.len() / 2;
+    let mid = data.as_ptr().offset(mid_offset as isize);
+    (from_raw_parts(data.as_ptr(), mid_offset), from_raw_parts(mid, data.len() - mid_offset))
+}
+
 // libcore binary search but with unchecked indexing
-fn core_binary_search_by<'a, T, F>(data: &'a [T], mut f: F) -> Result<usize, usize>
+#[inline(never)]
+fn core_binary_search_by<'a, T, F>(mut data: &'a [T], mut f: F) -> Result<usize, usize>
     where F: FnMut(&'a T) -> Ordering
 {
     use std::cmp::Ordering::*;
-    let mut base = 0usize;
-    let mut s = data;
+    let base = data.as_ptr();
 
     loop {
-        let mid = s.len() / 2;
-        let (head, tail) = unsafe { split_at_unchecked(s, mid) };
+        let (head, tail) = unsafe { split_at_unchecked(data, data.len() / 2) };
         if tail.is_empty() {
-            return Err(base)
+            break;
         }
         match f(&tail[0]) {
-            Less => {
-                base += head.len() + 1;
-                s = &tail[1..];
-            }
-            Greater => s = head,
-            Equal => return Ok(base + head.len()),
+            Equal => return Ok(ptrdistance(&tail[0], base)),
+            Greater => data = head,
+            Less => data = &tail[1..],
         }
     }
+    Err(ptrdistance(data.as_ptr(), base))
+}
+
+/// return the number of steps between a and b
+fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
+    debug_assert!(a as usize >= b as usize);
+    (a as usize - b as usize) / std::mem::size_of::<T>()
 }
