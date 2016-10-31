@@ -97,7 +97,6 @@ extern crate core as std;
 use std::marker::PhantomData;
 use std::fmt::{self, Debug};
 
-pub mod prelude;
 pub mod indexing;
 pub mod proof;
 pub mod algorithms;
