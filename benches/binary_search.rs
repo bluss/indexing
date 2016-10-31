@@ -54,7 +54,7 @@ fn indexing_binary_search_is_ok(b: &mut Bencher) {
 }
 
 #[bench]
-fn std_binary_search(b: &mut Bencher) {
+fn bench_binary_search_std(b: &mut Bencher) {
     let mut data = test_data_max(N, MAX);
     let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
     data.sort();
@@ -66,13 +66,25 @@ fn std_binary_search(b: &mut Bencher) {
 }
 
 #[bench]
-fn indexing_binary_search(b: &mut Bencher) {
+fn bench_binary_search_range(b: &mut Bencher) {
     let mut data = test_data_max(N, MAX);
     let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
     data.sort();
     b.iter(|| {
         for elt in &elements {
             let _ = black_box(binary_search(&data, elt));
+        }
+    });
+}
+
+#[bench]
+fn bench_binary_search_prange(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            let _ = black_box(binary_search_by_prange(&data, |x| x.cmp(elt)));
         }
     });
 }

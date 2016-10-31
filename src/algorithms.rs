@@ -586,6 +586,49 @@ pub fn binary_search_by<T, F>(v: &[T], mut f: F) -> Result<usize, usize>
     })
 }
 
+pub fn binary_search_by_prange<'id, T, F>(v: &[T], compare: F)
+    -> Result<usize, usize>
+    where F: FnMut(&T) -> Ordering,
+{
+    scope(v, move |v| {
+        match binary_search_by_prange_(v.pointer_range(), &v, compare) {
+            Ok(p) => Ok(v.distance_to(p)),
+            Err(p) => Err(v.distance_to(p)),
+        }
+    })
+}
+
+/// Binary search using comparison `compare`.
+///
+/// Return a valid trusted pointer to the element if it is found, otherwise
+/// return an edge pointer to where the item could be inserted.
+///
+/// `compare` is a closure that is passed `x` from the slice and should return
+/// the result of `x` compared with the element whose position is sought.
+pub fn binary_search_by_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
+                                                     v: &Container<'id, Array>,
+                                                     mut compare: F)
+    -> Result<PIndex<'id, T>, PIndex<'id, T, Unknown>>
+    where F: FnMut(&T) -> Ordering,
+          Array: Contiguous<Item=T>,
+{
+    let mut range = range.no_proof();
+    loop {
+        let (a, b) = range.split_in_half();
+        if let Ok(b_) = b.nonempty() {
+            let mid = b_.first();
+            match compare(&v[mid]) {
+                Ordering::Equal => return Ok(mid),
+                Ordering::Greater => range = a,
+                Ordering::Less => range = b_.tail(),
+            }
+        } else {
+            break;
+        }
+    }
+    Err(range.first())
+}
+
 #[test]
 fn test_binary_search() {
     let data = [3, 7, 8, 11, 15, 22, 26];
