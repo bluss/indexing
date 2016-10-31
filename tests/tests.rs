@@ -140,7 +140,7 @@ fn test_insertion_sort() {
 
 quickcheck! {
     fn test_lower_bound_1(data: Vec<u8>, find: u8) -> bool {
-        lower_bound(&data, &find) == lower_bound_ptr(&data, &find)
+        lower_bound(&data, &find) == lower_bound_raw_ptr(&data, &find)
     }
 
     fn test_lower_bound_2(data: Vec<u8>, find: u8) -> bool {
@@ -151,5 +151,9 @@ quickcheck! {
                 } else {
                     Ordering::Less
                 }).unwrap_err()
+    }
+
+    fn test_lower_bound_3(data: Vec<u8>, find: u8) -> bool {
+        lower_bound(&data, &find) == lower_bound_prange(&data, &find)
     }
 }

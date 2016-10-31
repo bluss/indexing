@@ -210,27 +210,53 @@ fn indexing_lower_bound_few_duplicate(b: &mut Bencher) {
 }
 
 #[bench]
-fn indexing_lower_bound_many_duplicate_ptr(b: &mut Bencher) {
+fn indexing_lower_bound_many_duplicate_raw_ptr(b: &mut Bencher) {
     let max = N as i32 / 5;
     let mut data = test_data_max(N, max);
     let elements = [0, 1, 2, 7, 29, max/3, max/2, max];
     data.sort();
     b.iter(|| {
         for elt in &elements {
-            black_box(lower_bound_ptr(&data, elt));
+            black_box(lower_bound_raw_ptr(&data, elt));
         }
     });
 }
 
 #[bench]
-fn indexing_lower_bound_few_duplicate_ptr(b: &mut Bencher) {
+fn indexing_lower_bound_many_duplicate_prange(b: &mut Bencher) {
+    let max = N as i32 / 5;
+    let mut data = test_data_max(N, max);
+    let elements = [0, 1, 2, 7, 29, max/3, max/2, max];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(lower_bound_prange(&data, elt));
+        }
+    });
+}
+
+#[bench]
+fn indexing_lower_bound_few_duplicate_raw_ptr(b: &mut Bencher) {
     let max = N as i32 * 10;
     let mut data = test_data_max(N, max);
     let elements = [0, 1, 2, 7, 29, max/3, max/2, max];
     data.sort();
     b.iter(|| {
         for elt in &elements {
-            black_box(lower_bound_ptr(&data, elt));
+            black_box(lower_bound_raw_ptr(&data, elt));
+        }
+    });
+}
+
+#[bench]
+fn indexing_lower_bound_few_duplicate_prange(b: &mut Bencher) {
+    let max = N as i32 * 10;
+    let mut data = test_data_max(N, max);
+    let elements = [0, 1, 2, 7, 29, max/3, max/2, max];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            black_box(lower_bound_prange(&data, elt));
         }
     });
 }
@@ -250,7 +276,7 @@ fn indexing_lower_bound_few_duplicate_string(b: &mut Bencher) {
 }
 
 #[bench]
-fn indexing_lower_bound_few_duplicate_string_ptr(b: &mut Bencher) {
+fn indexing_lower_bound_few_duplicate_string_raw_ptr(b: &mut Bencher) {
     let max = N as i32 * 10;
     let numeric_data = test_data_max(N, max);
     let mut data = Vec::from_iter(numeric_data.iter().map(<_>::to_string));
@@ -258,7 +284,7 @@ fn indexing_lower_bound_few_duplicate_string_ptr(b: &mut Bencher) {
     data.sort();
     b.iter(|| {
         for elt in &elements {
-            black_box(lower_bound_ptr(&data, elt));
+            black_box(lower_bound_raw_ptr(&data, elt));
         }
     });
 }

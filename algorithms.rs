@@ -488,6 +488,7 @@ fn test_binary_search() {
     }
 }
 
+#[inline(never)]
 pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     indices(v, move |v, mut range| {
         while let Ok(range_) = range.nonempty() {
@@ -502,8 +503,27 @@ pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     })
 }
 
-// From http://en.cppreference.com/w/cpp/algorithm/lower_bound
-pub fn lower_bound_ptr<T: PartialOrd>(v: &[T], elt: &T) -> usize {
+/// Using PRange (pointer-based safe API)
+#[inline(never)]
+pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
+    indices(v, move |v, _range| {
+        let mut range = v.pointer_range();
+        while let Ok(range_) = range.nonempty_() {
+            let (a, b) = range_.split_in_half();
+            if v[b.first()] < *elt {
+                range = b.tail();
+            } else {
+                range = a;
+            }
+        }
+        v.distance_to(range)
+    })
+}
+
+/// Raw pointer version, for comparison
+/// From http://en.cppreference.com/w/cpp/algorithm/lower_bound
+#[inline(never)]
+pub fn lower_bound_raw_ptr<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     unsafe {
         let mut start = v.as_ptr();
         let end = start.offset(v.len() as isize);
@@ -550,13 +570,31 @@ fn test_lower_bound() {
 #[test]
 fn test_lower_bound_ptr() {
     let data = [3, 7, 8, 8, 8, 11, 11, 11, 15, 22, 22, 26];
-    assert_eq!(lower_bound_ptr(&data, &8), 2);
-    assert_eq!(lower_bound_ptr(&data, &7), 1);
+    assert_eq!(lower_bound_raw_ptr(&data, &8), 2);
+    assert_eq!(lower_bound_raw_ptr(&data, &7), 1);
 
     let elts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 25, 26, 27, 28];
 
     for elt in &elts {
-        assert_eq!(lower_bound_ptr(&data, elt),
+        assert_eq!(lower_bound_raw_ptr(&data, elt),
+            data.binary_search_by(|x| if x >= elt {
+                Ordering::Greater
+            } else {
+                Ordering::Less
+            }).unwrap_err());
+    }
+}
+
+#[test]
+fn test_lower_bound_pointer() {
+    let data = [3, 7, 8, 8, 8, 11, 11, 11, 15, 22, 22, 26];
+    assert_eq!(lower_bound_prange(&data, &8), 2);
+    assert_eq!(lower_bound_prange(&data, &7), 1);
+
+    let elts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 25, 26, 27, 28];
+
+    for elt in &elts {
+        assert_eq!(lower_bound_prange(&data, elt),
             data.binary_search_by(|x| if x >= elt {
                 Ordering::Greater
             } else {

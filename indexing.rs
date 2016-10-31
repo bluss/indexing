@@ -10,7 +10,6 @@
 #![doc(html_root_url="https://docs.rs/indexing/0.1/")]
 
 // Modules
-#[doc(hidden)]
 pub mod pointer;
 pub mod algorithms;
 mod index_error;
@@ -634,6 +633,16 @@ fn ptr_iselement<T>(arr: &[T], ptr: *const T) {
     }
 }
 
+impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Container<'id, &'a [T]> {
+    type Output = T;
+    #[inline(always)]
+    fn index(&self, r: PIndex<'id, T>) -> &T {
+        ptr_iselement(self.arr, r.ptr());
+        unsafe {
+            &*r.ptr()
+        }
+    }
+}
 impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Container<'id, &'a mut [T]> {
     type Output = T;
     #[inline(always)]
@@ -743,7 +752,7 @@ impl<'id, P> Range<'id, P> {
     /// Split the range in half, with the upper middle index landing in the
     /// latter half. Proof of length `P` transfers to the latter half.
     #[inline]
-    pub fn split_in_half(&self) -> (Range<'id>, Range<'id, P>) {
+    pub fn split_in_half(self) -> (Range<'id>, Range<'id, P>) {
         let mid = (self.end - self.start) / 2 + self.start;
         unsafe {
             (Range::from(self.start, mid), Range::from_any(mid, self.end))
@@ -920,7 +929,7 @@ impl<'id> Range<'id, NonEmpty> {
     }
 
     #[inline]
-    pub fn tail(&self) -> Range<'id> {
+    pub fn tail(self) -> Range<'id> {
         // in bounds since it's nonempty
         unsafe {
             Range::from(self.start + 1, self.end)
