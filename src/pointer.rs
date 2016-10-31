@@ -242,7 +242,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
     pub fn pointer_slice(&self) -> PSlice<'id, T> {
         unsafe {
             let start = self.as_ptr();
-            PSlice::from_len(start, self.len())
+            PSlice::from(start, self.len())
         }
     }
 
@@ -436,19 +436,13 @@ impl<'id, T, P> From<PSlice<'id, T, P>> for PRange<'id, T, P> {
 impl<'id, T, P> From<PRange<'id, T, P>> for PSlice<'id, T, P> {
     fn from(range: PRange<'id, T, P>) -> Self {
         unsafe {
-            PSlice::from(range.start, range.end)
+            PSlice::from(range.start, ptrdistance(range.end, range.start))
         }
     }
 }
 
 impl<'id, T, P> PSlice<'id, T, P> {
-    #[inline(always)]
-    pub unsafe fn from(start: *const T, end: *const T) -> Self {
-        debug_assert!(end as usize >= start as usize);
-        PSlice { id: Id::default(), start: start, len: ptrdistance(end, start), proof: PhantomData }
-    }
-
-    pub unsafe fn from_len(start: *const T, len: usize) -> Self {
+    pub unsafe fn from(start: *const T, len: usize) -> Self {
         debug_assert!(len as isize >= 0);
         PSlice { id: Id::default(), start: start, len: len, proof: PhantomData }
     }
@@ -465,7 +459,7 @@ impl<'id, T, P> PSlice<'id, T, P> {
     {
         unsafe {
             if !self.is_empty() {
-                Ok(PSlice::from_len(self.start, self.len))
+                Ok(PSlice::from(self.start, self.len))
             } else {
                 Err(index_error())
             }
@@ -479,7 +473,7 @@ impl<'id, T, P> PSlice<'id, T, P> {
         unsafe {
             let mid_offset = self.len() / 2;
             let mid = self.start.offset(mid_offset as isize);
-            (PSlice::from_len(self.start, mid_offset), PSlice::from_len(mid, self.len() - mid_offset))
+            (PSlice::from(self.start, mid_offset), PSlice::from(mid, self.len() - mid_offset))
         }
     }
 }
@@ -521,7 +515,7 @@ impl<'id, T> PSlice<'id, T, NonEmpty> {
     pub fn tail(self) -> PSlice<'id, T> {
         // in bounds since it's nonempty
         unsafe {
-            PSlice::from_len(self.start.offset(1), self.len - 1)
+            PSlice::from(self.start.offset(1), self.len - 1)
         }
     }
 
@@ -529,7 +523,7 @@ impl<'id, T> PSlice<'id, T, NonEmpty> {
     pub fn init(self) -> PSlice<'id, T> {
         // in bounds since it's nonempty
         unsafe {
-            PSlice::from_len(self.start, self.len - 1)
+            PSlice::from(self.start, self.len - 1)
         }
     }
 }
