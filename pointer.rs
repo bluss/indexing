@@ -237,6 +237,13 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
+    pub fn pointer_slice(&self) -> PSlice<'id, T> {
+        unsafe {
+            let start = self.arr.as_ptr();
+            PSlice::from_len(start, self.arr.len())
+        }
+    }
+
     fn start(&self) -> *const T {
         self.arr.as_ptr()
     }
@@ -392,6 +399,158 @@ impl<'id, T, P> DoubleEndedIterator for PRange<'id, T, P> {
     }
 }
 
+
+#[derive(Debug)]
+pub struct PSlice<'id, T, Proof = Unknown> {
+    id: Id<'id>,
+    start: *const T,
+    len: usize,
+    /// NonEmpty or Unknown
+    proof: PhantomData<Proof>,
+}
+
+impl<'id, T, P> Copy for PSlice<'id, T, P> { }
+impl<'id, T, P> Clone for PSlice<'id, T, P> {
+    fn clone(&self) -> Self { *self }
+}
+
+impl<'id, T, P, Q> PartialEq<PSlice<'id, T, Q>> for PSlice<'id, T, P> {
+    fn eq(&self, rhs: &PSlice<'id, T, Q>) -> bool {
+        self.start == rhs.start && self.len == rhs.len
+    }
+}
+impl<'id, T, P> Eq for PSlice<'id, T, P> { }
+
+
+impl<'id, T, P> PSlice<'id, T, P> {
+    #[inline(always)]
+    pub unsafe fn from(start: *const T, end: *const T) -> Self {
+        debug_assert!(end as usize >= start as usize);
+        PSlice { id: Id::default(), start: start, len: ptrdistance(end, start), proof: PhantomData }
+    }
+
+    pub unsafe fn from_len(start: *const T, len: usize) -> Self {
+        PSlice { id: Id::default(), start: start, len: len, proof: PhantomData }
+    }
+
+    #[inline]
+    pub fn len(self) -> usize { self.len }
+
+    #[inline]
+    pub fn is_empty(self) -> bool { self.len == 0 }
+
+    /// Check if the range is empty. `NonEmpty` ranges have extra methods.
+    #[inline]
+    pub fn nonempty(&self) -> Result<PSlice<'id, T, NonEmpty>, IndexingError>
+    {
+        unsafe {
+            if !self.is_empty() {
+                Ok(PSlice::from_len(self.start, self.len))
+            } else {
+                Err(index_error())
+            }
+        }
+    }
+
+    /// Split the range in half, with the upper middle index landing in the
+    /// latter half. Proof of length `P` transfers to the latter half.
+    #[inline]
+    pub fn split_in_half(self) -> (PSlice<'id, T>, PSlice<'id, T, P>) {
+        unsafe {
+            let mid_offset = self.len() / 2;
+            let mid = self.start.offset(mid_offset as isize);
+            (PSlice::from_len(self.start, mid_offset), PSlice::from_len(mid, self.len() - mid_offset))
+        }
+    }
+}
+
+impl<'id, T, P> PSlice<'id, T, P> {
+    #[inline]
+    pub fn first(self) -> PIndex<'id, T, P> {
+        unsafe {
+            PIndex::from(self.start)
+        }
+    }
+
+    /// Return the middle index, rounding up on even
+    #[inline]
+    pub fn upper_middle(self) -> PIndex<'id, T, P> {
+        unsafe {
+            let mid = self.len() / 2;
+            PIndex::from(self.start.offset(mid as isize))
+        }
+    }
+
+    #[inline]
+    pub fn past_the_end(self) -> PIndex<'id, T, Unknown> {
+        unsafe {
+            PIndex::from(self.start.offset(self.len as isize))
+        }
+    }
+}
+
+impl<'id, T> PSlice<'id, T, NonEmpty> {
+    #[inline]
+    pub fn last(self) -> PIndex<'id, T> {
+        unsafe {
+            PIndex::inbounds(self.start.offset(self.len() as isize - 1))
+        }
+    }
+
+    #[inline]
+    pub fn tail(self) -> PSlice<'id, T> {
+        // in bounds since it's nonempty
+        unsafe {
+            PSlice::from_len(self.start.offset(1), self.len - 1)
+        }
+    }
+
+    #[inline]
+    pub fn init(self) -> PSlice<'id, T> {
+        // in bounds since it's nonempty
+        unsafe {
+            PSlice::from_len(self.start, self.len - 1)
+        }
+    }
+}
+
+    /*
+    /// Increase the range's start, if the result is still a non-empty range.
+    ///
+    /// Return `true` if stepped successfully, `false` if the range would be empty.
+    #[inline]
+    pub fn advance(&mut self) -> bool
+    {
+        unsafe {
+            // always in bounds because the range is nonempty
+            let next_ptr = self.start.offset(1);
+            if next_ptr != self.end {
+                self.start = next_ptr;
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    /// Decrease the range's end, if the result is still a non-empty range.
+    ///
+    /// Return `true` if stepped successfully, `false` if the range would be empty.
+    #[inline]
+    pub fn advance_back(&mut self) -> bool
+    {
+        unsafe {
+            // always in bounds because the range is nonempty
+            let next_end = self.end.offset(-1);
+            if self.start != next_end {
+                self.end = next_end;
+                true
+            } else {
+                false
+            }
+        }
+    }
+    */
 // Copyright 2016 bluss
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or

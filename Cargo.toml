@@ -20,4 +20,4 @@ rand = "0.3"
 quickcheck = "0.3"
 
 [profile.bench]
-debug = true
+#debug = true
