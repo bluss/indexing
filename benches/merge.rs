@@ -77,6 +77,18 @@ macro_rules! bench_insertion_sort {
                 });
                 b.bytes = mem::size_of_val(&data) as u64;
             }
+
+            #[bench]
+            fn libstd_sort(b: &mut Bencher) {
+                let mut data = [0; $n];
+                bench_data(&mut data);
+
+                b.iter(|| {
+                    let mut d = data;
+                    d.sort();
+                });
+                b.bytes = mem::size_of_val(&data) as u64;
+            }
         }
         )*
     }
