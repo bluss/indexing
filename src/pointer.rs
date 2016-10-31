@@ -11,7 +11,7 @@ use {Unknown};
 use IndexingError;
 use index_error::index_error;
 
-/// `PIndex` wraps a valid, non-dangling index or pointer to a location
+/// `PIndex` is a pointer to a location
 ///
 /// It carries a proof (type parameter `Proof`) which when `NonEmpty`, means
 /// it points to a valid element, `Unknown` is an unknown or edge pointer
@@ -75,7 +75,8 @@ impl<'id, T, P> PartialEq for PIndex<'id, T, P> {
 }
 impl<'id, T, P> Eq for PIndex<'id, T, P> { }
 
-/// `PRange` wraps a valid range
+/// `PRange` is a pointer-based valid range with start and end pointer
+/// representation.
 #[derive(Debug)]
 pub struct PRange<'id, T, Proof = Unknown> {
     id: Id<'id>,
@@ -401,6 +402,8 @@ impl<'id, T, P> DoubleEndedIterator for PRange<'id, T, P> {
 }
 
 
+/// `PSlice` is a pointer-based valid range with start pointer and length
+/// representation.
 #[derive(Debug)]
 pub struct PSlice<'id, T, Proof = Unknown> {
     id: Id<'id>,
