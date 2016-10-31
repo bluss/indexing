@@ -18,6 +18,7 @@ use std::ptr;
 use std::ops;
 use std::slice::{from_raw_parts, from_raw_parts_mut};
 
+use indices;
 use super::Id;
 use super::{NonEmpty, Buffer, BufferMut, Container};
 use {Unknown};
@@ -348,6 +349,31 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 }
+impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
+    #[inline]
+    pub fn split_container_at_pointer<P, F, Out>(&mut self, index: PIndex<'id, T, P>, f: F) -> Out
+        //-> (PRange<'id, T>, PRange<'id, T, P>)
+        where F: for<'id1, 'id2> FnOnce(Container<'id1, &mut [T]>, PRange<'id1, T>,
+                                        Container<'id2, &mut [T]>, PRange<'id2, T, P>) -> Out,
+    {
+        unsafe {
+            let mid = self.distance_to(index);
+            let pr = self.pointer_range();
+            let ptr1 = pr.start as *mut _;
+            let ptr2 = index.idx as *mut _;
+            let s1 = from_raw_parts_mut(ptr1, mid);
+            let s2 = from_raw_parts_mut(ptr2, pr.len() - mid);
+            indices(s1, move |i1, _| {
+                indices(s2, move |i2, _| {
+                    let r1 = PRange::from(pr.start, index.idx);
+                    let r2 = PRange::from(index.idx, pr.end);
+                    f(i1, r1, i2, r2)
+                })
+            })
+        }
+    }
+}
+
 
 /// Pointer-based zip (lock step iteration) of two ranges from
 /// two containers.
