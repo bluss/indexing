@@ -15,7 +15,9 @@ extern crate core as std;
 use std::marker::PhantomData;
 use std::fmt::{self, Debug};
 
+pub mod prelude;
 mod indexing;
+pub mod base;
 pub mod pointer;
 pub mod algorithms;
 mod index_error;
@@ -23,8 +25,10 @@ mod pointer_ext;
 
 pub use index_error::IndexingError;
 
-pub use indexing::{Buffer, BufferMut, Unknown, NonEmpty, Container, indices,
+pub use indexing::{Buffer, BufferMut, Container, indices,
 Range, Index};
+
+pub use base::{NonEmpty, Unknown};
 
 
 /// `Id<'id>` is invariant w.r.t `'id`

@@ -17,6 +17,8 @@ use index_error::IndexingError;
 use index_error::index_error;
 use std;
 use super::Id;
+use prelude::*;
+use base::ProofAdd;
 
 /// A marker trait for collections where we can safely vet indices
 pub unsafe trait Buffer : Deref {
@@ -91,26 +93,6 @@ impl<'id> PartialEq for Index<'id> {
     }
 }
 
-
-/// Length marker for range known to not be empty.
-#[derive(Copy, Clone, Debug)]
-pub enum NonEmpty {}
-/// Length marker for unknown length.
-#[derive(Copy, Clone, Debug)]
-pub enum Unknown {}
-
-trait Proof { }
-
-impl Proof for NonEmpty {}
-impl Proof for Unknown {}
-
-/// Represents the combination of two proofs `P` and `Q` by a new type `Sum`.
-pub trait ProofAdd {
-    type Sum;
-}
-
-impl<Q> ProofAdd for (NonEmpty, Q) { type Sum = NonEmpty; }
-impl<Q> ProofAdd for (Unknown, Q) { type Sum = Q; }
 
 impl<'id, Array, T> Container<'id, Array> where Array: Buffer<Target=[T]> {
     #[inline]

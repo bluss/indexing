@@ -626,7 +626,7 @@ use Container;
 use Buffer;
 use pointer::{PIndex, PRange, PSlice};
 use Unknown;
-use pointer::Provable;
+use base::Provable;
 
 pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
                                                 v: &Container<'id, Array>,

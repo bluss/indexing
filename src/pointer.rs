@@ -26,6 +26,7 @@ use IndexingError;
 use index_error::index_error;
 
 use pointer_ext::PointerExt;
+use base::Provable;
 
 /// `PIndex` is a pointer to a location
 ///
@@ -417,44 +418,6 @@ pub fn zip<'id1, 'id2, C1, C2, R1, R2, F>(r1: R1, c1: C1, r2: R2, c2: C2, mut f:
             f(C1::dereference(ptr1), C2::dereference(ptr2));
             ptr1.inc();
             ptr2.inc();
-        }
-    }
-}
-
-pub trait Provable {
-    type WithoutProof;
-    fn no_proof(self) -> Self::WithoutProof;
-}
-
-impl<'id, T, P> Provable for PIndex<'id, T, P> {
-    type WithoutProof = PIndex<'id, T, Unknown>;
-
-    #[inline]
-    fn no_proof(self) -> Self::WithoutProof {
-        unsafe {
-            mem::transmute(self)
-        }
-    }
-}
-
-impl<'id, T, P> Provable for PRange<'id, T, P> {
-    type WithoutProof = PRange<'id, T, Unknown>;
-
-    #[inline]
-    fn no_proof(self) -> Self::WithoutProof {
-        unsafe {
-            mem::transmute(self)
-        }
-    }
-}
-
-impl<'id, T, P> Provable for PSlice<'id, T, P> {
-    type WithoutProof = PSlice<'id, T, Unknown>;
-
-    #[inline]
-    fn no_proof(self) -> Self::WithoutProof {
-        unsafe {
-            mem::transmute(self)
         }
     }
 }
