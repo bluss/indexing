@@ -1110,33 +1110,6 @@ impl<'id> DoubleEndedIterator for RangeIter<'id> {
 /// Indices and ranges branded with `'id` can not leave the closure. The
 /// container can only be accessed and mutated through the `Container` wrapper
 /// passed as the first argument to the indexing scope.
-#[inline]
-pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
-    where F: for<'id> FnOnce(Container<'id, Array>, Range<'id>) -> Out,
-          Array: Trustworthy<Item=T>,
-{
-    // This is where the magic happens. We bind the indexer and indices
-    // to the same invariant lifetime (a constraint established by F's
-    // definition). As such, each call to `indices` produces a unique
-    // signature that only these two values can share.
-    //
-    // Within this function, the borrow solver can choose literally any lifetime,
-    // including `'static`, but we don't care what the borrow solver does in
-    // *this* function. We only need to trick the solver in the caller's
-    // scope. Since borrowck doesn't do interprocedural analysis, it
-    // sees every call to this function produces values with some opaque
-    // fresh lifetime and can't unify any of them.
-    //
-    // In principle a "super borrowchecker" that does interprocedural
-    // analysis would break this design, but we could go out of our way
-    // to somehow bind the lifetime to the inside of this function, making
-    // it sound again. Borrowck will never do such analysis, so we don't
-    // care.
-    let indexer = Container { id: Id::default(), arr: arr, mode: PhantomData };
-    let indices = indexer.range();
-    f(indexer, indices)
-}
-
 pub fn scope<Array, F, Out>(arr: Array, f: F) -> Out
     where F: for<'id> FnOnce(Container<'id, Array>) -> Out,
           Array: Trustworthy,
@@ -1270,7 +1243,8 @@ fn test_frac_step() {
 #[test]
 fn test_intervals() {
     let mut data = [0; 8];
-    indices(&mut data[..], |mut data, r| {
+    scope(&mut data[..], |mut data| {
+        let r = data.range();
         for (index, part) in r.subdivide(3).enumerate() {
             for elt in &mut data[part] {
                 *elt = index;
@@ -1284,7 +1258,8 @@ fn test_intervals() {
 #[test]
 fn intervals() {
     let mut data = [0; 16];
-    indices(&mut data[..], |mut arr, r| {
+    scope(&mut data[..], |mut arr| {
+        let r = arr.range();
         for elt in &mut arr[r] {
             *elt += 1;
         }
@@ -1296,8 +1271,8 @@ fn intervals() {
 #[test]
 fn test_scan() {
     let mut data = [0, 0, 0, 1, 2];
-    indices(&mut data[..], |data, r| {
-        let r = r.nonempty().unwrap();
+    scope(&mut data[..], |data| {
+        let r = data.range().nonempty().unwrap();
         let range = data.scan_from(r.first(), |elt| *elt == 0);
         assert_eq!(&data[range], &[0, 0, 0]);
         let range = data.scan_from(range.last(), |elt| *elt != 0);
@@ -1308,8 +1283,8 @@ fn test_scan() {
 #[test]
 fn test_nonempty() {
     let mut data = [0, 1, 2, 3, 4, 5];
-    indices(&mut data[..], |data, r| {
-        let mut r = r.nonempty().unwrap();
+    scope(&mut data[..], |data| {
+        let mut r = data.range().nonempty().unwrap();
         assert_eq!(data[r.first()], 0);
         assert_eq!(data[r.lower_middle()], 2);
         assert_eq!(data[r.upper_middle()], 3);
@@ -1339,7 +1314,8 @@ fn test_nonempty() {
 #[test]
 fn test_contains() {
     let mut data = [0, 1, 2, 3, 4, 5];
-    indices(&mut data[..], |data, r| {
+    scope(&mut data[..], |data| {
+        let r = data.range();
         for i in 0..data.len() {
             assert!(r.contains(i).is_some());
             assert_eq!(r.contains(i).unwrap(), data.vet(i).unwrap());

@@ -2,7 +2,7 @@ extern crate indexing;
 #[macro_use]
 extern crate quickcheck;
 
-use indexing::indices;
+use indexing::scope;
 use indexing::algorithms::*;
 
 use std::cmp::Ordering;
@@ -11,7 +11,8 @@ use std::cmp::Ordering;
 #[test]
 fn join_add_proof() {
     let data = [1, 2, 3];
-    indices(&data[..], move |_, r| {
+    scope(&data[..], move |v| {
+        let r = v.range();
         if let Ok(r) = r.nonempty() {
             let (front, back) = r.frontiers();
 
@@ -39,7 +40,7 @@ fn join_add_proof() {
 #[test]
 fn range_split_nonempty() {
     let data = [1, 2, 3, 4, 5];
-    indices(&data[..], move |v, _| {
+    scope(&data[..], move |v| {
         for i in 0..v.len() {
             let r = v.vet_range(0..i).unwrap();
             if let Ok(r) = r.nonempty() {

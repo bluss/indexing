@@ -7,7 +7,7 @@
 use std::cmp::{self, Ordering};
 use std::mem::swap;
 
-use indices;
+use scope;
 use pointer::zip;
 
 
@@ -27,7 +27,8 @@ macro_rules! puts {
 
 /// Simple quicksort implemented using `indexing`,
 pub fn quicksort<T: Ord>(v: &mut [T]) {
-    indices(v, |mut v, range| {
+    scope(v, |mut v| {
+        let range = v.range();
         if let Ok(range) = range.nonempty() {
             // Fall back to insertion sort for short sections
             if range.len() <= 16 {
@@ -87,7 +88,7 @@ pub fn quicksort<T: Ord>(v: &mut [T]) {
 
 /// Simple quicksort implemented using `indexing`’s PRange.
 pub fn quicksort_prange<T: Ord>(v: &mut [T]) {
-    indices(v, |mut v, _| {
+    scope(v, |mut v| {
         let range = v.pointer_range();
         if let Ok(range) = range.nonempty() {
             // Fall back to insertion sort for short sections
@@ -200,8 +201,8 @@ pub fn zip_dot_i32(xs: &[i32], ys: &[i32]) -> i32 {
 }
 
 pub fn zip_dot_i32_prange(xs: &[i32], ys: &[i32]) -> i32 {
-    indices(xs, move |v, _| {
-        indices(ys, move |u, _| {
+    scope(xs, move |v| {
+        scope(ys, move |u| {
             let mut sum = 0;
             zip(v.pointer_range(), &v,
                 u.pointer_range(), &u,
@@ -216,8 +217,8 @@ pub fn copy<T: Copy>(xs: &[T], ys: &mut [T]) {
 }
 
 pub fn copy_prange<T: Copy>(xs: &[T], ys: &mut [T]) {
-    indices(xs, move |v, _| {
-        indices(ys, move |mut u, _| {
+    scope(xs, move |v| {
+        scope(ys, move |mut u| {
             zip(v.pointer_range(), &v,
                 u.pointer_range(), &mut u,
                 |&x, y| *y = x);
@@ -258,8 +259,8 @@ fn test_quicksort() {
 }
 
 pub fn insertion_sort_indexes<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
-    indices(v, move |mut v, r| {
-        for i in r {
+    scope(v, move |mut v| {
+        for i in v.range() {
             let jtail = v.scan_from_rev(i, |j_elt| less_than(&v[i], j_elt));
             v.rotate1_up(jtail);
         }
@@ -267,8 +268,8 @@ pub fn insertion_sort_indexes<T, F>(v: &mut [T], mut less_than: F) where F: FnMu
 }
 
 pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
-    indices(v, move |mut v, r| {
-        if let Ok(mut i) = r.nonempty() {
+    scope(v, move |mut v| {
+        if let Ok(mut i) = v.range().nonempty() {
             while i.advance() {
                 let jtail = v.scan_from_rev(i.first(), |j_elt| less_than(&v[i.first()], j_elt));
                 v.rotate1_up(jtail);
@@ -283,7 +284,7 @@ pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut
 pub fn insertion_sort_prange_lower<T, F>(v: &mut [T], mut less_than: F)
     where F: FnMut(&T, &T) -> bool,
 {
-    indices(v, |mut v, _| {
+    scope(v, |mut v| {
         for i in v.pointer_range() {
             let up_to = v.pointer_range_to(i);
             let lb = lower_bound_prange_(up_to, &v, |x| less_than(x, &v[i]));
@@ -296,7 +297,7 @@ pub fn insertion_sort_prange_lower<T, F>(v: &mut [T], mut less_than: F)
 }
 
 pub fn insertion_sort_pointerindex<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
-    indices(v, move |mut v, _r| {
+    scope(v, move |mut v| {
         for i in v.pointer_range() {
             let jtail = v.scan_tail_(i, |j_elt| less_than(&v[i], j_elt));
             v.rotate1_prange(jtail);
@@ -371,8 +372,10 @@ pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &
     if left_end > data.len() || left_end > buffer.len() {
         panic!("merge_internal: data or buffer too short");
     }
-    indices(data, move |mut data, r| {
-        indices(&mut buffer[..left_end], |mut buffer, rb| {
+    scope(data, move |mut data| {
+        let r = data.range();
+        scope(&mut buffer[..left_end], |mut buffer| {
+            let rb = buffer.range();
             let right_end = data.len();
             if right_end - left_end == 0 {
                 return;
@@ -423,8 +426,10 @@ pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &m
     if left_end > data.len() || left_end > buffer.len() {
         panic!("merge_internal: data or buffer too short");
     }
-    indices(data, |mut data, r| {
-        indices(&mut buffer[..left_end], |mut buffer, rb| {
+    scope(data, |mut data| {
+        let r = data.range();
+        scope(&mut buffer[..left_end], |mut buffer| {
+            let rb = buffer.range();
             let mut i = match rb.nonempty() {
                 Ok(r) => r,
                 Err(_) => return,
@@ -483,10 +488,10 @@ fn test_merge_internal() {
 }
 
 pub fn heapify<T: Ord>(v: &mut [T]) {
-    indices(v, |mut v, range| {
+    scope(v, |mut v| {
         // for 0-indexed element k, children are:
         // 2k + 1, 2k + 2
-        let (left, _right) = range.split_in_half();
+        let (left, _right) = v.range().split_in_half();
         for i in left.into_iter().rev() {
             // Sift down element at `i`.
             let mut pos = i;
@@ -547,7 +552,8 @@ pub fn binary_search<T: Ord>(v: &[T], elt: &T) -> Result<usize, usize> {
 pub fn binary_search_by<T, F>(v: &[T], mut f: F) -> Result<usize, usize>
     where F: FnMut(&T) -> Ordering,
 {
-    indices(v, move |v, mut range| {
+    scope(v, move |v| {
+        let mut range = v.range();
         loop {
             /* NOTE: This is sometimes a benefit. But how do we do this cleanly?
             if range.len() < 4 {
@@ -592,7 +598,8 @@ fn test_binary_search() {
 
 //#[inline(never)]
 pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
-    indices(v, move |v, mut range| {
+    scope(v, move |v| {
+        let mut range = v.range();
         while let Ok(range_) = range.nonempty() {
             let (a, b) = range_.split_in_half();
             if v[b.first()] < *elt {
@@ -607,7 +614,7 @@ pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 
 /// Using PRange (pointer-based safe API)
 pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
-    indices(v, move |v, _range| {
+    scope(v, move |v| {
         let mut range = v.pointer_range();
         while let Ok(range_) = range.nonempty() {
             let (a, b) = range_.split_in_half();
@@ -670,7 +677,7 @@ pub fn lower_bound_pslice_<'id, T, P, Array, F>(range: PSlice<'id, T, P>,
 pub fn lower_bound_pslice<T, F>(v: &[T], f: F) -> usize
     where F: FnMut(&T) -> bool,
 {
-    indices(v, move |v, _range| {
+    scope(v, move |v| {
         let range = v.pointer_slice();
         v.distance_to(lower_bound_pslice_(range, &v, f))
     })

@@ -9,12 +9,15 @@
 //! These particles use marker types to for example enable certain methods only
 //! for ranges that are known to be nonempty.
 //!
+//! ***This is an experiment.*** The API is all of inconsistent, incomplete
+//! and redundant, but it explores interesting concepts.
+//!
 //! # Basic Parts
 //!
-//! - A scope is created using the [`indices`](fn.indices.html) function;
+//! - A scope is created using the [`scope`](fn.scope.html) function;
 //!   inside this scope, there is a [`Container`][c] object that has two roles:
-//!   (1) it gives out or vets trusted indices and ranges (2) it provides access
-//!   to the underlying data through these indices and ranges.
+//!   (1) it gives out or vets trusted indices, pointers and ranges (2) it
+//!   provides access to the underlying data through these indices and ranges.
 //!
 //! - The container and its indices and ranges are “branded” with a lifetime
 //!   parameter `'id` which is an identity marker. Branded items
@@ -53,10 +56,11 @@
 //! Find the lower bound index for element `elt` using ranges:
 //!
 //! ```rust
-//! use indexing::indices;
+//! use indexing::scope;
 //!
 //! fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
-//!     indices(v, move |v, mut range| {
+//!     scope(v, move |v| {
+//!         let mut range = v.range();
 //!         while let Ok(range_) = range.nonempty() {
 //!             // The upper half of the split range still carries the proof
 //!             // that it is non-empty, so we can access the element at `b.first()`
@@ -79,9 +83,6 @@
 //! assert_eq!(lower_bound(&data, &2), 3);
 //! ```
 //!
-//!
-//! ***This is an experiment.*** The API is all of inconsistent, incomplete
-//! and redundant, but it explores interesting concepts.
 #![doc(html_root_url="https://docs.rs/indexing/0.1/")]
 //#![cfg_attr(not(test), no_std)]
 
@@ -102,7 +103,7 @@ mod pointer_ext;
 
 pub use index_error::IndexingError;
 
-pub use indexing::{Container, indices, Range, Index};
+pub use indexing::{Container, Range, Index};
 pub use indexing::scope;
 
 pub use base::{NonEmpty, Unknown};

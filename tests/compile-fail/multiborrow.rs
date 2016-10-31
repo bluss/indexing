@@ -1,12 +1,12 @@
 extern crate indexing;
 
-use indexing::indices;
+use indexing::scope;
 
 fn main() {
     let mut arr1 = [1, 2, 3, 4, 5];
 
-    indices(&mut arr1[..], |mut arr1, r1| {
-        let (a, b) = r1.split_in_half();
+    scope(&mut arr1[..], |mut arr1| {
+        let (a, b) = arr1.range().split_in_half();
         for i in a {
             for j in b {
                 &mut arr1[i];

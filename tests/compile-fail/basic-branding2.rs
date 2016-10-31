@@ -1,13 +1,14 @@
 extern crate indexing;
 
-use indexing::indices;
+use indexing::scope;
 
 fn main() {
     let arr1 = [1, 2, 3, 4, 5];
 
     // can hold onto the indices for later, as long they stay in the closure
-    let _a = indices(&arr1[..], |arr, r| {
-        let r = r.nonempty().unwrap();      //~ ERROR cannot infer an appropriate lifetime
+    let _a = scope(&arr1[..], |arr| {
+        let r = arr.range();        //~ ERROR cannot infer an appropriate lifetime
+        let r = r.nonempty().unwrap();      
         let i = r.first();
         println!("{}", &arr[i]);
 

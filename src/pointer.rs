@@ -18,7 +18,7 @@ use std::ptr;
 use std::ops;
 use std::slice::{from_raw_parts, from_raw_parts_mut};
 
-use indices;
+use scope;
 use super::Id;
 use super::{NonEmpty, Container};
 use {Unknown};
@@ -387,8 +387,8 @@ impl<'id, T, Array> Container<'id, Array> where Array: Contiguous<Item=T> {
             let ptr2 = index.idx as *mut _;
             let s1 = from_raw_parts_mut(ptr1, mid);
             let s2 = from_raw_parts_mut(ptr2, pr.len() - mid);
-            indices(s1, move |i1, _| {
-                indices(s2, move |i2, _| {
+            scope(s1, move |i1| {
+                scope(s2, move |i2| {
                     let r1 = PRange::new(pr.start, index.idx);
                     let r2 = PRange::new(index.idx, pr.end);
                     f(i1, r1, i2, r2)
