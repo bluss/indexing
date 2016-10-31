@@ -2,7 +2,6 @@
 use std::cmp::min;
 use std::marker::PhantomData;
 use std::mem;
-use std::ops::Deref;
 use std::ptr;
 use std::ops;
 use std::slice::{from_raw_parts, from_raw_parts_mut};
