@@ -87,6 +87,16 @@ impl<'id, P> Index<'id, P> {
     pub fn integer(&self) -> usize { self.index }
 }
 
+impl<'id> Index<'id, NonEmpty> {
+    /// Return the index directly after.
+    pub fn after(self) -> Index<'id, Unknown> {
+        unsafe {
+            Index::new(self.index + 1)
+        }
+    }
+}
+
+
 impl<'id, P> Debug for Index<'id, P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Index({})", self.index)
