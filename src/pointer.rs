@@ -262,6 +262,15 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
+    #[inline]
+    pub fn pointer_range_to<P>(&self, ptr: PIndex<'id, T, P>) -> PRange<'id, T> {
+        unsafe {
+            let start = self.as_ptr();
+            let end = ptr.idx;
+            PRange::from(start, end)
+        }
+    }
+
     fn start(&self) -> *const T {
         self.as_ptr()
     }
