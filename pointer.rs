@@ -100,6 +100,7 @@ impl<'id, T, P> Eq for PRange<'id, T, P> { }
 
 /// return the number of steps between a and b
 fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
+    debug_assert!(a as usize >= b as usize);
     (a as usize - b as usize) / mem::size_of::<T>()
 }
 
@@ -422,6 +423,21 @@ impl<'id, T, P, Q> PartialEq<PSlice<'id, T, Q>> for PSlice<'id, T, P> {
 impl<'id, T, P> Eq for PSlice<'id, T, P> { }
 
 
+impl<'id, T, P> From<PSlice<'id, T, P>> for PRange<'id, T, P> {
+    fn from(range: PSlice<'id, T, P>) -> Self {
+        unsafe {
+            PRange::from(range.start, range.start.offset(range.len as isize))
+        }
+    }
+}
+impl<'id, T, P> From<PRange<'id, T, P>> for PSlice<'id, T, P> {
+    fn from(range: PRange<'id, T, P>) -> Self {
+        unsafe {
+            PSlice::from(range.start, range.end)
+        }
+    }
+}
+
 impl<'id, T, P> PSlice<'id, T, P> {
     #[inline(always)]
     pub unsafe fn from(start: *const T, end: *const T) -> Self {
@@ -430,6 +446,7 @@ impl<'id, T, P> PSlice<'id, T, P> {
     }
 
     pub unsafe fn from_len(start: *const T, len: usize) -> Self {
+        debug_assert!(len as isize >= 0);
         PSlice { id: Id::default(), start: start, len: len, proof: PhantomData }
     }
 
