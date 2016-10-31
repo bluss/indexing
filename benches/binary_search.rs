@@ -66,6 +66,18 @@ fn bench_binary_search_std(b: &mut Bencher) {
 }
 
 #[bench]
+fn bench_binary_search_std_unchecked(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            let _ = black_box(core_binary_search_by(&data, |x| x.cmp(elt)));
+        }
+    });
+}
+
+#[bench]
 fn bench_binary_search_range(b: &mut Bencher) {
     let mut data = test_data_max(N, MAX);
     let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
@@ -372,4 +384,38 @@ fn short_lower_bound_raw_ptr(b: &mut Bencher) {
         }
         sum
     });
+}
+
+
+unsafe fn split_at_unchecked<T>(data: &[T], i: usize) -> (&[T], &[T])
+{
+    use std::slice::from_raw_parts;
+    debug_assert!(i <= data.len());
+    let ptr = data.as_ptr();
+    (from_raw_parts(ptr, i), from_raw_parts(ptr.offset(i as isize), data.len() - i))
+}
+
+// libcore binary search but with unchecked indexing
+fn core_binary_search_by<'a, T, F>(data: &'a [T], mut f: F) -> Result<usize, usize>
+    where F: FnMut(&'a T) -> Ordering
+{
+    use std::cmp::Ordering::*;
+    let mut base = 0usize;
+    let mut s = data;
+
+    loop {
+        let mid = s.len() / 2;
+        let (head, tail) = unsafe { split_at_unchecked(s, mid) };
+        if tail.is_empty() {
+            return Err(base)
+        }
+        match f(&tail[0]) {
+            Less => {
+                base += head.len() + 1;
+                s = &tail[1..];
+            }
+            Greater => s = head,
+            Equal => return Ok(base + head.len()),
+        }
+    }
 }
