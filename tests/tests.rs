@@ -173,4 +173,13 @@ quickcheck! {
         assert_eq!(ans, data);
         true
     }
+
+    fn test_insertion_sort_prange_lower(data: Vec<u8>) -> bool {
+        let mut data = data;
+        let mut ans = data.clone();
+        ans.sort();
+        insertion_sort_prange_lower(&mut data, |a, b| a < b);
+        assert_eq!(ans, data);
+        true
+    }
 }

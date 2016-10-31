@@ -277,15 +277,19 @@ pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut
     });
 }
 
-pub fn insertion_sort_ranges_lower<T>(v: &mut [T])
-    where T: PartialOrd
+/// Insertion sort using lower_bound to find the place to insert; which
+/// makes it scale better (still restricted to just a smallish number of
+/// elements).
+pub fn insertion_sort_prange_lower<T, F>(v: &mut [T], mut less_than: F)
+    where F: FnMut(&T, &T) -> bool,
 {
-    indices(v, move |mut v, r| {
-        if let Ok(mut i) = r.nonempty() {
-            while i.advance() {
-                let x = lower_bound_prange(&v[..i.first()], &v[i.first()]);
-                let r = v.vet_range(0..x).unwrap();
-                v.rotate1_up(r);
+    indices(v, |mut v, _| {
+        for i in v.pointer_range() {
+            let up_to = v.pointer_range_to(i);
+            let lb = lower_bound_prange_(up_to, &v, |x| less_than(x, &v[i]));
+            // FIXME: There's a less than check here (`lb < i.after()`).
+            if let Ok(lb_range) = v.nonempty_range(lb, i.after()) {
+                v.rotate1_prange(lb_range);
             }
         }
     });
@@ -295,7 +299,7 @@ pub fn insertion_sort_pointerindex<T, F>(v: &mut [T], mut less_than: F) where F:
     indices(v, move |mut v, _r| {
         for i in v.pointer_range() {
             let jtail = v.scan_tail_(i, |j_elt| less_than(&v[i], j_elt));
-            v.rotate1_(jtail);
+            v.rotate1_prange(jtail);
         }
     });
 }
@@ -616,6 +620,32 @@ pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
         }
         v.distance_to(range.first())
     })
+}
+
+
+use Container;
+use Buffer;
+use pointer::{PIndex, PRange};
+use Unknown;
+use pointer::Provable;
+
+pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
+                                                v: &Container<'id, Array>,
+                                                mut less_than: F)
+    -> PIndex<'id, T, Unknown>
+    where Array: Buffer<Target=[T]>,
+          F: FnMut(&T) -> bool,
+{
+    let mut range = range.no_proof();
+    while let Ok(range_) = range.nonempty() {
+        let (a, b) = range_.split_in_half();
+        if less_than(&v[b.first()]) {
+            range = b.tail();
+        } else {
+            range = a;
+        }
+    }
+    range.first()
 }
 
 /// Using PSlice (pointer-based safe API)

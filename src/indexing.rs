@@ -605,21 +605,13 @@ fn ptr_iselement<T>(arr: &[T], ptr: *const T) {
     }
 }
 
-impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Container<'id, &'a [T]> {
+impl<'id, 'a, T, Array> ops::Index<PIndex<'id, T>> for Container<'id, Array>
+    where Array: Buffer<Target=[T]>,
+{
     type Output = T;
     #[inline(always)]
     fn index(&self, r: PIndex<'id, T>) -> &T {
-        ptr_iselement(self.arr, r.ptr());
-        unsafe {
-            &*r.ptr()
-        }
-    }
-}
-impl<'id, 'a, T> ops::Index<PIndex<'id, T>> for Container<'id, &'a mut [T]> {
-    type Output = T;
-    #[inline(always)]
-    fn index(&self, r: PIndex<'id, T>) -> &T {
-        ptr_iselement(self.arr, r.ptr());
+        ptr_iselement(&self.arr[..], r.ptr());
         unsafe {
             &*r.ptr()
         }

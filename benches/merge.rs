@@ -49,7 +49,7 @@ macro_rules! bench_insertion_sort {
 
                 b.iter(|| {
                     let mut d = data;
-                    insertion_sort_ranges_lower(&mut d);
+                    insertion_sort_prange_lower(&mut d, |a, b| a < b);
                 });
                 b.bytes = mem::size_of_val(&data) as u64;
             }

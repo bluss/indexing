@@ -271,6 +271,19 @@ impl<'id, T, Array> Container<'id, Array> where Array: Buffer<Target=[T]> {
         }
     }
 
+    #[inline]
+    pub fn nonempty_range<P, Q>(&self, a: PIndex<'id, T, P>, b: PIndex<'id, T, Q>)
+        -> Result<PRange<'id, T, NonEmpty>, IndexingError>
+    {
+        if (a.idx as usize) < b.idx as usize {
+            unsafe {
+                Ok(PRange::from(a.idx, b.idx))
+            }
+        } else {
+            Err(index_error())
+        }
+    }
+
     fn start(&self) -> *const T {
         self.as_ptr()
     }
@@ -408,7 +421,7 @@ pub fn zip<'id1, 'id2, C1, C2, R1, R2, F>(r1: R1, c1: C1, r2: R2, c2: C2, mut f:
     }
 }
 
-trait Provable {
+pub trait Provable {
     type WithoutProof;
     fn no_proof(self) -> Self::WithoutProof;
 }
@@ -480,7 +493,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: BufferMut<Target=[T]> {
 
     /// Rotate elements in the range by one step to the right (towards higher indices)
     #[inline]
-    pub fn rotate1_(&mut self, r: PRange<'id, T, NonEmpty>) {
+    pub fn rotate1_prange(&mut self, r: PRange<'id, T, NonEmpty>) {
         unsafe {
             let last_ptr = r.last().ptr();
             let first_ptr = r.first().ptr_mut();
