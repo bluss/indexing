@@ -605,20 +605,17 @@ impl<'id, T> PSlice<'id, T, NonEmpty> {
             PSlice::from(self.start, self.len - 1)
         }
     }
-}
 
-    /*
     /// Increase the range's start, if the result is still a non-empty range.
     ///
     /// Return `true` if stepped successfully, `false` if the range would be empty.
     #[inline]
-    pub fn advance(&mut self) -> bool
-    {
+    pub fn advance(&mut self) -> bool {
         unsafe {
             // always in bounds because the range is nonempty
-            let next_ptr = self.start.offset(1);
-            if next_ptr != self.end {
-                self.start = next_ptr;
+            if self.len() > 1 {
+                self.start.inc();
+                self.len -= 1;
                 true
             } else {
                 false
@@ -630,20 +627,16 @@ impl<'id, T> PSlice<'id, T, NonEmpty> {
     ///
     /// Return `true` if stepped successfully, `false` if the range would be empty.
     #[inline]
-    pub fn advance_back(&mut self) -> bool
-    {
-        unsafe {
-            // always in bounds because the range is nonempty
-            let next_end = self.end.offset(-1);
-            if self.start != next_end {
-                self.end = next_end;
-                true
-            } else {
-                false
-            }
+    pub fn advance_back(&mut self) -> bool {
+        // always in bounds because the range is nonempty
+        if self.len() > 1 {
+            self.len -= 1;
+            true
+        } else {
+            false
         }
     }
-    */
+}
 
 /// `&self[r]` where `r` is a `PRange<'id>`.
 impl<'id, T, Array, P> ops::Index<PRange<'id, T, P>> for Container<'id, Array>
