@@ -426,6 +426,17 @@ pub trait Provable {
     fn no_proof(self) -> Self::WithoutProof;
 }
 
+impl<'id, T, P> Provable for PIndex<'id, T, P> {
+    type WithoutProof = PIndex<'id, T, Unknown>;
+
+    #[inline]
+    fn no_proof(self) -> Self::WithoutProof {
+        unsafe {
+            mem::transmute(self)
+        }
+    }
+}
+
 impl<'id, T, P> Provable for PRange<'id, T, P> {
     type WithoutProof = PRange<'id, T, Unknown>;
 
@@ -439,7 +450,6 @@ impl<'id, T, P> Provable for PRange<'id, T, P> {
 
 pub trait PointerRange<'id> : Copy {
     type Item;
-    type Proof;
     fn ptr(self) -> *const Self::Item;
     fn len(self) -> usize;
 }
@@ -447,7 +457,6 @@ pub trait PointerRange<'id> : Copy {
 impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
 {
     type Item = T;
-    type Proof = P;
     fn ptr(self) -> *const Self::Item { self.start }
     fn len(self) -> usize { self.len() }
 }
@@ -455,7 +464,6 @@ impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
 impl<'id, T, P> PointerRange<'id> for PSlice<'id, T, P>
 {
     type Item = T;
-    type Proof = P;
     fn ptr(self) -> *const Self::Item { self.start }
     fn len(self) -> usize { self.len() }
 }
