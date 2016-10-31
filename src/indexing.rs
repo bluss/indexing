@@ -142,11 +142,13 @@ impl<'id, Array, Mode> Container<'id, Array, Mode>
 
 
 impl<'id, Array, T, Mode> Container<'id, Array, Mode>
-    where Array: Trustworthy + Buffer<Target=[T]>
+    where Array: Trustworthy<Item=T>,
 {
     #[inline]
-    pub fn as_ptr(&self) -> *const T {
-        self.arr.as_ptr()
+    pub fn as_ptr(&self) -> *const T
+        where Array: Contiguous<Item=T>,
+    {
+        self.arr.begin()
     }
 
     // Is this a good idea?
@@ -290,6 +292,7 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     #[inline]
     pub fn scan_from<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Range<'id, NonEmpty>
         where F: FnMut(&'b T) -> bool, T: 'b,
+              Array: Contiguous<Item=T>,
     {
         let mut end = index;
         for elt in &self[self.after(index)] {
@@ -311,7 +314,8 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     /// Result always includes `index` in the range.
     #[inline]
     pub fn scan_from_rev<'b, F>(&'b self, index: Index<'id>, mut f: F) -> Range<'id, NonEmpty>
-        where F: FnMut(&'b T) -> bool, T: 'b
+        where F: FnMut(&'b T) -> bool, T: 'b,
+              Array: Contiguous<Item=T>,
     {
         unsafe {
             let mut start = index;
@@ -332,6 +336,7 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     pub fn scan_range<'b, F, P>(&'b self, range: Range<'id, P>, mut f: F)
         -> (Range<'id>, Range<'id>)
         where F: FnMut(&'b T) -> bool, T: 'b,
+              Array: Contiguous<Item=T>,
     {
         let mut end = range.start;
         for elt in &self[range] {
@@ -405,7 +410,7 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     #[inline]
     pub fn index_twice<P, Q>(&mut self, r: Range<'id, P>, s: Range<'id, Q>)
         -> Result<(&mut [T], &mut [T]), IndexingError>
-        where Array: BufferMut<Target=[T]>,
+        where Array: ContiguousMut
     {
         if r.end <= s.start {
             let self_mut = self as *mut Self;
@@ -489,28 +494,28 @@ impl<'id, Array, M> ops::IndexMut<Index<'id>> for Container<'id, Array, M>
 
 /// `&self[r]` where `r` is a `Range<'id>`.
 impl<'id, T, Array, P, M> ops::Index<Range<'id, P>> for Container<'id, Array, M>
-    where Array: Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
 {
     type Output = [T];
     #[inline(always)]
-    fn index(&self, r: Range<'id, P>) -> &[T] {
+    fn index(&self, r: Range<'id, P>) -> &Self::Output {
         unsafe {
             std::slice::from_raw_parts(
-                self.arr.as_ptr().offset(r.start as isize),
+                self.arr.begin().offset(r.start as isize),
                 r.len())
         }
     }
 }
 
 /// `&mut self[r]` where `r` is a `Range<'id>`.
-impl<'id, T, Array, P, M> ops::IndexMut<Range<'id, P>> for Container<'id, Array, M>
-    where Array: BufferMut<Target=[T]>,
+impl<'id, Array, P, M> ops::IndexMut<Range<'id, P>> for Container<'id, Array, M>
+    where Array: ContiguousMut,
 {
     #[inline(always)]
-    fn index_mut(&mut self, r: Range<'id, P>) -> &mut [T] {
+    fn index_mut(&mut self, r: Range<'id, P>) -> &mut Self::Output {
         unsafe {
             std::slice::from_raw_parts_mut(
-                self.arr.as_mut_ptr().offset(r.start as isize),
+                self.arr.begin_mut().offset(r.start as isize),
                 r.len())
         }
     }
@@ -549,27 +554,27 @@ impl<'id, T, P, Array, M> ops::IndexMut<ops::RangeFrom<Index<'id, P>>> for Conta
 
 /// `&self[..i]` where `i` is an `Index<'id, P>`, which may be an edge index.
 impl<'id, T, P, Array, M> ops::Index<ops::RangeTo<Index<'id, P>>> for Container<'id, Array, M>
-    where Array: Buffer<Target=[T]>,
+    where Array: Contiguous<Item=T>,
 {
     type Output = [T];
     #[inline(always)]
     fn index(&self, r: ops::RangeTo<Index<'id, P>>) -> &[T] {
         let i = r.end.index;
         unsafe {
-            std::slice::from_raw_parts(self.arr.as_ptr(), i)
+            std::slice::from_raw_parts(self.arr.begin(), i)
         }
     }
 }
 
 /// `&mut self[..i]` where `i` is an `Index<'id, P>`, which may be an edge index.
 impl<'id, T, P, Array, M> ops::IndexMut<ops::RangeTo<Index<'id, P>>> for Container<'id, Array, M>
-    where Array: BufferMut<Target=[T]>
+    where Array: ContiguousMut<Item=T>,
 {
     #[inline(always)]
     fn index_mut(&mut self, r: ops::RangeTo<Index<'id, P>>) -> &mut [T] {
         let i = r.end.index;
         unsafe {
-            std::slice::from_raw_parts_mut(self.arr.as_mut_ptr(), i)
+            std::slice::from_raw_parts_mut(self.arr.begin_mut(), i)
         }
     }
 }
@@ -1119,7 +1124,7 @@ impl<'id> DoubleEndedIterator for RangeIter<'id> {
 #[inline]
 pub fn indices<Array, F, Out, T>(arr: Array, f: F) -> Out
     where F: for<'id> FnOnce(Container<'id, Array>, Range<'id>) -> Out,
-          Array: Trustworthy + Buffer<Target=[T]>,
+          Array: Trustworthy<Item=T> + Buffer<Target=[T]>,
 {
     // This is where the magic happens. We bind the indexer and indices
     // to the same invariant lifetime (a constraint established by F's

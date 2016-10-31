@@ -20,7 +20,14 @@ pub unsafe trait GetUncheckedMut : GetUnchecked {
     unsafe fn xget_unchecked_mut(&mut self, i: usize) -> &mut Self::Item;
 }
 
-pub unsafe trait Mutable : Trustworthy { }
+pub unsafe trait ContiguousMut : Contiguous {
+    fn begin_mut(&self) -> *mut Self::Item {
+        self.begin() as _
+    }
+    fn end_mut(&self) -> *mut Self::Item {
+        self.end() as _
+    }
+}
 
 unsafe impl<'a, C: ?Sized> Trustworthy for &'a C
     where C: Trustworthy
@@ -40,8 +47,8 @@ unsafe impl<'a, C: ?Sized> Trustworthy for &'a mut C
     }
 }
 
-unsafe impl<'a, C: ?Sized> Mutable for &'a mut C
-    where C: Mutable
+unsafe impl<'a, C: ?Sized> ContiguousMut for &'a mut C
+    where C: ContiguousMut
 { }
 
 unsafe impl<'a, C: ?Sized> GetUnchecked for &'a C
@@ -95,7 +102,7 @@ unsafe impl<T> Trustworthy for [T] {
     fn base_len(&self) -> usize { self.len() }
 }
 
-unsafe impl<T> Mutable for [T] { }
+unsafe impl<T> ContiguousMut for [T] { }
 
 unsafe impl<T> GetUnchecked for [T] {
     unsafe fn xget_unchecked(&self, i: usize) -> &Self::Item {
@@ -125,7 +132,7 @@ unsafe impl<T> Trustworthy for Vec<T> {
     fn base_len(&self) -> usize { self.len() }
 }
 
-unsafe impl<T> Mutable for Vec<T> { }
+unsafe impl<T> ContiguousMut for Vec<T> { }
 
 unsafe impl<T> GetUnchecked for Vec<T> {
     unsafe fn xget_unchecked(&self, i: usize) -> &Self::Item {
