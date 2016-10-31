@@ -89,6 +89,18 @@ fn bench_binary_search_prange(b: &mut Bencher) {
     });
 }
 
+#[bench]
+fn bench_binary_search_pslice(b: &mut Bencher) {
+    let mut data = test_data_max(N, MAX);
+    let elements = [0, 1, 2, 7, 29, MAX/3, MAX/2, MAX];
+    data.sort();
+    b.iter(|| {
+        for elt in &elements {
+            let _ = black_box(binary_search_by_pslice(&data, |x| x.cmp(elt)));
+        }
+    });
+}
+
 fn get(r: Result<usize, usize>) -> usize {
     match r {
         Ok(x) => x,

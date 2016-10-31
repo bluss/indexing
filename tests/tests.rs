@@ -199,4 +199,9 @@ quickcheck! {
         binary_search_by_prange(&data, |x| x.cmp(&find)) ==
             data.binary_search(&find)
     }
+
+    fn test_binary_search_pslice(data: Vec<u8>, find: u8) -> bool {
+        binary_search_by_pslice(&data, |x| x.cmp(&find)) ==
+            data.binary_search(&find)
+    }
 }
