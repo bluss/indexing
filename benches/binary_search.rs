@@ -395,37 +395,45 @@ unsafe fn split_at_unchecked<T>(data: &[T], i: usize) -> (&[T], &[T])
     (from_raw_parts(ptr, i), from_raw_parts(ptr.offset(i as isize), data.len() - i))
 }
 
-unsafe fn split_in_half<T>(data: &[T]) -> (&[T], &[T]) {
-    use std::slice::from_raw_parts;
-    let mid_offset = data.len() / 2;
-    let mid = data.as_ptr().offset(mid_offset as isize);
-    (from_raw_parts(data.as_ptr(), mid_offset), from_raw_parts(mid, data.len() - mid_offset))
-}
 
-// libcore binary search but with unchecked indexing
 #[inline(never)]
-fn core_binary_search_by<'a, T, F>(mut data: &'a [T], mut f: F) -> Result<usize, usize>
+fn core_binary_search_by<'a, T, F>(data: &'a [T], mut compare: F) -> Result<usize, usize>
     where F: FnMut(&'a T) -> Ordering
 {
     use std::cmp::Ordering::*;
-    let base = data.as_ptr();
+    let mut s = data;
+    let base = s.as_ptr();
+    let mut steps = 0;
 
     loop {
-        let (head, tail) = unsafe { split_at_unchecked(data, data.len() / 2) };
+        let (head, tail) = unsafe { split_at_unchecked(s, s.len() / 2) };
+        //let (head, tail) = s.split_at(s.len() / 2);
         if tail.is_empty() {
             break;
         }
-        match f(&tail[0]) {
-            Equal => return Ok(ptrdistance(&tail[0], base)),
-            Greater => data = head,
-            Less => data = &tail[1..],
+        let mid_element = &tail[0];
+        match compare(mid_element) {
+            Equal => {
+                steps += head.len();
+                return Ok(ptr_distance_to(base, mid_element).unwrap_or(steps));
+            }
+            Greater => s = head,
+            Less => {
+                s = &tail[1..];
+                steps += head.len() + 1;
+            }
         }
     }
-    Err(ptrdistance(data.as_ptr(), base))
+    Err(ptr_distance_to(base, s.as_ptr()).unwrap_or(steps))
 }
 
-/// return the number of steps between a and b
-fn ptrdistance<T>(a: *const T, b: *const T) -> usize {
-    debug_assert!(a as usize >= b as usize);
-    (a as usize - b as usize) / std::mem::size_of::<T>()
+use std::mem;
+
+/// return the number of steps in elements from a to b (b must be larger)
+fn ptr_distance_to<T>(a: *const T, b: *const T) -> Option<usize> {
+    if mem::size_of::<T>() == 0 {
+        None
+    } else {
+        Some((b as usize - a as usize) / mem::size_of::<T>())
+    }
 }
