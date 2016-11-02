@@ -17,7 +17,7 @@ use {Id, Index, Range};
 
 
 impl<'id, P> Index<'id, P> {
-    // FIXME: Is this a good idea? Incompatible with pointer representation.
+    /// Return the index as an integer offset from the start of the container
     #[inline]
     pub fn integer(&self) -> usize { self.index }
 }

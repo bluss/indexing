@@ -173,6 +173,11 @@ impl<'id, P> Index<'id, P> {
 ///
 /// The `Range` may carry a proof of nonemptiness (type parameter `Proof`),
 /// which enables further methods.
+///
+/// The range is delimited by a start index and an end index. Some methods
+/// will use offsets relative the the start of a range, others will use
+/// “absolute indices” which are offsets relative to the base `Container`
+/// itself.
 pub struct Range<'id, Proof=Unknown> {
     id: Id<'id>,
     start: usize,
