@@ -22,7 +22,7 @@ impl<Q> ProofAdd for (Unknown, Q) { type Sum = Q; }
 
 pub trait Provable {
     type Proof;
-    type WithoutProof;
+    type WithoutProof : Provable<Proof=Unknown>;
     /// Return a copy of self with the proof parameter set to `Unknown`.
     fn no_proof(self) -> Self::WithoutProof;
 }
