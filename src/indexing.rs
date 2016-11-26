@@ -46,14 +46,6 @@ impl<'id, P, Q> PartialEq<Index<'id, Q>> for Index<'id, P> {
     }
 }
 
-
-
-impl<'id, P> Copy for Range<'id, P> { }
-impl<'id, P> Clone for Range<'id, P> {
-    #[inline]
-    fn clone(&self) -> Self { *self }
-}
-
 impl<'id, P, Q> PartialEq<Range<'id, Q>> for Range<'id, P> {
     fn eq(&self, other: &Range<'id, Q>) -> bool {
         self.start == other.start && self.end == other.end

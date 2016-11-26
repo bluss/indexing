@@ -45,6 +45,8 @@ pub struct PIndex<'id, T, Proof = NonEmpty> {
     proof: PhantomData<Proof>,
 }
 
+copy_and_clone!(['id, T, P] PIndex<'id, T, P>);
+
 impl<'id, T, P> PIndex<'id, T, P> {
     unsafe fn new(p: *const T) -> Self {
         PIndex {
@@ -63,11 +65,6 @@ impl<'id, T> PIndex<'id, T, NonEmpty> {
             proof: PhantomData,
         }
     }
-}
-
-impl<'id, T, P> Copy for PIndex<'id, T, P> { }
-impl<'id, T, P> Clone for PIndex<'id, T, P> {
-    fn clone(&self) -> Self { *self }
 }
 
 impl<'id, T, P> PIndex<'id, T, P> {
@@ -108,10 +105,7 @@ pub struct PRange<'id, T, Proof = Unknown> {
     proof: PhantomData<Proof>,
 }
 
-impl<'id, T, P> Copy for PRange<'id, T, P> { }
-impl<'id, T, P> Clone for PRange<'id, T, P> {
-    fn clone(&self) -> Self { *self }
-}
+copy_and_clone!(['id, T, P] PRange<'id, T, P>);
 
 impl<'id, T, P, Q> PartialEq<PRange<'id, T, Q>> for PRange<'id, T, P> {
     fn eq(&self, rhs: &PRange<'id, T, Q>) -> bool {
@@ -582,10 +576,7 @@ pub struct PSlice<'id, T, Proof = Unknown> {
     proof: PhantomData<Proof>,
 }
 
-impl<'id, T, P> Copy for PSlice<'id, T, P> { }
-impl<'id, T, P> Clone for PSlice<'id, T, P> {
-    fn clone(&self) -> Self { *self }
-}
+copy_and_clone!(['id, T, P] PSlice<'id, T, P>);
 
 impl<'id, T, P, Q> PartialEq<PSlice<'id, T, Q>> for PSlice<'id, T, P> {
     fn eq(&self, rhs: &PSlice<'id, T, Q>) -> bool {

@@ -97,6 +97,7 @@ extern crate core as std;
 use std::marker::PhantomData;
 use std::fmt::{self, Debug};
 
+#[macro_use] mod macro_utils;
 pub mod indexing;
 pub mod proof;
 pub mod algorithms;
@@ -148,13 +149,14 @@ impl<'id> Debug for Id<'id> {
 ///
 /// A `NonEmpty` index points to a valid element. An `Unknown` index is unknown,
 /// or it points to an edge index (just past the end).
-#[derive(Copy, Clone, Eq, PartialOrd)]
+#[derive(Eq, PartialOrd)]
 pub struct Index<'id, Proof = NonEmpty> {
     id: Id<'id>,
     index: usize,
     /// NonEmpty or Unknown
     proof: PhantomData<Proof>,
 }
+copy_and_clone!(['id, P] Index<'id, P>);
 
 impl<'id, P> Index<'id, P> {
     #[inline(always)]
@@ -185,6 +187,7 @@ pub struct Range<'id, Proof=Unknown> {
     /// NonEmpty or Unknown
     proof: PhantomData<Proof>,
 }
+copy_and_clone!(['id, P] Range<'id, P>);
 
 impl<'id> Range<'id> {
     #[inline(always)]
