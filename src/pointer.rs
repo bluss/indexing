@@ -419,9 +419,9 @@ pub fn zip<'id1, 'id2, C1, C2, R1, R2, F>(r1: R1, c1: C1, r2: R2, c2: C2, mut f:
     let _ = c2;
     let len = min(r1.len(), r2.len());
     unsafe {
-        let end = r1.ptr().offset(len as isize);
-        let mut ptr1 = r1.ptr();
-        let mut ptr2 = r2.ptr();
+        let end = r1.first().ptr().offset(len as isize);
+        let mut ptr1 = r1.first().ptr();
+        let mut ptr2 = r2.first().ptr();
         while ptr1 != end {
             f(C1::dereference(ptr1), C2::dereference(ptr2));
             ptr1.inc();
@@ -431,30 +431,26 @@ pub fn zip<'id1, 'id2, C1, C2, R1, R2, F>(r1: R1, c1: C1, r2: R2, c2: C2, mut f:
 }
 
 /// Unsafe because: Must only be implemented by a range branded by `'id`.
-pub unsafe trait PointerRange<'id> : Copy {
+pub trait PointerRange<'id> : Copy {
     type Item;
-    fn ptr(self) -> *const Self::Item;
-    fn end_ptr(self) -> *const Self::Item;
+    fn first(self) -> PIndex<'id, Self::Item, Unknown>;
+    fn end(self) -> PIndex<'id, Self::Item, Unknown>;
     fn len(self) -> usize;
 }
 
-unsafe impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
+impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
 {
     type Item = T;
-    fn ptr(self) -> *const Self::Item { self.start }
-    fn end_ptr(self) -> *const Self::Item { self.end }
+    fn first(self) -> PIndex<'id, T, Unknown> { self.first().no_proof() }
+    fn end(self) -> PIndex<'id, T, Unknown> { self.past_the_end() }
     fn len(self) -> usize { self.len() }
 }
 
-unsafe impl<'id, T, P> PointerRange<'id> for PSlice<'id, T, P>
+impl<'id, T, P> PointerRange<'id> for PSlice<'id, T, P>
 {
     type Item = T;
-    fn ptr(self) -> *const Self::Item { self.start }
-    fn end_ptr(self) -> *const Self::Item {
-        unsafe {
-            self.start.offset(self.len() as isize)
-        }
-    }
+    fn first(self) -> PIndex<'id, T, Unknown> { self.first().no_proof() }
+    fn end(self) -> PIndex<'id, T, Unknown> { self.past_the_end() }
     fn len(self) -> usize { self.len() }
 }
 
