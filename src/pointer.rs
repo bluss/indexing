@@ -30,11 +30,14 @@ use proof::Provable;
 use container_traits::*;
 use ContainerPrivate;
 
-/// `PIndex` is a pointer to a location
+/// `PIndex` is a pointer to a location.
 ///
 /// It carries a proof (type parameter `Proof`) which when `NonEmpty`, means
 /// it points to a valid element, `Unknown` is an unknown or edge pointer
 /// (it can be a one-past-the-end pointer).
+///
+/// `PIndex` can’t itself be dereferenced. Access to the data it points to goes
+/// through indexing the container with it.
 #[derive(Debug)]
 pub struct PIndex<'id, T, Proof = NonEmpty> {
     id: Id<'id>,
@@ -514,6 +517,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: ContiguousMut<Item=T> {
 
 }
 
+/// Pointer range iterator, yields `PIndex<'id, T>`.
 pub struct PRangeIter<'id, T>(PRange<'id, T, Unknown>);
 
 impl<'id, T, P> IntoIterator for PRange<'id, T, P> {
@@ -529,27 +533,29 @@ impl<'id, T> Iterator for PRangeIter<'id, T> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.0.start != self.0.end {
-            let index = self.0.start;
+        if !self.0.is_empty() {
             unsafe {
-                //assume(!index.is_null());
-                self.0.start = self.0.start.offset(1);
-                Some(PIndex::inbounds(index))
+                let ptr = self.0.start.post_inc();
+                Some(PIndex::inbounds(ptr))
             }
         } else {
             None
         }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.len();
+        (len, Some(len))
     }
 }
 
 impl<'id, T> DoubleEndedIterator for PRangeIter<'id, T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.0.start != self.0.end {
+        if !self.0.is_empty() {
             unsafe {
-                //assume(!self.end.is_null());
-                self.0.end  = self.0.end.offset(-1);
-                Some(PIndex::inbounds(self.0.end))
+                let ptr  = self.0.end.pre_dec();
+                Some(PIndex::inbounds(ptr))
             }
         } else {
             None
@@ -557,9 +563,16 @@ impl<'id, T> DoubleEndedIterator for PRangeIter<'id, T> {
     }
 }
 
+impl<'id, T> ExactSizeIterator for PRangeIter<'id, T> {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
 
 /// `PSlice` is a pointer-based valid range with start pointer and length
 /// representation.
+///
+/// Can be converted into a `PRange`.
 #[derive(Debug)]
 pub struct PSlice<'id, T, Proof = Unknown> {
     id: Id<'id>,

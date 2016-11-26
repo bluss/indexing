@@ -17,10 +17,25 @@ pub trait PointerExt : Copy {
         *self = self.offset(1);
     }
 
+    /// Increment by 1, but return the old value
+    #[inline(always)]
+    unsafe fn post_inc(&mut self) -> Self {
+        let current = *self;
+        *self = self.offset(1);
+        current
+    }
+
     /// Decrement by 1
     #[inline(always)]
     unsafe fn dec(&mut self) {
         *self = self.offset(-1);
+    }
+
+    /// Decrement by 1, and return the new value
+    #[inline(always)]
+    unsafe fn pre_dec(&mut self) -> Self {
+        *self = self.offset(-1);
+        *self
     }
 
     /// Offset by `s` multiplied by `index`.
