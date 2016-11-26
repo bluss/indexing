@@ -430,14 +430,15 @@ pub fn zip<'id1, 'id2, C1, C2, R1, R2, F>(r1: R1, c1: C1, r2: R2, c2: C2, mut f:
     }
 }
 
-pub trait PointerRange<'id> : Copy {
+/// Unsafe because: Must only be implemented by a range branded by `'id`.
+pub unsafe trait PointerRange<'id> : Copy {
     type Item;
     fn ptr(self) -> *const Self::Item;
     fn end_ptr(self) -> *const Self::Item;
     fn len(self) -> usize;
 }
 
-impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
+unsafe impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
 {
     type Item = T;
     fn ptr(self) -> *const Self::Item { self.start }
@@ -445,7 +446,7 @@ impl<'id, T, P> PointerRange<'id> for PRange<'id, T, P>
     fn len(self) -> usize { self.len() }
 }
 
-impl<'id, T, P> PointerRange<'id> for PSlice<'id, T, P>
+unsafe impl<'id, T, P> PointerRange<'id> for PSlice<'id, T, P>
 {
     type Item = T;
     fn ptr(self) -> *const Self::Item { self.start }
