@@ -451,14 +451,15 @@ impl<'id, T, P> PointerRange<'id> for PSlice<'id, T, P>
     fn len(self) -> usize { self.len() }
 }
 
-pub trait ContainerRef<'id> {
+/// A reference to a `Container<'id, _, _>`.
+pub unsafe trait ContainerRef<'id> {
     type Item;
     type Ref;
 
     unsafe fn dereference(ptr: *const Self::Item) -> Self::Ref;
 }
 
-impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a Container<'id, Array>
+unsafe impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a Container<'id, Array>
     where Array: Contiguous<Item=T>,
 {
     type Item = T;
@@ -469,7 +470,7 @@ impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a Container<'id, Array>
     }
 }
 
-impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a mut Container<'id, Array>
+unsafe impl<'id, 'a, Array, T: 'a> ContainerRef<'id> for &'a mut Container<'id, Array>
     where Array: ContiguousMut<Item=T>,
 {
     type Item = T;
