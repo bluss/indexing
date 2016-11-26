@@ -264,7 +264,7 @@ impl<'id, T, Array> Container<'id, Array> where Array: Contiguous<Item=T> {
 
     #[inline]
     pub fn pointer_range_of<P, R>(&self, r: R) -> PRange<'id, T>
-        where R: OnePointRange<Index=PIndex<'id, T, P>>,
+        where R: OnePointRange<PIndex<'id, T, P>>,
     {
         debug_assert!(!(r.start().is_some() && r.end().is_some()));
         unsafe {

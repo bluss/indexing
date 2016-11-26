@@ -234,15 +234,11 @@ impl<I: Copy> IndexRange<I> for Range<I> {
     fn end(&self) -> Option<I> { Some(self.end) }
 }
 
-/// A range being `a..` or `..b`
+/// A range with at most one point, being `a..`, `..`, or `..b`.
 // unsafe because: trusted to have at one endpoint
-pub unsafe trait OnePointRange : IndexRange<<Self as OnePointRange>::Index> {
-    type Index: Copy;
+pub unsafe trait OnePointRange<I> : IndexRange<I> {
 }
 
-unsafe impl<I: Copy> OnePointRange for RangeFrom<I> {
-    type Index = I;
-}
-unsafe impl<I: Copy> OnePointRange for RangeTo<I> {
-    type Index = I;
-}
+unsafe impl<I: Copy> OnePointRange<I> for RangeFrom<I> { }
+unsafe impl<I: Copy> OnePointRange<I> for RangeTo<I> { }
+unsafe impl<I: Copy> OnePointRange<I> for RangeFull { }

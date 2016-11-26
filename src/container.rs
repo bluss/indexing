@@ -166,19 +166,28 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     /// Return the range before (not including) the index itself
     #[inline]
     pub fn before<P>(&self, index: Index<'id, P>) -> Range<'id> {
-        unsafe {
-            Range::from(0, index.index)
-        }
+        self.range_of(..index)
     }
 
     /// Return the range after (not including) the index itself
     #[inline]
     pub fn after(&self, index: Index<'id>) -> Range<'id> {
-        // in bounds because index + 1 is <= .len()
+        self.range_of(index.after()..)
+    }
+
+    #[inline]
+    pub fn range_of<P, R>(&self, r: R) -> Range<'id>
+        where R: OnePointRange<Index<'id, P>>,
+    {
+        debug_assert!(!(r.start().is_some() && r.end().is_some()));
         unsafe {
-            Range::from(index.index + 1, self.len())
+            let start = r.start().map_or(0, |i| i.index);
+            let end = r.end().map_or(self.len(), |i| i.index);
+            debug_assert!(start <= end && end <= self.len());
+            Range::from(start, end)
         }
     }
+
 
     /// Increment `index`, if doing so would still be in bounds.
     ///
