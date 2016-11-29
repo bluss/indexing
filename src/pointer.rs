@@ -514,12 +514,21 @@ impl<'id, T, Array> Container<'id, Array> where Array: ContiguousMut<Item=T> {
 
 /// Pointer range iterator, yields `PIndex<'id, T>`.
 pub struct PRangeIter<'id, T>(PRange<'id, T, Unknown>);
+copy_and_clone!(['id, T] PRangeIter<'id, T>);
 
 impl<'id, T, P> IntoIterator for PRange<'id, T, P> {
     type Item = PIndex<'id, T>;
     type IntoIter = PRangeIter<'id, T>;
     fn into_iter(self) -> Self::IntoIter {
         PRangeIter(self.no_proof())
+    }
+}
+
+impl<'id, T> PRangeIter<'id, T> {
+    /// Return the range corresponding to the iterator's current
+    /// remaining elements.
+    pub fn into_range(self) -> PRange<'id, T> {
+        self.0
     }
 }
 
