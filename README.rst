@@ -33,6 +33,12 @@ Also now described in: `You can't spell trust without Rust <https://raw.githubus
 Recent Changes
 --------------
 
+- 0.3.0
+
+  - Tweak implementation traits a bit, ``PointerRange``, ``Provable``,
+    ``ContainerRef``, make them ``unsafe`` where needed.
+  - Add ``Container::range_of``
+
 - 0.2.0
 
   - Docs are better
