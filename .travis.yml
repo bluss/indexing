@@ -14,11 +14,11 @@ script:
   - |
       cargo build &&
       if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
-        cargo test
+        cargo test &&
+        cargo bench
       else
         true
       fi &&
-      cargo bench &&
       cargo doc
 
 env:
