@@ -13,7 +13,6 @@ branches:
 script:
   - |
       cargo build &&
-      cargo --only nightly test &&
       if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
         cargo test
       else
