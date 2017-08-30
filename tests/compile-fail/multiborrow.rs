@@ -12,8 +12,8 @@ fn main() {
                 &mut arr1[i];
                 &mut arr1[j];
 
-                let x = &arr1[i];
-                let y = &mut arr1[j]; //~ ERROR: as mutable because it is also borrowed
+                let _x = &arr1[i];
+                let _y = &mut arr1[j]; //~ ERROR: as mutable because it is also borrowed
             }
         }
     });
