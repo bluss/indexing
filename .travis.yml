@@ -9,19 +9,18 @@ branches:
   only:
     - master
 
-# load travis-cargo
-before_script:
-  - |
-      pip install 'travis-cargo<0.2' --user &&
-      export PATH=$HOME/.local/bin:$PATH
-
 # the main build
 script:
   - |
-      travis-cargo build &&
-      travis-cargo --only nightly test &&
-      travis-cargo bench &&
-      travis-cargo doc
+      cargo build &&
+      cargo --only nightly test &&
+      if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
+        cargo test
+      else
+        true
+      fi &&
+      cargo bench &&
+      cargo doc
 
 env:
   global:
