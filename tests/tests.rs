@@ -6,6 +6,7 @@ use indexing::scope;
 use indexing::algorithms::*;
 
 use std::cmp::Ordering;
+use std::fmt::Debug;
 
 
 #[test]
@@ -154,12 +155,15 @@ fn test_insertion_sort() {
     assert_eq!(&data[..], &data2[..]);
 }
 
+fn sorted_vec<T: Ord>(mut v: Vec<T>) -> Vec<T> { v.sort(); v }
+
 quickcheck! {
     fn test_lower_bound_1(data: Vec<u8>, find: u8) -> bool {
         lower_bound(&data, &find) == lower_bound_raw_ptr(&data, &find)
     }
 
     fn test_lower_bound_2(data: Vec<u8>, find: u8) -> bool {
+        let data = sorted_vec(data);
         lower_bound(&data, &find) ==
             data.binary_search_by(|x|
                 if *x >= find {
@@ -170,38 +174,49 @@ quickcheck! {
     }
 
     fn test_lower_bound_3(data: Vec<u8>, find: u8) -> bool {
+        let data = sorted_vec(data);
         lower_bound(&data, &find) == lower_bound_prange(&data, &find)
     }
 
     fn test_lower_bound_4(data: Vec<u8>, find: u8) -> bool {
+        let data = sorted_vec(data);
         lower_bound_pslice(&data, |x| *x < find) == lower_bound_raw_ptr(&data, &find)
     }
 
-    fn test_insertion_sort_prange(data: Vec<u8>) -> bool {
+    fn test_insertion_sort_prange(data: Vec<u8>) -> () {
         let mut data = data;
-        let mut ans = data.clone();
-        ans.sort();
+        let ans = sorted_vec(data.clone());
         insertion_sort_pointerindex(&mut data, |a, b| a < b);
         assert_eq!(ans, data);
-        true
     }
 
-    fn test_insertion_sort_prange_lower(data: Vec<u8>) -> bool {
+    fn test_insertion_sort_prange_lower(data: Vec<u8>) -> () {
         let mut data = data;
-        let mut ans = data.clone();
-        ans.sort();
+        let ans = sorted_vec(data.clone());
         insertion_sort_prange_lower(&mut data, |a, b| a < b);
         assert_eq!(ans, data);
-        true
     }
 
-    fn test_binary_search_prange(data: Vec<u8>, find: u8) -> bool {
-        binary_search_by_prange(&data, |x| x.cmp(&find)) ==
-            data.binary_search(&find)
+    fn test_binary_search_prange(data: Vec<u8>, find: u8) -> () {
+        let data = sorted_vec(data);
+        assert_binary_search_ok(&data, data.binary_search(&find),
+            binary_search_by_prange(&data, |x| x.cmp(&find)))
     }
 
-    fn test_binary_search_pslice(data: Vec<u8>, find: u8) -> bool {
-        binary_search_by_pslice(&data, |x| x.cmp(&find)) ==
-            data.binary_search(&find)
+    fn test_binary_search_pslice(data: Vec<u8>, find: u8) -> () {
+        let data = sorted_vec(data);
+        assert_binary_search_ok(&data, data.binary_search(&find),
+            binary_search_by_pslice(&data, |x| x.cmp(&find)))
+    }
+}
+
+type R = Result<usize, usize>;
+fn assert_binary_search_ok<T>(data: &[T], expected: R, result: R)
+    where T: Debug + Ord
+{
+    if let (Ok(i), Ok(j)) = (expected, result) {
+        assert!(i == j || data[i] == data[j]);
+    } else if expected != result {
+        panic!("expected: {:?}, got: {:?}", expected, result);
     }
 }
