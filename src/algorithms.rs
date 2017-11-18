@@ -774,7 +774,7 @@ pub fn lower_bound_pslice<T, F>(v: &[T], f: F) -> usize
 }
 
 /// Raw pointer version, for comparison
-/// From http://en.cppreference.com/w/cpp/algorithm/lower_bound
+/// From [cppreference](http://en.cppreference.com/w/cpp/algorithm/lower_bound)
 pub fn lower_bound_raw_ptr<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     unsafe {
         let mut start = v.as_ptr();
