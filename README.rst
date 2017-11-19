@@ -33,6 +33,11 @@ Also now described in: `You can't spell trust without Rust <https://raw.githubus
 Recent Changes
 --------------
 
+- 0.3.1
+
+  - Fixes in tests
+  - Add crates.io categories
+
 - 0.3.0
 
   - Tweak implementation traits a bit, ``PointerRange``, ``Provable``,

@@ -1,6 +1,6 @@
 [package]
 name = "indexing"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["bluss"]
 
 license = "MIT/Apache-2.0"
@@ -10,20 +10,23 @@ documentation = "https://docs.rs/indexing"
 description = "Sound unchecked indexing using “generativity”; a type system approach to indices, pointers and ranges that are trusted to be in bounds."
 
 keywords = ["data-structure", "generativity", "lower-bound", "no_std"]
+categories = ["no-std", "rust-patterns"]
 
 [lib]
 
 [dev-dependencies]
-compiletest_rs = "0.2"
+compiletest_rs = "0.2.10"
 rand = "0.3"
 quickcheck = { version = "0.4.0", default-features = false }
 
-
 [features]
-
 default = ["use_std"]
+
 # Turn off std to use `no_std`
 use_std = []
 
 [profile.bench]
 #debug = true
+
+[package.metadata.release]
+no-dev-version = true
