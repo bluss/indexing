@@ -15,7 +15,7 @@ categories = ["no-std", "rust-patterns"]
 [lib]
 
 [dev-dependencies]
-compiletest_rs = "0.2.10"
+compiletest_rs = "0.3.3"
 rand = "0.3"
 quickcheck = { version = "0.4.0", default-features = false }
 
