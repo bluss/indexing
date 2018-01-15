@@ -323,8 +323,8 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
         if let Ok(r) = r.into() {
             if r.first() != r.last() {
                 unsafe {
-                    let last_ptr = &self[r.last()] as *const _;
-                    let first_ptr = &mut self[r.first()] as *mut _;
+                    let last_ptr = &self[r.last()] as *const Array::Item;
+                    let first_ptr = &mut self[r.first()] as *mut Array::Item;
                     let tmp = ptr::read(last_ptr);
                     ptr::copy(first_ptr,
                               first_ptr.offset(1),
@@ -345,8 +345,8 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
         if let Ok(r) = r.into() {
             if r.first() != r.last() {
                 unsafe {
-                    let last_ptr = &mut self[r.last()] as *mut _;
-                    let first_ptr = &mut self[r.first()] as *mut _;
+                    let last_ptr = &mut self[r.last()] as *mut Array::Item;
+                    let first_ptr = &mut self[r.first()] as *mut Array::Item;
                     let tmp = ptr::read(first_ptr);
                     ptr::copy(first_ptr.offset(1),
                               first_ptr,
