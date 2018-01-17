@@ -308,9 +308,11 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     pub fn swap(&mut self, i: Index<'id>, j: Index<'id>)
         where Array: GetUncheckedMut
     {
-        // ptr::swap is ok with equal pointers
         unsafe {
-            ptr::swap(&mut self[i], &mut self[j])
+            let self_mut = self as *mut Self;
+            let pi: *mut _ = &mut (*self_mut)[i];
+            let pj: *mut _ = &mut (*self_mut)[j];
+            ptr::swap(pi, pj);
         }
     }
 
