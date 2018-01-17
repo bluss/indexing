@@ -181,8 +181,8 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     {
         debug_assert!(!(r.start().is_some() && r.end().is_some()));
         unsafe {
-            let start = r.start().map_or(0, |i| i.index);
-            let end = r.end().map_or(self.len(), |i| i.index);
+            let start = r.start().map(|i| i.index).unwrap_or(0);
+            let end = r.end().map(|i| i.index).unwrap_or(self.len());
             debug_assert!(start <= end && end <= self.len());
             Range::from(start, end)
         }
