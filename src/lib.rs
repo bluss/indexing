@@ -149,7 +149,6 @@ impl<'id> Debug for Id<'id> {
 ///
 /// A `NonEmpty` index points to a valid element. An `Unknown` index is unknown,
 /// or it points to an edge index (just past the end).
-#[derive(Eq, PartialOrd)]
 pub struct Index<'id, Proof = NonEmpty> {
     id: Id<'id>,
     index: usize,

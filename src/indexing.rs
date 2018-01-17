@@ -2,7 +2,8 @@
 
 // Modules
 
-use std::cmp;
+use std::cmp::{self, Ordering};
+use std::hash::{Hash, Hasher};
 use std::mem;
 
 use std::fmt::{self, Debug};
@@ -41,8 +42,32 @@ impl<'id, P> Debug for Index<'id, P> {
 /// Index can only be compared with other indices of the same branding
 impl<'id, P, Q> PartialEq<Index<'id, Q>> for Index<'id, P> {
     #[inline(always)]
-    fn eq(&self, other: &Index<'id, Q>) -> bool {
-        self.index == other.index
+    fn eq(&self, rhs: &Index<'id, Q>) -> bool {
+        self.index == rhs.index
+    }
+}
+
+impl<'id, P> Eq for Index<'id, P> { }
+
+impl<'id, P, Q> PartialOrd<Index<'id, Q>> for Index<'id, P> {
+    fn partial_cmp(&self, rhs: &Index<'id, Q>) -> Option<Ordering> {
+        Some(self.index.cmp(&rhs.index))
+    }
+
+    fn lt(&self, rhs: &Index<'id, Q>) -> bool {
+        self.index < rhs.index
+    }
+}
+
+impl<'id, P> Ord for Index<'id, P> {
+    fn cmp(&self, rhs: &Self) -> Ordering {
+        self.index.cmp(&rhs.index)
+    }
+}
+
+impl<'id, P> Hash for Index<'id, P> {
+    fn hash<H: Hasher>(&self, h: &mut H) {
+        self.index.hash(h)
     }
 }
 
@@ -53,6 +78,13 @@ impl<'id, P, Q> PartialEq<Range<'id, Q>> for Range<'id, P> {
 }
 
 impl<'id, P> Eq for Range<'id, P> { }
+
+impl<'id, P> Hash for Range<'id, P> {
+    fn hash<H: Hasher>(&self, h: &mut H) {
+        self.start.hash(h);
+        self.end.hash(h);
+    }
+}
 
 impl<'id, P> Range<'id, P> {
     /// Return the length of the range.
