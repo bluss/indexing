@@ -33,6 +33,11 @@ Also now described in: `You can't spell trust without Rust <https://raw.githubus
 Recent Changes
 --------------
 
+- 0.3.2
+
+  - Fix future compatibility warning about pointer casts.
+  - Add ``Ord, Hash`` impls for ``Index`` and ``Hash`` for ``Range``
+
 - 0.3.1
 
   - Fixes in tests
