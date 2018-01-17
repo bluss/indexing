@@ -12,6 +12,7 @@ use pointer::zip;
 
 
 // for debugging -- like println during debugging
+/*
 #[cfg(debug_assertions)]
 macro_rules! puts {
     ($($t:tt)*) => {
@@ -24,6 +25,7 @@ macro_rules! puts {
     ($($t:tt)*) => {
     }
 }
+*/
 
 // limit for switching to insertion sort
 const QS_INSERTION_SORT_THRESH: usize = 24;
