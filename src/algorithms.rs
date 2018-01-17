@@ -478,13 +478,13 @@ fn test_merge_internal() {
 
     {
         let mut workspace = data.clone();
-        merge_internal_indices(&mut workspace, a.len(), &mut buffer);
+        merge_internal_indices(&mut workspace, a.len(), &mut buffer).ok();
         assert_eq!(workspace, ans);
         assert!(buffer.iter().all(|x| *x == 0));
     }
     {
         let mut workspace = data.clone();
-        merge_internal_ranges(&mut workspace, a.len(), &mut buffer);
+        merge_internal_ranges(&mut workspace, a.len(), &mut buffer).ok();
         assert_eq!(workspace, ans);
         assert!(buffer.iter().all(|x| *x == 0));
     }
