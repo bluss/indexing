@@ -143,7 +143,7 @@ impl<'id> Debug for Id<'id> {
 ///
 /// `Index<'id>` only indexes the container instantiated with the exact same
 /// particular lifetime for the parameter `'id` at its inception from
-/// the `indices()` constructor.
+/// the `scope()` function.
 ///
 /// The type parameter `Proof` determines if the index is dereferenceable.
 ///
@@ -170,7 +170,7 @@ impl<'id, P> Index<'id, P> {
 ///
 /// `Range<'id>` only indexes the container instantiated with the exact same
 /// particular lifetime for the parameter `'id` at its inception from
-/// the `indices()` constructor.
+/// the `scope()` function.
 ///
 /// The `Range` may carry a proof of nonemptiness (type parameter `Proof`),
 /// which enables further methods.
