@@ -7,7 +7,7 @@ fn main() {
 
     // can hold onto the pointers for later, as long they stay in the closure
     let _a = scope(&arr1[..], |arr| {
-        let r = arr.pointer_range();        //~ ERROR cannot infer an appropriate lifetime
+        let r = arr.pointer_range();        //~ ERROR borrowed data cannot be stored outside of its closure
         let r = r.nonempty().unwrap();      
         let i = r.first();
         println!("{}", &arr[i]);
