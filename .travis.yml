@@ -3,8 +3,12 @@ sudo: false
 
 # run builds for all the trains (and more)
 rust:
+  - 1.27.0
   - stable
+  - beta
   - nightly
+    env:
+        - FEATURES='test_compiletest'
 branches:
   only:
     - master
@@ -12,14 +16,14 @@ branches:
 # the main build
 script:
   - |
-      cargo build &&
+      cargo build -v --features=$FEATURES &&
+      cargo test -v --features=$FEATURES &&
       if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
-        cargo test &&
-        cargo bench
+        cargo bench -v --no-run
       else
         true
       fi &&
-      cargo doc
+      cargo doc -v
 
 env:
   global:
