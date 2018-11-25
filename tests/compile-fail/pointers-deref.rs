@@ -8,7 +8,7 @@ fn main() {
     // The .first() ptr is not dereferenceable when we don't have a length proof
     let _a = scope(&arr1[..], |arr| {
         let r = arr.pointer_range();
-        println!("{}", &arr[r.first()]); //~ ERROR the trait bound
+        println!("{}", &arr[r.first()]); //~ ERROR cannot be indexed by
     });
 }
 
