@@ -16,8 +16,8 @@ categories = ["no-std", "rust-patterns"]
 
 [dev-dependencies]
 compiletest_rs = "0.3.17"
-rand = "0.3"
-quickcheck = { version = "0.5.0", default-features = false }
+rand = "0.5"
+quickcheck = { version = "0.7", default-features = false }
 
 [features]
 default = ["use_std"]
