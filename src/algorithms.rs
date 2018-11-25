@@ -468,6 +468,7 @@ pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &m
     Ok(())
 }
 
+#[cfg(feature="use_std")]
 #[test]
 fn test_merge_internal() {
     let mut buffer = [0; 128];

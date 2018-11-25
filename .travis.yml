@@ -16,6 +16,8 @@ branches:
 # the main build
 script:
   - |
+      cargo build -v --no-default-features &&
+      cargo test -v --no-default-features &&
       cargo build -v --features=$FEATURES &&
       cargo test -v --features=$FEATURES &&
       if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then

@@ -1,3 +1,4 @@
+#![cfg(feature="use_std")]
 
 extern crate indexing;
 

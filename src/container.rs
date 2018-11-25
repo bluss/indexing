@@ -660,7 +660,7 @@ fn intervals() {
         for elt in &mut arr[r] {
             *elt += 1;
         }
-        println!("{:?}", &mut arr[r]);
+        // println!("{:?}", &mut arr[r]);
     });
 }
 
