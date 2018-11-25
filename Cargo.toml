@@ -14,8 +14,10 @@ categories = ["no-std", "rust-patterns"]
 
 [lib]
 
+[dependencies]
+compiletest_rs = { version = "0.3.17", optional = true }
+
 [dev-dependencies]
-compiletest_rs = "0.3.17"
 rand = "0.5"
 quickcheck = { version = "0.7", default-features = false }
 
@@ -25,7 +27,7 @@ default = ["use_std"]
 # Turn off std to use `no_std`
 use_std = []
 
-test_compiletest = []
+test_compiletest = ["compiletest_rs"]
 
 [profile.bench]
 #debug = true
