@@ -22,12 +22,8 @@ pub unsafe trait GetUncheckedMut : GetUnchecked {
 }
 
 pub unsafe trait ContiguousMut : Contiguous {
-    fn begin_mut(&self) -> *mut Self::Item {
-        self.begin() as _
-    }
-    fn end_mut(&self) -> *mut Self::Item {
-        self.end() as _
-    }
+    fn begin_mut(&mut self) -> *mut Self::Item;
+    fn end_mut(&mut self) -> *mut Self::Item;
     fn as_mut_slice(&mut self) -> &mut [Self::Item];
 }
 
@@ -52,6 +48,8 @@ unsafe impl<'a, C: ?Sized> Trustworthy for &'a mut C
 unsafe impl<'a, C: ?Sized> ContiguousMut for &'a mut C
     where C: ContiguousMut
 {
+    fn begin_mut(&mut self) -> *mut Self::Item { (**self).begin_mut() }
+    fn end_mut(&mut self) -> *mut Self::Item { (**self).end_mut() }
     fn as_mut_slice(&mut self) -> &mut [Self::Item] {
         (**self).as_mut_slice()
     }
@@ -115,6 +113,14 @@ unsafe impl<T> Trustworthy for [T] {
 }
 
 unsafe impl<T> ContiguousMut for [T] {
+    fn begin_mut(&mut self) -> *mut Self::Item {
+        self.as_mut_ptr()
+    }
+    fn end_mut(&mut self) -> *mut Self::Item {
+        unsafe {
+            self.begin_mut().add(self.len())
+        }
+    }
     fn as_mut_slice(&mut self) -> &mut [Self::Item] {
         self
     }
@@ -138,7 +144,7 @@ unsafe impl<T> Contiguous for [T] {
     }
     fn end(&self) -> *const Self::Item {
         unsafe {
-            self.begin().offset(self.len() as isize)
+            self.begin().add(self.len())
         }
     }
     fn as_slice(&self) -> &[Self::Item] {
@@ -155,6 +161,8 @@ mod vec_impls {
     }
 
     unsafe impl<T> ContiguousMut for Vec<T> {
+        fn begin_mut(&mut self) -> *mut Self::Item { (**self).begin_mut() }
+        fn end_mut(&mut self) -> *mut Self::Item { (**self).end_mut() }
         fn as_mut_slice(&mut self) -> &mut [Self::Item] {
             self
         }
