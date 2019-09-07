@@ -421,6 +421,27 @@ impl<'id, Array, T> Container<'id, Array, OnlyIndex>
     }
 }
 
+impl<'id, Array, T, Mode> Container<'id, Array, Mode>
+    where Array: Trustworthy<Item=T>
+{
+    /// Create a twin Container, that admits the same branded indices as self
+    ///
+    /// Checks the compatibilty (length) of both arrays and returns the
+    /// twin container if it is admissible.
+    ///
+    /// The twin container is OnlyIndex-marked, because only indices/index
+    /// ranges transfer between twins, and branded raw pointers of course not.
+    pub fn make_twin<Array2>(&self, arr: Array2) -> Result<Container<'id, Array2, OnlyIndex>, IndexingError>
+        where Array2: Trustworthy
+    {
+        if self.len() != arr.base_len() {
+            Err(index_error())
+        } else {
+            Ok(Container { id: self.id, arr: arr, mode: PhantomData })
+        }
+    }
+}
+
 /// `&self[i]` where `i` is an `Index<'id>`.
 impl<'id, Array, M> ops::Index<Index<'id>> for Container<'id, Array, M>
     where Array: GetUnchecked

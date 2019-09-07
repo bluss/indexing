@@ -9,11 +9,12 @@ fn main() {
         let (a, b) = arr1.range().split_in_half();
         for i in a {
             for j in b {
-                &mut arr1[i];
-                &mut arr1[j];
+                let _ = &mut arr1[i];
+                let _ = &mut arr1[j];
 
-                let _x = &arr1[i];
-                let _y = &mut arr1[j]; //~ ERROR: as mutable because it is also borrowed
+                let xi2 = &arr1[i];
+                let yi2 = &mut arr1[j]; //~ ERROR: as mutable because it is also borrowed
+                *yi2 = *xi2;
             }
         }
     });
