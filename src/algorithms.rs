@@ -383,7 +383,7 @@ pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &
 {
     debug_assert!(data.len() >= 1);
     if left_end > data.len() || left_end > buffer.len() {
-        r#try!(Err("merge_internal: data or buffer too short"));
+        Err("merge_internal: data or buffer too short")?;
     }
     scope(data, move |mut data| {
         let r = data.range();
@@ -440,7 +440,7 @@ pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &m
 {
     debug_assert!(data.len() >= 1);
     if left_end > data.len() || left_end > buffer.len() {
-        r#try!(Err("merge_internal: data or buffer too short"));
+        Err("merge_internal: data or buffer too short")?;
     }
     scope(data, |mut data| {
         let r = data.range();
