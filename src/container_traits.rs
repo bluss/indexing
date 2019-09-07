@@ -27,6 +27,9 @@ pub unsafe trait ContiguousMut : Contiguous {
     fn as_mut_slice(&mut self) -> &mut [Self::Item];
 }
 
+/// The container does not change is length while we are trusting it
+pub unsafe trait FixedLength : Trustworthy { }
+
 unsafe impl<'a, C: ?Sized> Trustworthy for &'a C
     where C: Trustworthy
 {
@@ -151,6 +154,18 @@ unsafe impl<T> Contiguous for [T] {
         self
     }
 }
+
+unsafe impl<'a, C: ?Sized> FixedLength for &'a C
+    where C: FixedLength
+{ }
+
+unsafe impl<'a, C: ?Sized> FixedLength for &'a mut C
+    where C: FixedLength
+{ }
+
+// The slice stays the same length while it's in a container
+// (in contrast, the Vec does not)
+unsafe impl<T> FixedLength for [T] { }
 
 #[cfg(feature = "use_std")]
 mod vec_impls {

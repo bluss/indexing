@@ -7,8 +7,8 @@
 use std::cmp::{self, Ordering};
 use std::mem::swap;
 
-use scope;
-use pointer::zip;
+use crate::scope;
+use crate::pointer::zip;
 
 
 // for debugging -- like println during debugging
@@ -383,7 +383,7 @@ pub fn merge_internal_indices<T: Ord>(data: &mut [T], left_end: usize, buffer: &
 {
     debug_assert!(data.len() >= 1);
     if left_end > data.len() || left_end > buffer.len() {
-        try!(Err("merge_internal: data or buffer too short"));
+        Err("merge_internal: data or buffer too short")?;
     }
     scope(data, move |mut data| {
         let r = data.range();
@@ -440,7 +440,7 @@ pub fn merge_internal_ranges<T: Ord>(data: &mut [T], left_end: usize, buffer: &m
 {
     debug_assert!(data.len() >= 1);
     if left_end > data.len() || left_end > buffer.len() {
-        try!(Err("merge_internal: data or buffer too short"));
+        Err("merge_internal: data or buffer too short")?;
     }
     scope(data, |mut data| {
         let r = data.range();
@@ -734,11 +734,11 @@ pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 }
 
 
-use Container;
-use container_traits::Contiguous;
-use pointer::{PIndex, PRange, PSlice};
-use Unknown;
-use proof::Provable;
+use crate::Container;
+use crate::container_traits::Contiguous;
+use crate::pointer::{PIndex, PRange, PSlice};
+use crate::Unknown;
+use crate::proof::Provable;
 
 pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
                                                 v: &Container<'id, Array>,

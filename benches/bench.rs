@@ -7,7 +7,7 @@ extern crate indexing;
 
 
 use test::Bencher;
-use test::black_box;
+
 
 
 

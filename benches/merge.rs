@@ -15,7 +15,7 @@ macro_rules! bench_insertion_sort {
         $(
         mod $name {
             use indexing::algorithms::*;
-            use bench_data;
+            use crate::bench_data;
             use test::Bencher;
             use std::mem;
             #[bench]

@@ -107,11 +107,11 @@ pub mod pointer;
 mod index_error;
 mod pointer_ext;
 
-pub use index_error::IndexingError;
+pub use crate::index_error::IndexingError;
 
-pub use container::{Container, scope};
+pub use crate::container::{Container, scope};
 
-pub use proof::{NonEmpty, Unknown};
+pub use crate::proof::{NonEmpty, Unknown};
 
 
 // Common types //

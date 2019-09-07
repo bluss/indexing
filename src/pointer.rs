@@ -18,17 +18,17 @@ use std::ptr;
 use std::ops;
 use std::slice::{from_raw_parts, from_raw_parts_mut};
 
-use scope;
+use crate::scope;
 use super::Id;
 use super::{NonEmpty, Container};
-use {Unknown};
-use IndexingError;
-use index_error::index_error;
+use crate::{Unknown};
+use crate::IndexingError;
+use crate::index_error::index_error;
 
-use pointer_ext::PointerExt;
-use proof::Provable;
-use container_traits::*;
-use ContainerPrivate;
+use crate::pointer_ext::PointerExt;
+use crate::proof::Provable;
+use crate::container_traits::*;
+use crate::ContainerPrivate;
 
 /// `PIndex` is a pointer to a location.
 ///

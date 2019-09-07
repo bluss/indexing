@@ -8,12 +8,12 @@ use std::mem;
 
 use std::fmt::{self, Debug};
 
-use index_error::IndexingError;
-use index_error::index_error;
+use crate::index_error::IndexingError;
+use crate::index_error::index_error;
 use std;
-use proof::*;
+use crate::proof::*;
 
-use {Id, Index, Range};
+use crate::{Id, Index, Range};
 
 
 
@@ -180,8 +180,9 @@ impl<'id, P> Range<'id, P> {
     /// Extend the range to the end of `other`, including any space in between
     ///
     ///
-    /// ```compile-fail
-    /// // compile-fail only enabled in 2018 edition
+    /// The following example exists only to check that it fails to compile:
+    ///
+    /// ```compile_fail
     /// // Bug from https://github.com/bluss/indexing/issues/12
     /// use indexing::scope;
     ///
@@ -193,7 +194,7 @@ impl<'id, P> Range<'id, P> {
 
     ///     let joined = right.join_cover(left);
     ///     let ix = joined.first();
-    ///     dbg!(arr[ix]);  //~ ERROR Can't index by ix, because it's an edge index
+    ///     arr[ix];  //~ ERROR: Can't index by ix, because it's an edge index
     /// });
     /// ```
     // Proof P: Extends at least as far as self, not necessarily using any part
@@ -588,7 +589,7 @@ fn test_frac_step() {
 
 #[test]
 fn test_join_cover() {
-    use scope;
+    use crate::scope;
 
     // Bug from https://github.com/bluss/indexing/issues/12
     let array = [0, 1, 2, 3, 4, 5];
