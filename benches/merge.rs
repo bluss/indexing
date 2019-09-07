@@ -42,6 +42,7 @@ macro_rules! bench_insertion_sort {
                 b.bytes = mem::size_of_val(&data) as u64;
             }
 
+            #[cfg(feature="experimental_pointer_ranges")]
             #[bench]
             fn ranges_lower_bound(b: &mut Bencher) {
                 let mut data = [0; $n];
@@ -54,6 +55,7 @@ macro_rules! bench_insertion_sort {
                 b.bytes = mem::size_of_val(&data) as u64;
             }
 
+            #[cfg(feature="experimental_pointer_ranges")]
             #[bench]
             fn prange(b: &mut Bencher) {
                 let mut data = [0; $n];

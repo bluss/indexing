@@ -89,6 +89,7 @@ fn bench_binary_search_range(b: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn bench_binary_search_prange(b: &mut Bencher) {
     let mut data = test_data_max(N, MAX);
@@ -101,6 +102,7 @@ fn bench_binary_search_prange(b: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn bench_binary_search_pslice(b: &mut Bencher) {
     let mut data = test_data_max(N, MAX);
@@ -224,6 +226,7 @@ fn indexing_lower_bound_many_duplicate_raw_ptr(b: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn indexing_lower_bound_many_duplicate_prange(b: &mut Bencher) {
     let max = N as i32 / 5;
@@ -250,6 +253,7 @@ fn indexing_lower_bound_few_duplicate_raw_ptr(b: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn indexing_lower_bound_few_duplicate_prange(b: &mut Bencher) {
     let max = N as i32 * 10;
@@ -332,6 +336,7 @@ fn short_lower_bound_std(b: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn short_lower_bound_prange(b: &mut Bencher) {
     let mut data = test_data_max(N, MAX);
@@ -350,6 +355,7 @@ fn short_lower_bound_prange(b: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn short_lower_bound_pslice(b: &mut Bencher) {
     let mut data = test_data_max(N, MAX);
