@@ -10,6 +10,27 @@ use std::fmt::Debug;
 
 
 #[test]
+fn test_range_order() {
+    let data = [1, 2, 3, 4, 5];
+    scope(&data[..], move |v| {
+        let r = v.range();
+        let rne = r.nonempty().unwrap();
+        assert_eq!(r, rne);
+        assert_eq!(r.partial_cmp(&rne), Some(Ordering::Equal));
+        assert_eq!(r.cmp(&rne.no_proof()), Ordering::Equal);
+        let tail = rne.tail();
+        assert!(r < tail);
+        assert!(tail >= r);
+        assert!(tail != r);
+        assert_eq!(r.cmp(&tail), Ordering::Less);
+
+        let (a, b) = r.split_in_half();
+        assert!(a < b);
+        assert!(a < r);
+    });
+}
+
+#[test]
 fn join_add_proof() {
     let data = [1, 2, 3];
     scope(&data[..], move |v| {

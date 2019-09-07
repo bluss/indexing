@@ -4,7 +4,6 @@
 
 use std::cmp::{self, Ordering};
 use std::hash::{Hash, Hasher};
-use std::mem;
 
 use std::fmt::{self, Debug};
 
@@ -81,8 +80,35 @@ impl<'id, P> Eq for Range<'id, P> { }
 
 impl<'id, P> Hash for Range<'id, P> {
     fn hash<H: Hasher>(&self, h: &mut H) {
-        self.start.hash(h);
-        self.end.hash(h);
+        self.order_key().hash(h);
+    }
+}
+
+impl<'id, P> Range<'id, P> {
+    pub(crate) fn order_key(self) -> (usize, usize) { (self.start, self.end) }
+}
+
+/// Compare the order of two ranges.
+///
+/// Ranges compare like an ordered pair of indices, and the proof
+/// parameter does not matter.
+impl<'id, P, Q> PartialOrd<Range<'id, Q>> for Range<'id, P> {
+    fn partial_cmp(&self, rhs: &Range<'id, Q>) -> Option<Ordering> {
+        Some(Ord::cmp(&self.order_key(), &rhs.order_key()))
+    }
+
+    fn lt(&self, rhs: &Range<'id, Q>) -> bool {
+        PartialOrd::lt(&self.order_key(), &rhs.order_key())
+    }
+}
+
+/// Compare the order of two ranges.
+///
+/// Ranges compare like an ordered pair of indices, and the proof
+/// parameter does not matter.
+impl<'id, P> Ord for Range<'id, P> {
+    fn cmp(&self, rhs: &Self) -> Ordering {
+        Ord::cmp(&self.order_key(), &rhs.order_key())
     }
 }
 
