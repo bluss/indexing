@@ -2,6 +2,7 @@
 use std::mem;
 
 use crate::{Index, Range};
+#[cfg(feature="experimental_pointer_ranges")]
 use crate::pointer::{PIndex, PRange, PSlice};
 
 /// Length marker for range known to not be empty.
@@ -51,6 +52,7 @@ impl<'id, P> Provable for Range<'id, P> {
     }
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 impl<'id, T, P> Provable for PIndex<'id, T, P> {
     type Proof = P;
     type WithoutProof = PIndex<'id, T, Unknown>;
@@ -63,6 +65,7 @@ impl<'id, T, P> Provable for PIndex<'id, T, P> {
     }
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 impl<'id, T, P> Provable for PRange<'id, T, P> {
     type Proof = P;
     type WithoutProof = PRange<'id, T, Unknown>;
@@ -75,6 +78,7 @@ impl<'id, T, P> Provable for PRange<'id, T, P> {
     }
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 impl<'id, T, P> Provable for PSlice<'id, T, P> {
     type Proof = P;
     type WithoutProof = PSlice<'id, T, Unknown>;

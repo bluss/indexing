@@ -8,10 +8,10 @@ matrix:
     - rust: beta
     - rust: nightly
     - rust: nightly
-      env: FEATURES='test_compiletest'
+      env: FEATURES='test_compiletest experimental_pointer_ranges'
   allow_failures:
     - rust: nightly
-      env: FEATURES='test_compiletest'
+      env: FEATURES='test_compiletest experimental_pointer_ranges'
 env:
   global:
     - HOST=x86_64-unknown-linux-gnu

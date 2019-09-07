@@ -92,6 +92,7 @@ fn qc_quicksort_bounds() {
 }
 
 quickcheck! {
+    #[cfg(feature="experimental_pointer_ranges")]
     fn test_quicksort_prange(v: Vec<i32>) -> bool {
         let ans = sorted(&v);
         let mut v = v;
@@ -173,16 +174,19 @@ quickcheck! {
                 }).unwrap_err()
     }
 
+    #[cfg(feature="experimental_pointer_ranges")]
     fn test_lower_bound_3(data: Vec<u8>, find: u8) -> bool {
         let data = sorted_vec(data);
         lower_bound(&data, &find) == lower_bound_prange(&data, &find)
     }
 
+    #[cfg(feature="experimental_pointer_ranges")]
     fn test_lower_bound_4(data: Vec<u8>, find: u8) -> bool {
         let data = sorted_vec(data);
         lower_bound_pslice(&data, |x| *x < find) == lower_bound_raw_ptr(&data, &find)
     }
 
+    #[cfg(feature="experimental_pointer_ranges")]
     fn test_insertion_sort_prange(data: Vec<u8>) -> () {
         let mut data = data;
         let ans = sorted_vec(data.clone());
@@ -190,6 +194,7 @@ quickcheck! {
         assert_eq!(ans, data);
     }
 
+    #[cfg(feature="experimental_pointer_ranges")]
     fn test_insertion_sort_prange_lower(data: Vec<u8>) -> () {
         let mut data = data;
         let ans = sorted_vec(data.clone());
@@ -197,12 +202,14 @@ quickcheck! {
         assert_eq!(ans, data);
     }
 
+    #[cfg(feature="experimental_pointer_ranges")]
     fn test_binary_search_prange(data: Vec<u8>, find: u8) -> () {
         let data = sorted_vec(data);
         assert_binary_search_ok(&data, data.binary_search(&find),
             binary_search_by_prange(&data, |x| x.cmp(&find)))
     }
 
+    #[cfg(feature="experimental_pointer_ranges")]
     fn test_binary_search_pslice(data: Vec<u8>, find: u8) -> () {
         let data = sorted_vec(data);
         assert_binary_search_ok(&data, data.binary_search(&find),
