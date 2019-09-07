@@ -541,6 +541,10 @@ impl FracStep {
 }
 
 /// `Subdivide` is an iterator of evenly sized nonempty, nonoverlapping ranges
+///
+/// Note that evenly sized means that the chunk sizes will be relatively
+/// evenly sized, for example 0..8 will be divided into ranges of 0..2, 2..5 and
+/// 5..8 (lengths 2, 3, 3 respectively).
 #[derive(Copy, Clone, Debug)]
 pub struct Subdivide<'id> {
     range: Range<'id>,
