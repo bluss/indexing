@@ -259,6 +259,18 @@ pub fn insertion_sort_indexes<T, F>(v: &mut [T], mut less_than: F) where F: FnMu
     });
 }
 
+/// Sort two containers in lock step, based on the first
+pub fn insertion_sort2_indexes<T, U, F>(v: &mut [T], u: &mut [U], mut less_than: F) where F: FnMut(&T, &T) -> bool {
+    scope(v, move |mut v| {
+        let mut u = v.make_twin(u).unwrap();
+        for i in v.range() {
+            let jtail = v.scan_from_rev(i, |j_elt| less_than(&v[i], j_elt));
+            v.rotate1_up(jtail);
+            u.rotate1_up(jtail);
+        }
+    });
+}
+
 pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
     scope(v, move |mut v| {
         if let Ok(mut i) = v.range().nonempty() {
@@ -857,3 +869,50 @@ fn test_lower_bound_pointer() {
             }).unwrap_err());
     }
 }
+
+#[test]
+fn test_twin_insertion_sort() {
+
+    let mut data1 = [2, 3, 1, 4];
+    let mut data2 = data1;
+    let mut data3 = ["a", "b", "c", "d"];
+
+    insertion_sort_indexes(&mut data1, PartialOrd::lt);
+    insertion_sort2_indexes(&mut data2, &mut data3, PartialOrd::lt);
+    assert_eq!(data2, [1, 2, 3, 4]);
+    assert_eq!(data3, ["c", "a", "b", "d"]);
+}
+
+#[test]
+fn test_make_twin() {
+    let arr1 = [1, 2, 3, 4, 5];
+    let mut arr2 = [6, 7, 8, 9, 10];
+
+    scope(&arr1[..], |arr| {
+        let r = arr.pointer_range();
+        let r = r.nonempty().unwrap();      
+        // Pointer first index
+        let pfst = r.first();
+        let (_, _) = arr.split_at_pointer(pfst);
+        let _ = &arr[pfst..];
+
+        let twin = arr.make_twin(&mut arr2[..]).unwrap();
+
+        // We can't use the PIndex/PRange on the twin
+        //twin.split_at_pointer(pfst);
+        //let elt = &twin[pfst];
+        //let elt = &twin[pfst..];
+        //
+        // But we can use its indices
+
+        let mut tested = 0;
+        for (i, j) in arr.range().into_iter().zip(twin.range()) {
+            assert_eq!(twin[i], twin[j]);
+            assert_eq!(arr[i] + 5, twin[j]);
+            assert_eq!(i, j);
+            tested += 1;
+        }
+        assert_eq!(tested, 5);
+
+    });
+} 
