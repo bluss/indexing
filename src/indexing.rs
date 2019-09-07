@@ -101,7 +101,7 @@ impl<'id, P> Range<'id, P> {
     pub fn nonempty(&self) -> Result<Range<'id, NonEmpty>, IndexingError> {
         unsafe {
             if !self.is_empty() {
-                Ok(mem::transmute(*self))
+                Ok(Range::assume_nonempty_range(*self))
             } else {
                 Err(index_error())
             }
@@ -261,7 +261,7 @@ impl<'id, P> Range<'id, P> {
     #[inline]
     pub fn no_proof(&self) -> Range<'id> {
         unsafe {
-            mem::transmute(*self)
+            Range::assume_any_range(*self)
         }
     }
 }

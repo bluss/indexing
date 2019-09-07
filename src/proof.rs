@@ -34,7 +34,7 @@ impl<'id, P> Provable for Index<'id, P> {
     #[inline]
     fn no_proof(self) -> Self::WithoutProof {
         unsafe {
-            mem::transmute(self)
+            Index::assume_any_index(self)
         }
     }
 }
@@ -46,7 +46,7 @@ impl<'id, P> Provable for Range<'id, P> {
     #[inline]
     fn no_proof(self) -> Self::WithoutProof {
         unsafe {
-            mem::transmute(self)
+            Range::assume_any_range(self)
         }
     }
 }

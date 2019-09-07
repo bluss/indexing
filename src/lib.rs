@@ -163,6 +163,12 @@ impl<'id, P> Index<'id, P> {
         debug_assert!(index as isize >= 0);
         Index { id: Id::default(), index: index, proof: PhantomData }
     }
+
+    #[inline]
+    // Assume any proof for index
+    unsafe fn assume_any_index<Q>(other: Index<'id, Q>) -> Self {
+        Self::new(other.index)
+    }
 }
 
 
@@ -202,6 +208,11 @@ impl<'id> Range<'id, NonEmpty> {
         debug_assert!(start < end);
         Range { id: Id::default(), start: start, end: end, proof: PhantomData }
     }
+
+    #[inline]
+    unsafe fn assume_nonempty_range<Q>(other: Range<'id, Q>) -> Range<'id, NonEmpty> {
+        Range::from_ne(other.start, other.end)
+    }
 }
 
 impl<'id, P> Range<'id, P> {
@@ -209,6 +220,11 @@ impl<'id, P> Range<'id, P> {
     unsafe fn from_any(start: usize, end: usize) -> Range<'id, P> {
         debug_assert!(start <= end);
         Range { id: Id::default(), start: start, end: end, proof: PhantomData }
+    }
+
+    #[inline]
+    unsafe fn assume_any_range<Q>(other: Range<'id, Q>) -> Self {
+        Self::from_any(other.start, other.end)
     }
 }
 
