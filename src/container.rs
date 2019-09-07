@@ -8,15 +8,15 @@ use std::fmt::{self, Debug};
 
 use std::marker::PhantomData;
 
-use index_error::IndexingError;
-use index_error::index_error;
-use proof::*;
+use crate::index_error::IndexingError;
+use crate::index_error::index_error;
+use crate::proof::*;
 use std;
 
-use container_traits::*;
-use indexing::{IntoCheckedRange};
-use {Id, Index, Range};
-use ContainerPrivate;
+use crate::container_traits::*;
+use crate::indexing::{IntoCheckedRange};
+use crate::{Id, Index, Range};
+use crate::ContainerPrivate;
 
 /// A branded container, that allows access only to indices and ranges with
 /// the exact same brand in the `'id` parameter.

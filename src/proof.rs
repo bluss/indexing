@@ -1,8 +1,8 @@
 
 use std::mem;
 
-use {Index, Range};
-use pointer::{PIndex, PRange, PSlice};
+use crate::{Index, Range};
+use crate::pointer::{PIndex, PRange, PSlice};
 
 /// Length marker for range known to not be empty.
 #[derive(Copy, Clone, Debug)]
