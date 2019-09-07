@@ -422,7 +422,7 @@ impl<'id, Array, T> Container<'id, Array, OnlyIndex>
 }
 
 impl<'id, Array, T, Mode> Container<'id, Array, Mode>
-    where Array: Trustworthy<Item=T>
+    where Array: Trustworthy<Item=T> + FixedLength
 {
     /// Create a twin Container, that admits the same branded indices as self
     ///
@@ -432,7 +432,7 @@ impl<'id, Array, T, Mode> Container<'id, Array, Mode>
     /// The twin container is OnlyIndex-marked, because only indices/index
     /// ranges transfer between twins, and branded raw pointers of course not.
     pub fn make_twin<Array2>(&self, arr: Array2) -> Result<Container<'id, Array2, OnlyIndex>, IndexingError>
-        where Array2: Trustworthy
+        where Array2: Trustworthy + FixedLength
     {
         if self.len() != arr.base_len() {
             Err(index_error())
