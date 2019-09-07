@@ -87,3 +87,31 @@ impl<'id, T, P> Provable for PSlice<'id, T, P> {
     }
 }
 
+#[cfg(test)]
+pub(crate) trait ProofType {
+    fn nonempty() -> bool;
+    fn unknown() -> bool { !Self::nonempty() }
+}
+
+#[cfg(test)]
+impl ProofType for Unknown {
+    fn nonempty() -> bool { false }
+}
+
+#[cfg(test)]
+impl ProofType for NonEmpty {
+    fn nonempty() -> bool { false }
+}
+
+
+#[cfg(test)]
+impl<'id, P> Index<'id, P> {
+    pub(crate) fn nonempty_proof(&self) -> bool where P: ProofType
+    { P::nonempty() }
+}
+
+#[cfg(test)]
+impl<'id, P> Range<'id, P> {
+    pub(crate) fn nonempty_proof(&self) -> bool where P: ProofType
+    { P::nonempty() }
+}

@@ -178,7 +178,28 @@ impl<'id, P> Range<'id, P> {
     }
 
     /// Extend the range to the end of `other`, including any space in between
-    pub fn join_cover<Q>(&self, other: Range<'id, Q>) -> Range<'id, <(P, Q) as ProofAdd>::Sum>
+    ///
+    ///
+    /// ```compile-fail
+    /// // compile-fail only enabled in 2018 edition
+    /// // Bug from https://github.com/bluss/indexing/issues/12
+    /// use indexing::scope;
+    ///
+    /// let array = [0, 1, 2, 3, 4, 5];
+    /// scope(&array[..], |arr| {
+    ///     let left = arr.vet_range(0..2).unwrap();
+    ///     let left = left.nonempty().unwrap();
+    ///     let (_, right) = arr.range().frontiers();
+
+    ///     let joined = right.join_cover(left);
+    ///     let ix = joined.first();
+    ///     dbg!(arr[ix]);  //~ ERROR Can't index by ix, because it's an edge index
+    /// });
+    /// ```
+    // Proof P: Extends at least as far as self, not necessarily using any part
+    // of other
+    //
+    pub fn join_cover<Q>(&self, other: Range<'id, Q>) -> Range<'id, P>
         where (P, Q): ProofAdd,
     {
         let end = cmp::max(self.end, other.end);
@@ -188,6 +209,7 @@ impl<'id, P> Range<'id, P> {
     }
 
     /// Extend the range to start and end of `other`, including any space in between
+    // Proof Sum of P and Q: Covers the union, so must be nonempty if any are
     pub fn join_cover_both<Q>(&self, other: Range<'id, Q>) -> Range<'id, <(P, Q) as ProofAdd>::Sum>
         where (P, Q): ProofAdd,
     {
@@ -563,3 +585,21 @@ fn test_frac_step() {
     assert_eq!(f.next(), None);
 }
 
+
+#[test]
+fn test_join_cover() {
+    use scope;
+
+    // Bug from https://github.com/bluss/indexing/issues/12
+    let array = [0, 1, 2, 3, 4, 5];
+    scope(&array[..], |arr| {
+        let left = arr.vet_range(0..2).unwrap();
+        let left = left.nonempty().unwrap();
+        let (_, right) = arr.range().frontiers();
+
+        let joined = right.join_cover(left);
+        let ix = joined.first();
+        assert!(!ix.nonempty_proof());
+        ix.integer()
+    });
+}
