@@ -26,8 +26,6 @@
 //!
 //! - `Index<'id>` is a trusted index
 //! - `Range<'id, P>` is a trusted range.
-//! - `PIndex<'id, T>` and `PRange<'id, T, P>` are equivalent to `Index` and
-//! `Range`, but they use trusted raw pointers instead.
 //! - For a range, if the proof parameter `P` is `NonEmpty`, then the range is
 //! known to have at least one element. An observation: A non-empty range always
 //! has a valid front index, so it is interchangeable with the index
@@ -41,6 +39,16 @@
 //!   particle is also `NonEmpty` and thus dereferenceable.
 //!
 //! [c]: container/struct.Container.html
+//!
+//! # Raw Pointers
+//!
+//! Branded raw pointers work very similarly to indices. However, the code
+//! needs revision and it's not of good quality, so it's not enabled by default.
+//!
+//! - `PIndex<'id, T>` and `PRange<'id, T, P>` are equivalent to `Index` and
+//! `Range`, but they use trusted raw pointers instead.
+//! There are even two kinds of ranges: `PRange` uses a begin and end pointer
+//! representation, and `PSlice` a begin pointer and length representation.
 //!
 //! # Borrowing Rules
 //!
@@ -60,7 +68,7 @@
 //!
 //! fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 //!     scope(v, move |v| {
-//!         let mut range = v.pointer_range();
+//!         let mut range = v.range();
 //!         while let Ok(range_) = range.nonempty() {
 //!             // The upper half of the split range still carries the proof
 //!             // that it is non-empty, so we can access the element at `b.first()`
@@ -78,7 +86,7 @@
 //!             }
 //!         }
 //!         // return the start index of the range
-//!         v.distance_to(range.first())
+//!         range.first().integer()
 //!     })
 //! }
 //!
@@ -103,6 +111,7 @@ pub mod proof;
 pub mod algorithms;
 pub mod container_traits;
 pub mod container;
+#[cfg(feature="experimental_pointer_ranges")]
 pub mod pointer;
 mod index_error;
 mod pointer_ext;

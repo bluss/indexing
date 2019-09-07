@@ -8,8 +8,8 @@ use std::cmp::{self, Ordering};
 use std::mem::swap;
 
 use crate::scope;
+#[cfg(feature="experimental_pointer_ranges")]
 use crate::pointer::zip;
-
 
 // for debugging -- like println during debugging
 /*
@@ -86,6 +86,7 @@ pub fn quicksort_range<T: Ord>(v: &mut [T]) {
 }
 
 /// Simple quicksort implemented using `indexing`’s PRange.
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn quicksort_prange<T: Ord>(v: &mut [T]) {
     scope(v, |mut v| {
         let range = v.pointer_range();
@@ -186,10 +187,12 @@ pub fn quicksort_bounds<T: Ord>(v: &mut [T]) {
     quicksort_bounds(b);
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn zip_dot_i32(xs: &[i32], ys: &[i32]) -> i32 {
     xs.iter().zip(ys).map(|(x, y)| x * y).sum()
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn zip_dot_i32_prange(xs: &[i32], ys: &[i32]) -> i32 {
     scope(xs, move |v| {
         scope(ys, move |u| {
@@ -208,6 +211,7 @@ pub fn copy<T: Copy>(xs: &[T], ys: &mut [T]) {
     }
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn copy_prange<T: Copy>(xs: &[T], ys: &mut [T]) {
     scope(xs, move |v| {
         scope(ys, move |mut u| {
@@ -285,6 +289,7 @@ pub fn insertion_sort_ranges<T, F>(v: &mut [T], mut less_than: F) where F: FnMut
 /// Insertion sort using lower_bound to find the place to insert; which
 /// makes it scale better (still restricted to just a smallish number of
 /// elements).
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn insertion_sort_prange_lower<T, F>(v: &mut [T], mut less_than: F)
     where F: FnMut(&T, &T) -> bool,
 {
@@ -300,6 +305,7 @@ pub fn insertion_sort_prange_lower<T, F>(v: &mut [T], mut less_than: F)
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn insertion_sort_pointerindex<T, F>(v: &mut [T], mut less_than: F) where F: FnMut(&T, &T) -> bool {
     scope(v, move |mut v| {
         for i in v.pointer_range() {
@@ -601,6 +607,7 @@ pub fn binary_search_by<T, F>(v: &[T], mut f: F) -> Result<usize, usize>
     })
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn binary_search_by_prange<'id, T, F>(v: &[T], compare: F)
     -> Result<usize, usize>
     where F: FnMut(&T) -> Ordering,
@@ -620,6 +627,7 @@ pub fn binary_search_by_prange<'id, T, F>(v: &[T], compare: F)
 ///
 /// `compare` is a closure that is passed `x` from the slice and should return
 /// the result of `x` compared with the element whose position is sought.
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn binary_search_by_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
                                                      v: &Container<'id, Array>,
                                                      mut compare: F)
@@ -645,6 +653,7 @@ pub fn binary_search_by_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
 }
 
 #[inline(never)]
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn binary_search_by_pslice<'id, T, F>(v: &[T], compare: F)
     -> Result<usize, usize>
     where F: FnMut(&T) -> Ordering,
@@ -664,6 +673,7 @@ pub fn binary_search_by_pslice<'id, T, F>(v: &[T], compare: F)
 ///
 /// `compare` is a closure that is passed `x` from the slice and should return
 /// the result of `x` compared with the element whose position is sought.
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn binary_search_by_pslice_<'id, T, P, Array, F>(range: PSlice<'id, T, P>,
                                                      v: &Container<'id, Array>,
                                                      mut compare: F)
@@ -717,6 +727,7 @@ pub fn lower_bound<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     })
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 /// Using PRange (pointer-based safe API)
 pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
     scope(v, move |v| {
@@ -735,11 +746,15 @@ pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 
 
 use crate::Container;
-use crate::container_traits::Contiguous;
-use crate::pointer::{PIndex, PRange, PSlice};
 use crate::Unknown;
 use crate::proof::Provable;
 
+#[cfg(feature="experimental_pointer_ranges")]
+use crate::container_traits::Contiguous;
+#[cfg(feature="experimental_pointer_ranges")]
+use crate::pointer::{PIndex, PRange, PSlice};
+
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
                                                 v: &Container<'id, Array>,
                                                 mut less_than: F)
@@ -759,6 +774,7 @@ pub fn lower_bound_prange_<'id, T, P, Array, F>(range: PRange<'id, T, P>,
     range.first()
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn lower_bound_pslice_<'id, T, P, Array, F>(range: PSlice<'id, T, P>,
                                                 v: &Container<'id, Array>,
                                                 mut less_than: F)
@@ -779,6 +795,7 @@ pub fn lower_bound_pslice_<'id, T, P, Array, F>(range: PSlice<'id, T, P>,
 }
 
 /// Using PSlice (pointer-based safe API)
+#[cfg(feature="experimental_pointer_ranges")]
 pub fn lower_bound_pslice<T, F>(v: &[T], f: F) -> usize
     where F: FnMut(&T) -> bool,
 {
@@ -852,6 +869,7 @@ fn test_lower_bound_ptr() {
     }
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[test]
 fn test_lower_bound_pointer() {
     let data = [3, 7, 8, 8, 8, 11, 11, 11, 15, 22, 22, 26];
@@ -889,12 +907,8 @@ fn test_make_twin() {
     let mut arr2 = [6, 7, 8, 9, 10];
 
     scope(&arr1[..], |arr| {
-        let r = arr.pointer_range();
+        let r = arr.range();
         let r = r.nonempty().unwrap();      
-        // Pointer first index
-        let pfst = r.first();
-        let (_, _) = arr.split_at_pointer(pfst);
-        let _ = &arr[pfst..];
 
         let twin = arr.make_twin(&mut arr2[..]).unwrap();
 
@@ -906,7 +920,7 @@ fn test_make_twin() {
         // But we can use its indices
 
         let mut tested = 0;
-        for (i, j) in arr.range().into_iter().zip(twin.range()) {
+        for (i, j) in r.into_iter().zip(twin.range()) {
             assert_eq!(twin[i], twin[j]);
             assert_eq!(arr[i] + 5, twin[j]);
             assert_eq!(i, j);

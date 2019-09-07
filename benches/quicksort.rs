@@ -33,6 +33,7 @@ fn bench_quicksort_range(b: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn bench_quicksort_prange(b: &mut Bencher) {
     let data = test_data_max(N, MAX);

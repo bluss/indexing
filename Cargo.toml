@@ -24,10 +24,10 @@ quickcheck = { version = "0.7", default-features = false }
 
 [features]
 default = ["use_std"]
-
 # Turn off std to use `no_std`
 use_std = []
 
+experimental_pointer_ranges = []
 test_compiletest = ["compiletest_rs"]
 
 [profile.bench]

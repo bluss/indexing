@@ -26,6 +26,7 @@ fn test_data_max(n: usize, max: i32) -> Vec<i32> {
 
 const ZIPLEN: usize = 256;
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn zip_1(bench: &mut Bencher) {
     let xs = test_data_max(ZIPLEN, 21);
@@ -35,6 +36,7 @@ fn zip_1(bench: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn zip_2(bench: &mut Bencher) {
     let xs = test_data_max(ZIPLEN, 21);
@@ -44,6 +46,7 @@ fn zip_2(bench: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn copy_1(bench: &mut Bencher) {
     let xs = test_data_max(ZIPLEN, 21);
@@ -53,6 +56,7 @@ fn copy_1(bench: &mut Bencher) {
     });
 }
 
+#[cfg(feature="experimental_pointer_ranges")]
 #[bench]
 fn copy_2(bench: &mut Bencher) {
     let xs = test_data_max(ZIPLEN, 21);
