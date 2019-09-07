@@ -33,6 +33,18 @@ Also now described in: `You can't spell trust without Rust <https://raw.githubus
 Recent Changes
 --------------
 
+- 0.4.0
+
+  - Add method ``.make_twin()`` that allows two or more containers
+    to use the same trusted indices, if they are the same size
+  - Add new marker trait ``FixedLength`` for use in ``make_twin``.
+  - Remove the branded raw pointer features, since they need revision (See #11)
+  - Fix bug in the proof of ``.join_cover()``
+  - Fix signatures in ``ContiguousMut`` so that it now uses ``&mut`` correctly
+  - Update dev-dependencies
+  - Add ``Ord, PartialOrd`` impls for ``Range``
+  - Now using Rust 2018 and requiring Rust 1.32 or later.
+
 - 0.3.2
 
   - Fix future compatibility warning about pointer casts.
