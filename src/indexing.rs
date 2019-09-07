@@ -180,8 +180,9 @@ impl<'id, P> Range<'id, P> {
     /// Extend the range to the end of `other`, including any space in between
     ///
     ///
-    /// ```compile-fail
-    /// // compile-fail only enabled in 2018 edition
+    /// The following example exists only to check that it fails to compile:
+    ///
+    /// ```compile_fail
     /// // Bug from https://github.com/bluss/indexing/issues/12
     /// use indexing::scope;
     ///
@@ -193,7 +194,7 @@ impl<'id, P> Range<'id, P> {
 
     ///     let joined = right.join_cover(left);
     ///     let ix = joined.first();
-    ///     dbg!(arr[ix]);  //~ ERROR Can't index by ix, because it's an edge index
+    ///     arr[ix];  //~ ERROR: Can't index by ix, because it's an edge index
     /// });
     /// ```
     // Proof P: Extends at least as far as self, not necessarily using any part
