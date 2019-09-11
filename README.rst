@@ -33,6 +33,12 @@ Also now described in: `You can't spell trust without Rust <https://raw.githubus
 Recent Changes
 --------------
 
+- 0.4.1
+
+  - Remove the ability to clone non- ``FixedLength`` Containers,
+    because allowing to clone a container was wrong in the presencen of the
+    length changing .push()/.insert() methods on vectors in containers.
+
 - 0.4.0
 
   - Add method ``.make_twin()`` that allows two or more containers
