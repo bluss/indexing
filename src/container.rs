@@ -49,8 +49,19 @@ impl<'id, Array, Mode> Debug for Container<'id, Array, Mode>
     }
 }
 
+/// A container can be cloned if the inner array can (typically a shared
+/// slice).
+///
+/// But containers of vectors can not be cloned:
+///
+/// ```compile_fail
+/// use indexing::scope;
+/// scope(vec![0; 10], |v| {
+///     let _u = v.clone();
+/// });
+/// ```
 impl<'id, Array, Mode> Clone for Container<'id, Array, Mode>
-    where Array: Clone
+    where Array: Clone + FixedLength
 {
     fn clone(&self) -> Self {
         Container {
