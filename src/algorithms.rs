@@ -745,8 +745,11 @@ pub fn lower_bound_prange<T: PartialOrd>(v: &[T], elt: &T) -> usize {
 }
 
 
+#[cfg(feature="experimental_pointer_ranges")]
 use crate::Container;
+#[cfg(feature="experimental_pointer_ranges")]
 use crate::Unknown;
+#[cfg(feature="experimental_pointer_ranges")]
 use crate::proof::Provable;
 
 #[cfg(feature="experimental_pointer_ranges")]

@@ -1,4 +1,5 @@
 
+#[cfg(feature="experimental_pointer_ranges")]
 use std::mem;
 
 use crate::{Index, Range};
